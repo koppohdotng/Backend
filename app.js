@@ -9,7 +9,7 @@ const multer = require('multer');
 
 
 
-const port = 3000; // You can change this port to any other port you prefer
+const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());
 
 // Use the authentication routes defined in auth.js
