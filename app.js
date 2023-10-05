@@ -19,21 +19,21 @@ app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
-// app.post('/google-signin', async (req, res) => {
-//     const { idToken } = req.body;
+app.post('/google-signin', async (req, res) => {
+    const { idToken } = req.body;
   
-//     try {
-//       const user = await verifyGoogleIdToken(idToken);
+    try {
+      const user = await verifyGoogleIdToken(idToken);
   
-//       // You can use the user information (user.email, user.name, etc.) for authentication
-//       // Example: Authenticate the user in your database or create a session
+      // You can use the user information (user.email, user.name, etc.) for authentication
+      // Example: Authenticate the user in your database or create a session
   
-//       res.status(200).json({ message: 'Google Sign-In successful', user });
-//     } catch (error) {
-//       console.error('Google Sign-In error:', error);
-//       res.status(401).json({ error: 'Google Sign-In failed' });
-//     }
-//   });
+      res.status(200).json({ message: 'Google Sign-In successful', user });
+    } catch (error) {
+      console.error('Google Sign-In error:', error);
+      res.status(401).json({ error: 'Google Sign-In failed' });
+    }
+  });
 
 app.use('/auth', authRoutes);
 
@@ -74,8 +74,8 @@ const db = admin.database();
 const teammatesRef = db.ref('teammates'); // Reference to the 'teammates' node in your database
 
 // Initialize Multer for handling image uploads
-// const storage = multer.memoryStorage();
-// const upload = multer({ storage });
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
@@ -153,56 +153,56 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 const dataRef = db.ref('businessInfo'); // Change to your database reference
 
 // Define an API route for updating user data
-// app.put('/updateUserData/:userId', multer.single('logo'), (req, res) => {
-//   const userId = req.params.userId;
-//   const {
-//     businessName,
-//     companyVision,
-//     registrationStatus,
-//     businessType,
-//     businessRCNumber,
-//     yearOfIncorporation,
-//     businessSector,
-//   } = req.body;
+app.put('/updateUserData/:userId', multer.single('logo'), (req, res) => {
+  const userId = req.params.userId;
+  const {
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessType,
+    businessRCNumber,
+    yearOfIncorporation,
+    businessSector,
+  } = req.body;
 
-//   // Handle image upload and rename
-//   let logoFileName = '';
-//   if (req.file) {
-//     logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
-//     const bucket = admin.storage().bucket();
-//     const file = bucket.file(logoFileName);
-//     const stream = file.createWriteStream({
-//       metadata: {
-//         contentType: req.file.mimetype,
-//       },
-//     });
-//     stream.end(req.file.buffer);
-//   }
+  // Handle image upload and rename
+  let logoFileName = '';
+  if (req.file) {
+    logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(logoFileName);
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+    stream.end(req.file.buffer);
+  }
 
-//   // Update user data in Firebase database
-//   const userData = {
-//     businessName,
-//     companyVision,
-//     registrationStatus,
-//     businessType,
-//     businessRCNumber,
-//     yearOfIncorporation,
-//     businessSector,
-//     logoFileName,
-//   };
+  // Update user data in Firebase database
+  const userData = {
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessType,
+    businessRCNumber,
+    yearOfIncorporation,
+    businessSector,
+    logoFileName,
+  };
 
-//   dataRef.child(userId).update(userData, (error) => {
-//     if (error) {
-//       res.status(500).json({ error: 'Failed to update user data.' });
-//     } else {
-//       res.status(200).json({ message: 'User data updated successfully.' });
-//     }
-//   });
-// });
+  dataRef.child(userId).update(userData, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update user data.' });
+    } else {
+      res.status(200).json({ message: 'User data updated successfully.' });
+    }
+  });
+});
 
 const dataRefz = db.ref('addMilestone'); // Change to your database reference
 
-// Define an API route for adding a new milestone
+//Define an API route for adding a new milestone
 app.post('/addMilestone/:userId', (req, res) => {
   const userId = req.params.userId;
   const { milestoneName, milestoneDescription, milestoneDate } = req.body;

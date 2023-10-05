@@ -218,41 +218,41 @@ router.get('/login', (req, res) => {
     res.status(200).json({ message: 'Authentication successful', user });
   })
   
-  // exports.sendPasswordResetEmail = functions.https.onRequest((req, res) => {
-  //   const email = req.query.email;
+  exports.sendPasswordResetEmail = functions.https.onRequest((req, res) => {
+    const email = req.query.email;
   
-  //   admin
-  //     .auth()
-  //     .getUserByEmail(email)
-  //     .then((userRecord) => {
-  //       return admin.auth().generatePasswordResetLink(email);
-  //     })
-  //     .then((resetLink) => {
-  //       // Create and send the email using Postmark
-  //       const emailBody = `
-  //         Click the following link to reset your password:
-  //         ${resetLink}
-  //       `;
+    admin
+      .auth()
+      .getUserByEmail(email)
+      .then((userRecord) => {
+        return admin.auth().generatePasswordResetLink(email);
+      })
+      .then((resetLink) => {
+        // Create and send the email using Postmark
+        const emailBody = `
+          Click the following link to reset your password:
+          ${resetLink}
+        `;
   
-  //       const message = {
-  //         From: 'your-sender-email@example.com', // Replace with your sender email
-  //         To: email,
-  //         Subject: 'Password Reset Request',
-  //         TextBody: emailBody
-  //       };
+        const message = {
+          From: 'your-sender-email@example.com', // Replace with your sender email
+          To: email,
+          Subject: 'Password Reset Request',
+          TextBody: emailBody
+        };
 
         
 
   
-  //       return client.sendEmail(message);
-  //     })
-  //     .then(() => {
-  //       res.status(200).json({ message: 'Password reset email sent successfully' });
-  //     })
-  //     .catch((error) => {
-  //       console.error('Forgot password error:', error);
-  //       res.status(400).json({ error: 'Password reset failed' });
-  //     });
-  // });
+        return client.sendEmail(message);
+      })
+      .then(() => {
+        res.status(200).json({ message: 'Password reset email sent successfully' });
+      })
+      .catch((error) => {
+        console.error('Forgot password error:', error);
+        res.status(400).json({ error: 'Password reset failed' });
+      });
+  });
   
 module.exports = router;
