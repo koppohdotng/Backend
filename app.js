@@ -152,53 +152,55 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 
 const dataRef = db.ref('businessInfo'); // Change to your database reference
 
-// Define an API route for updating user data
-// app.put('/updateUserData/:userId', multer.single('logo'), (req, res) => {
-//   const userId = req.params.userId;
-//   const {
-//     businessName,
-//     companyVision,
-//     registrationStatus,
-//     businessType,
-//     businessRCNumber,
-//     yearOfIncorporation,
-//     businessSector,
-//   } = req.body;
 
-//   // Handle image upload and rename
-//   let logoFileName = '';
-//   if (req.file) {
-//     logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
-//     const bucket = admin.storage().bucket();
-//     const file = bucket.file(logoFileName);
-//     const stream = file.createWriteStream({
-//       metadata: {
-//         contentType: req.file.mimetype,
-//       },
-//     });
-//     stream.end(req.file.buffer);
-//   }
 
-//   // Update user data in Firebase database
-//   const userData = {
-//     businessName,
-//     companyVision,
-//     registrationStatus,
-//     businessType,
-//     businessRCNumber,
-//     yearOfIncorporation,
-//     businessSector,
-//     logoFileName,
-//   };
+//Define an API route for updating user data
+app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
+  const userId = req.params.userId;
+  const {
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessType,
+    businessRCNumber,
+    yearOfIncorporation,
+    businessSector,
+  } = req.body;
 
-//   dataRef.child(userId).update(userData, (error) => {
-//     if (error) {
-//       res.status(500).json({ error: 'Failed to update user data.' });
-//     } else {
-//       res.status(200).json({ message: 'User data updated successfully.' });
-//     }
-//   });
-// });
+  // Handle image upload and rename
+  let logoFileName = '';
+  if (req.file) {
+    logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(logoFileName);
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+    stream.end(req.file.buffer);
+  }
+
+  // Update user data in Firebase database
+  const userData = {
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessType,
+    businessRCNumber,
+    yearOfIncorporation,
+    businessSector,
+    logoFileName,
+  };
+
+  dataRef.child(userId).update(userData, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update user data.' });
+    } else {
+      res.status(200).json({ message: 'User data updated successfully.' });
+    }
+  });
+});
 
 const dataRefz = db.ref('addMilestone'); // Change to your database reference
 
