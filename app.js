@@ -4,6 +4,7 @@ const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const path = require('path');
 // const verifyGoogleIdToken = require('./google-signin');
 
 
@@ -226,11 +227,85 @@ app.post('/addMilestone/:userId', (req, res) => {
   });
 });
 
+//API LOAN request
 
+function generateUniqueFileName(originalName) {
+  const fileExtension = path.extname(originalName);
+  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  return uniqueSuffix + fileExtension;
+}
 
+// Create an endpoint for uploading PDF documents
+app.post('/api/loanRequest', upload.fields([
+  { name: 'businessPlan', maxCount: 1 },
+  { name: 'bankStatement', maxCount: 1 },
+  { name: 'cashFlowAnalysis', maxCount: 1 },
+  { name: 'financial', maxCount: 1 },
+]), (req, res) => {
+  try {
+    const {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+      financials,
+    } = req.body;
 
+    // Extract file objects from the request
+    const businessPlanFile = req.files['businessPlan'][0];
+    const bankStatementFile = req.files['bankStatement'][0];
+    const cashFlowAnalysisFile = req.files['cashFlowAnalysis'][0];
+    const financialFile = req.files['financial'][0];
 
+    // Reference to the database
+    const db = admin.database();
+    const entriesRef = db.ref('entries');
 
+    // Push the new entry to the database
+    const newEntryRef = entriesRef.push();
+    const entryId = newEntryRef.key;
+
+    // Store file URLs in the database
+    const fileUrls = {
+      businessPlan: `https://your-firebase-storage-url.com/${entryId}/businessPlan.pdf`,
+      bankStatement: `https://your-firebase-storage-url.com/${entryId}/bankStatement.pdf`,
+      cashFlowAnalysis: `https://your-firebase-storage-url.com/${entryId}/cashFlowAnalysis.pdf`,
+      financial: `https://your-firebase-storage-url.com/${entryId}/financial.pdf`,
+    };
+
+    const entryData = {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: {
+        product,
+        saleAndMarketing,
+        researchAndDevelopment,
+        capitalExpenditure,
+        operation,
+        other,
+      },
+      financials,
+      fileUrls,
+    };
+
+    newEntryRef.set(entryData, (error) => {
+      if (error) {
+        res.status(500).json({ error: 'Failed to store data in the database' });
+      } else {
+        res.status(201).json({ message: 'Data stored successfully' });
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid request data' });
+  }
+});
 
 
 // Start the server

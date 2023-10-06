@@ -1,47 +1,47 @@
-const express = require('express');
-const admin = require('firebase-admin');
-const app = express();
+app.post('/api/entries', (req, res) => {
+  try {
+    const {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+      financials
+    } = req.body;
 
-// Initialize Firebase Admin SDK with your service account key
-const serviceAccount = require('./serviceAccountKey.json');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://your-project-id.firebaseio.com' // Replace with your Firebase project's Realtime Database URL
-});
+    const entryData = {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: {
+        product,
+        saleAndMarketing,
+        researchAndDevelopment,
+        capitalExpenditure,
+        operation,
+        other,
+      },
+      financials
+    };
 
-// Middleware to check if the request is authenticated
-const isAuthenticated = (req, res, next) => {
-  // Check if the request contains a valid Firebase ID token
-  const idToken = req.header('Authorization');
-  if (!idToken) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+    // Reference to the database
+    const db = admin.database();
+    const entriesRef = db.ref('entries');
 
-  // Verify the ID token
-  admin
-    .auth()
-    .verifyIdToken(idToken)
-    .then((decodedToken) => {
-      // Authentication successful, the decoded token contains user information
-      req.user = decodedToken;
-      next(); // Continue to the next middleware or route handler
-    })
-    .catch((error) => {
-      // Authentication failed
-      console.error('Authentication error:', error);
-      res.status(401).json({ error: 'Unauthorized' });
+    // Push the new entry to the database
+    entriesRef.push(entryData, (error) => {
+      if (error) {
+        res.status(500).json({ error: 'Failed to store data in the database' });
+      } else {
+        res.status(201).json({ message: 'Data stored successfully' });
+      }
     });
-};
-
-// Example API endpoint that requires authentication
-app.get('/api/user', isAuthenticated, (req, res) => {
-  // You can access user information from req.user
-  const user = req.user;
-  res.status(200).json({ message: 'Authentication successful', user });
-});
-
-// Start the Express.js server
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid request data' });
+  }
 });
