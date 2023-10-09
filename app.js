@@ -342,6 +342,7 @@ app.post('/api/equitRequest', upload.fields([
       problem,
       solution,
       stage,
+      investmentStage,
       currency,
       fundingAmount,
       useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
@@ -382,13 +383,14 @@ app.post('/api/equitRequest', upload.fields([
       fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/founderagreement.pdf`;
     }
     if (financialFile) {
-      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
+      fileUrls.taxclearance = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
     }
     const entryData = {
       date,
       problem,
       solution,
       stage,
+      investmentStage,
       currency,
       fundingAmount,
       useOfFunds: {
