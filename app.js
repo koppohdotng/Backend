@@ -228,12 +228,26 @@ app.post('/addMilestone/:userId', (req, res) => {
 });
 
 //API LOAN request
-
+// Function to generate a unique file name
 function generateUniqueFileName(originalName) {
   const fileExtension = path.extname(originalName);
   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
   return uniqueSuffix + fileExtension;
 }
+
+// Set up multer for file uploads
+const storages = multer.memoryStorage({
+  filename: (req, file, callback) => {
+    // Check if a file was uploaded
+    if (file) {
+      const uniqueFileName = generateUniqueFileName(file.originalname);
+      callback(null, uniqueFileName);
+    } else {
+      // No file was uploaded, use the original name
+      callback(null, file.originalname);
+    }
+  },
+});
 
 // Create an endpoint for uploading PDF documents
 app.post('/api/loanRequest', upload.fields([
@@ -255,10 +269,10 @@ app.post('/api/loanRequest', upload.fields([
     } = req.body;
 
     // Extract file objects from the request
-    const businessPlanFile = req.files['businessPlan'][0];
-    const bankStatementFile = req.files['bankStatement'][0];
-    const cashFlowAnalysisFile = req.files['cashFlowAnalysis'][0];
-    const financialFile = req.files['financial'][0];
+    const businessPlanFile = req.files['businessPlan'] ? req.files['businessPlan'][0] : null;
+    const bankStatementFile = req.files['bankStatement'] ? req.files['bankStatement'][0] : null;
+    const cashFlowAnalysisFile = req.files['cashFlowAnalysis'] ? req.files['cashFlowAnalysis'][0] : null;
+    const financialFile = req.files['financial'] ? req.files['financial'][0] : null;
 
     // Reference to the database
     const db = admin.database();
@@ -268,13 +282,20 @@ app.post('/api/loanRequest', upload.fields([
     const newEntryRef = entriesRef.push();
     const entryId = newEntryRef.key;
 
-    // Store file URLs in the database
-    const fileUrls = {
-      businessPlan: `https://your-firebase-storage-url.com/${entryId}/businessPlan.pdf`,
-      bankStatement: `https://your-firebase-storage-url.com/${entryId}/bankStatement.pdf`,
-      cashFlowAnalysis: `https://your-firebase-storage-url.com/${entryId}/cashFlowAnalysis.pdf`,
-      financial: `https://your-firebase-storage-url.com/${entryId}/financial.pdf`,
-    };
+    // Store file URLs in the database if files are available
+    const fileUrls = {};
+    if (businessPlanFile) {
+      fileUrls.businessPlan = `https://koppoh-4e5fb.appspot.com/${entryId}/businessPlan.pdf`;
+    }
+    if (bankStatementFile) {
+      fileUrls.bankStatement = `https://koppoh-4e5fb.appspot.com/${entryId}/bankStatement.pdf`;
+    }
+    if (cashFlowAnalysisFile) {
+      fileUrls.cashFlowAnalysis = `https://koppoh-4e5fb.appspot.com/${entryId}/cashFlowAnalysis.pdf`;
+    }
+    if (financialFile) {
+      fileUrls.financial = `https://koppoh-4e5fb.appspot.com/${entryId}/financial.pdf`;
+    }
 
     const entryData = {
       date,
