@@ -328,6 +328,93 @@ app.post('/api/loanRequest', upload.fields([
   }
 });
 
+app.post('/api/equitRequest', upload.fields([
+  { name: 'pitchdeck', maxCount: 1 },
+  { name: 'valuation', maxCount: 1 },
+  { name: 'captable', maxCount: 1 },
+  { name: 'financialmodel', maxCount: 1 },
+  { name: 'founderagreement', maxCount: 1 },
+  { name: 'taxclearance', maxCount: 1 },
+]), (req, res) => {
+  try {
+    const {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+      financials,
+    } = req.body;
+
+    // Extract file objects from the request
+    const Pitchdeck = req.files['pitchdeck'] ? req.files['pitchdeck'][0] : null;
+    const Valuation = req.files['valuation'] ? req.files['valuation'][0] : null;
+    const captable = req.files['captable'] ? req.files['captable'][0] : null;
+    const financialmodel = req.files['financialmodel'] ? req.files['financialmodel'][0] : null;
+    const founderagreement = req.files['founderagreement'] ? req.files['founderagreement'][0] : null;
+    const taxclearance = req.files['taxclearance'] ? req.files['taxclearance'][0] : null;
+
+    // Reference to the database
+    const db = admin.database();
+    const entriesRef = db.ref('entries');
+
+    // Push the new entry to the database
+    const newEntryRef = entriesRef.push();
+    const entryId = newEntryRef.key;
+
+    // Store file URLs in the database if files are available
+    const fileUrls = {};
+    if (businessPlanFile) {
+      fileUrls.pitchdeck = `https://koppoh-4e5fb.appspot.com/${entryId}/pitchdeck.pdf`;
+    }
+    if (bankStatementFile) {
+      fileUrls.valuation = `https://koppoh-4e5fb.appspot.com/${entryId}/valuation.pdf`;
+    }
+    if (cashFlowAnalysisFile) {
+      fileUrls.captable = `https://koppoh-4e5fb.appspot.com/${entryId}/captable.pdf`;
+    }
+    if (financialFile) {
+      fileUrls.financialmodel = `https://koppoh-4e5fb.appspot.com/${entryId}/financialmodel.pdf`;
+    }
+    if (financialFile) {
+      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/founderagreement.pdf`;
+    }
+    if (financialFile) {
+      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
+    }
+    const entryData = {
+      date,
+      problem,
+      solution,
+      stage,
+      currency,
+      fundingAmount,
+      useOfFunds: {
+        product,
+        saleAndMarketing,
+        researchAndDevelopment,
+        capitalExpenditure,
+        operation,
+        other,
+      },
+      financials,
+      fileUrls,
+    };
+
+    newEntryRef.set(entryData, (error) => {
+      if (error) {
+        res.status(500).json({ error: 'Failed to store data in the database' });
+      } else {
+        res.status(201).json({ message: 'Data stored successfully' });
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid request data' });
+  }
+});
+
 
 // Start the server
 app.listen(port, () => {

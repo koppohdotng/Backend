@@ -251,5 +251,40 @@ router.get('/login', (req, res) => {
         res.status(400).json({ error: 'Password reset failed' });
       });
   });
+
+  const checkEmailExistence = async (email) => {
+    try {
+      // Check if the email exists in the database
+      const snapshot = await admin
+        .database()
+        .ref('users')
+        .orderByChild('email')
+        .equalTo(email)
+        .once('value');
+  
+      if (snapshot.exists()) {
+        return { exists: true, message: 'Email already exists' };
+      } else {
+        return { exists: false, message: 'Email does not exist' };
+      }
+    } catch (error) {
+      console.error('Check email existence error:', error);
+      return { exists: false, message: 'Error checking email existence' };
+    }
+  };
+  
+  // Example usage in an Express.js route
+  router.post('/check-email', async (req, res) => {
+    const { email } = req.body;
+  
+    const emailCheckResult = await checkEmailExistence(email);
+  
+    if (emailCheckResult.exists) {
+      res.status(200).json({ message: emailCheckResult.message });
+    } else {
+      res.status(404).json({ message: emailCheckResult.message });
+    }
+  });
+  
   
 module.exports = router;
