@@ -316,7 +316,7 @@ app.post('/api/loanRequest', upload.fields([
       fileUrls,
     };
 
-    newEntryRef.set(entryData, (error) => {
+    newEntryRef.set(loanRequest, (error) => {
       if (error) {
         res.status(500).json({ error: 'Failed to store data in the database' });
       } else {
@@ -405,7 +405,7 @@ app.post('/api/equitRequest', upload.fields([
       fileUrls,
     };
 
-    newEntryRef.set(entryData, (error) => {
+    newEntryRef.set(equitRequest, (error) => {
       if (error) {
         res.status(500).json({ error: 'Failed to store data in the database' });
       } else {
@@ -416,6 +416,112 @@ app.post('/api/equitRequest', upload.fields([
     res.status(400).json({ error: 'Invalid request data' });
   }
 });
+
+
+// Import necessary modules and setup your Express app
+
+// Define the endpoint to retrieve user data
+app.get('/api/equitRequest/:userId', (req, res) => {
+  try {
+    const userId = req.params.userId; // Extract the user ID from the URL parameter
+
+    // Reference to the database
+    const db = admin.database();
+    const entriesRef = db.ref('entries');
+
+    // Query the database to get the data for the specified user
+    entriesRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
+      if (snapshot.exists()) {
+        // Convert the snapshot into an array of user entries
+        const userEntries = [];
+        snapshot.forEach((childSnapshot) => {
+          const entry = childSnapshot.val();
+          userEntries.push(entry);
+        });
+
+        res.status(200).json({ userData: equitRequest });
+      } else {
+        res.status(404).json({ error: 'User data not found' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve user data' });
+  }
+});
+
+app.get('/api/loanRequest/:userId', (req, res) => {
+  try {
+    const userId = req.params.userId; // Extract the user ID from the URL parameter
+
+    // Reference to the database
+    const db = admin.database();
+    const entriesRef = db.ref('entries');
+
+    // Query the database to get the data for the specified user
+    entriesRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
+      if (snapshot.exists()) {
+        // Convert the snapshot into an array of user entries
+        const userEntries = [];
+        snapshot.forEach((childSnapshot) => {
+          const entry = childSnapshot.val();
+          userEntries.push(entry);
+        });
+
+        res.status(200).json({ userData: loanRequest });
+      } else {
+        res.status(404).json({ error: 'User data not found' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve user data' });
+  }
+});
+
+
+// Import necessary modules and setup your Express app
+
+// Define the endpoint to store user subscription data
+app.post('/api/subscription', (req, res) => {
+  try {
+    const { userId, subscriptionType } = req.body;
+
+    // Validate the request data
+    if (!userId || !subscriptionType) {
+      return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    // Calculate subscription start and expiration dates
+    const subscriptionStartDate = new Date();
+    const subscriptionEndDate = new Date();
+    subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30); // Add 30 days
+
+    // Reference to the database
+    const db = admin.database();
+    const subscriptionsRef = db.ref('subscriptions');
+
+    // Push the new subscription data to the database
+    const newSubscriptionRef = subscriptionsRef.push();
+    const subscriptionId = newSubscriptionRef.key;
+
+    const subscriptionData = {
+      userId,
+      subscriptionType,
+      subscriptionStartDate: subscriptionStartDate.toISOString(),
+      subscriptionEndDate: subscriptionEndDate.toISOString(),
+    };
+
+    newSubscriptionRef.set(subscriptionData, (error) => {
+      if (error) {
+        res.status(500).json({ error: 'Failed to store subscription data in the database' });
+      } else {
+        res.status(201).json({ message: 'Subscription data stored successfully' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 // Start the server
