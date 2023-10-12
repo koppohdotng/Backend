@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
@@ -8,7 +9,7 @@ const path = require('path');
 // const verifyGoogleIdToken = require('./google-signin');
 
 
-
+app.use(cors());
 
 const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());

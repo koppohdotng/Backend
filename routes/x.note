@@ -19,5 +19,6 @@ curl -X POST -H "Content-Type: application/json" -d '{
 
 curl "http://localhost:3000/auth/google?token=YOUR_ID_TOKEN"
 
+
 curl -X GET "http://localhost:3000/api/someendpoint" -H "Authorization: Bearer YOUR_FIREBASE_CUSTOM_TOKEN"
 
