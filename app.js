@@ -482,46 +482,60 @@ app.get('/api/loanRequest/:userId', (req, res) => {
 // Import necessary modules and setup your Express app
 
 // Define the endpoint to store user subscription data
-app.post('/api/subscription', (req, res) => {
-  try {
-    const { userId, subscriptionType } = req.body;
+app.post('/store-subscription', (req, res) => {
+  // Assuming the user is already authenticated and you have obtained their UID
+ 
+  const userId = req.params.userId;
 
-    // Validate the request data
-    if (!userId || !subscriptionType) {
-      return res.status(400).json({ error: 'Missing required data' });
+  const { plan, paymentDate, endDate } = req.body;
+
+  // Create a reference to the database path where you want to store the subscription information under the user's data
+  const userRef = db.ref(`users/${userId}`);
+
+  // Create a 'subscriptions' node under the user's data and store the subscription information
+  const subscriptionsRef = userRef.child('subscriptions');
+  subscriptionsRef.push({ plan, paymentDate, endDate }, (error) => {
+    if (error) {
+      res.status(500).send('Error storing subscription information');
+    } else {
+      res.status(200).send('Subscription information stored successfully');
     }
-
-    // Calculate subscription start and expiration dates
-    const subscriptionStartDate = new Date();
-    const subscriptionEndDate = new Date();
-    subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30); // Add 30 days
-
-    // Reference to the database
-    const db = admin.database();
-    const subscriptionsRef = db.ref('subscriptions');
-
-    // Push the new subscription data to the database
-    const newSubscriptionRef = subscriptionsRef.push();
-    const subscriptionId = newSubscriptionRef.key;
-
-    const subscriptionData = {
-      userId,
-      subscriptionType,
-      subscriptionStartDate: subscriptionStartDate.toISOString(),
-      subscriptionEndDate: subscriptionEndDate.toISOString(),
-    };
-
-    newSubscriptionRef.set(subscriptionData, (error) => {
-      if (error) {
-        res.status(500).json({ error: 'Failed to store subscription data in the database' });
-      } else {
-        res.status(201).json({ message: 'Subscription data stored successfully' });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  });
 });
+
+app.get('/check-subscription-status', (req, res) => {
+  // Assuming the user is already authenticated and you have obtained their UID
+  
+  const userId = req.params.userId;
+
+  // Create a reference to the user's subscription data
+  const userRef = db.ref(`users/${userId}/subscriptions`);
+
+  // Query the subscription data to check if there is an active plan
+  userRef.orderByChild('endDate').endAt(new Date().toISOString()).limitToLast(1).once('value', (snapshot) => {
+    const subscription = snapshot.val();
+    
+    if (subscription) {
+      // There is an active subscription
+      const subscriptionId = Object.keys(subscription)[0];
+      const { plan, endDate } = subscription[subscriptionId];
+      
+      res.status(200).json({
+        active: true,
+        plan,
+        endDate,
+      });
+    } else {
+      // There is no active subscription
+      res.status(200).json({
+        active: false,
+        plan: null,
+        endDate: null,
+      });
+    }
+  });
+});
+
 
 
 
