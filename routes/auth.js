@@ -1,6 +1,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const router = express.Router();
+const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('118360199442016913320');
 const { ServerClient } = require('postmark');
@@ -222,32 +223,44 @@ router.get('/login', (req, res) => {
     service: 'Gmail',
     auth: {
       user: 'info.koppoh@gmail.com', // Replace with your Gmail email
-      pass: 'Koppoh123' // Replace with your Gmail password or an app-specific password
+      pass: 'taljmxzjfbvhipje' // Replace with your Gmail password or an app-specific password  taljmxzjfbvhipje
+
     }
   });
   
-  app.post('/api/sendPasswordResetEmail', (req, res) => {
+  
+  // Define the route for sending password reset emails
+  router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
   
-    // Configure email data
-    const mailOptions = {
-      from: 'info.koppoh@gmail.com', // Sender's email address
-      to: email, // Recipient's email address
-      subject: 'Password Reset Request',
-      text: `Click the following link to reset your password: ${resetLink}` // Body of the email
-    };
+    try {
+      // Generate a password reset link
+      const resetLink = await admin.auth().generatePasswordResetLink(email);
   
-    // Send the email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Email sending error:', error);
-        res.status(400).json({ error: 'Password reset email sending failed' });
-      } else {
-        console.log('Email sent: ' + info.response);
-        res.status(200).json({ message: 'Password reset email sent successfully' });
-      }
-    });
+      // Configure email data
+      const mailOptions = {
+        from: 'info.koppoh@gmail.com', // Sender's email address
+        to: email, // Recipient's email address
+        subject: 'Password Reset Request',
+        text: `Click the following link to reset your password: ${resetLink}` // Body of the email
+      };
+  
+      // Send the email using Nodemailer (as you did before)
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Email sending error:', error);
+          res.status(400).json({ error: 'Password reset email sending failed' });
+        } else {
+          console.log('Email sent: ' + info.response);
+          res.status(200).json({ message: 'Password reset email sent successfully' });
+        }
+      });
+    } catch (error) {
+      console.error('Password reset link generation error:', error);
+      res.status(400).json({ error: 'Password reset link generation failed' });
+    }
   });
+  
 
   const checkEmailExistence = async (email) => {
     try {
