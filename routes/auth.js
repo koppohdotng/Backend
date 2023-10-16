@@ -218,38 +218,35 @@ router.get('/login', (req, res) => {
     res.status(200).json({ message: 'Authentication successful', user });
   })
   
-  router.post('/api/sendPasswordResetEmail', (req, res) => {
+  const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+      user: 'info.koppoh@gmail.com', // Replace with your Gmail email
+      pass: 'Koppoh123' // Replace with your Gmail password or an app-specific password
+    }
+  });
+  
+  app.post('/api/sendPasswordResetEmail', (req, res) => {
     const email = req.body.email;
   
-    admin
-      .auth()
-      .getUserByEmail(email)
-      .then((userRecord) => {
-        return admin.auth().generatePasswordResetLink(email);
-      })
-      .then((resetLink) => {
-        // Create and send the email using Postmark
-        const emailBody = `
-          Click the following link to reset your password:
-          ${resetLink}
-        `;
+    // Configure email data
+    const mailOptions = {
+      from: 'your-email@gmail.com', // Sender's email address
+      to: email, // Recipient's email address
+      subject: 'Password Reset Request',
+      text: `Click the following link to reset your password: ${resetLink}` // Body of the email
+    };
   
-        const message = {
-          From: 'your-sender-email@example.com', // Replace with your sender email
-          To: email,
-          Subject: 'Password Reset Request',
-          TextBody: emailBody
-        };
-  
-        return client.sendEmail(message);
-      })
-      .then(() => {
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Email sending error:', error);
+        res.status(400).json({ error: 'Password reset email sending failed' });
+      } else {
+        console.log('Email sent: ' + info.response);
         res.status(200).json({ message: 'Password reset email sent successfully' });
-      })
-      .catch((error) => {
-        console.error('Forgot password error:', error);
-        res.status(400).json({ error: 'Password reset failed' });
-      });
+      }
+    });
   });
 
   const checkEmailExistence = async (email) => {
