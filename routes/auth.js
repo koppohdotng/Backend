@@ -231,7 +231,7 @@ router.get('/login', (req, res) => {
   
     // Configure email data
     const mailOptions = {
-      from: 'your-email@gmail.com', // Sender's email address
+      from: 'info.koppoh@gmail.com', // Sender's email address
       to: email, // Recipient's email address
       subject: 'Password Reset Request',
       text: `Click the following link to reset your password: ${resetLink}` // Body of the email
