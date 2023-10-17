@@ -1,7 +1,5 @@
 # Backend
 
-Certainly! Here's a formatted version of the API documentation that you can copy to your README on GitHub:
-
 ---
 
 # [Your API Name] API Documentation
