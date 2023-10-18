@@ -21,6 +21,34 @@ app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
+const isAuthenticated = (req, res, next) => {
+  // Check if the request contains a valid Firebase ID token
+  const idToken = req.header('Authorization');
+  if (!idToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Verify the ID token
+  admin
+    .auth()
+    .verifyIdToken(idToken)
+    .then((decodedToken) => {
+      // Authentication successful, the decoded token contains user information
+      req.user = decodedToken;
+      next(); // Continue to the next middleware or route handler
+    })
+    .catch((error) => {
+      // Authentication failed
+      console.error('Authentication error:', error);
+      res.status(401).json({ error: 'Unauthorized' });
+    });
+};
+app.get('/api/user', isAuthenticated, (req, res) => {
+  // You can access user information from req.user
+  const user = req.user;
+  res.status(200).json({ message: 'Authentication successful', user });
+});
+
 app.post('/google-signin', async (req, res) => {
     const { idToken } = req.body;
   
