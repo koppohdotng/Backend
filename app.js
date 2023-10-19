@@ -53,9 +53,9 @@ app.get('/api/user', async (req, res) => {
   try {
     const user = req.user; // Assuming that req.user contains the Firebase user's ID
 
-    if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    // if (!user) {
+    //   return res.status(401).json({ message: 'Unauthorized' });
+    // }
 
     // Use the Firebase Admin SDK to get the user's data
     const userRecord = await admin.auth().getUser(user);
