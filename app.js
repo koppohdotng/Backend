@@ -40,10 +40,10 @@ const isAuthenticated = (req, res, next) => {
     .catch((error) => {
       // Authentication failed
       console.error('Authentication error:', error);
-      res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized',error });
     });
 };
-app.get('/api/user', isAuthenticated, (req, res) => {
+app.get('/api/user', (req, res) => {
   // You can access user information from req.user
   const user = req.user;
   res.status(200).json({ message: 'Authentication successful', user });
