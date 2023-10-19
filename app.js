@@ -65,6 +65,81 @@ app.post('/google-signin', async (req, res) => {
     }
   });
 
+  // Define an endpoint to add a notification to a user's data.
+  app.post('/addNotification/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const notification = req.body.notification;
+  
+    if (!notification) {
+      return res.status(400).json({ error: 'Notification is required.' });
+    }
+  
+    // Add a "seenNotification" field with a default value of false
+    notification.seenNotification = false;
+  
+    const notificationsRef = admin.database().ref(`users/${userId}/notifications`);
+    const newNotificationRef = notificationsRef.push();
+  
+    // Add the current timestamp to the notification data
+    const timestamp = new Date().toISOString();
+    notification.timestamp = timestamp;
+  
+    // Set the notification data in the database
+    newNotificationRef.set(notification, (error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Failed to add notification.' });
+      } else {
+        return res.status(200).json({ message: 'Notification added successfully.' });
+      }
+    });
+  });
+
+  app.patch('/update-notification/:userId/:notificationId', (req, res) => {
+    const userId = req.params.userId;
+    const notificationId = req.params.notificationId;
+    const updateData = req.body;
+  
+    if (!notificationId || !userId || Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'Invalid request data.' });
+    }
+  
+    const notificationRef = admin.database().ref(`users/${userId}/notifications/${notificationId}`);
+  
+    // Check if the specified notification exists
+    notificationRef.once('value', (snapshot) => {
+      if (snapshot.exists()) {
+        // Update the notification data
+        notificationRef.update(updateData, (error) => {
+          if (error) {
+            return res.status(500).json({ error: 'Failed to update notification.' });
+          } else {
+            return res.status(200).json({ message: 'Notification updated successfully.' });
+          }
+        });
+      } else {
+        return res.status(404).json({ error: 'Notification not found.' });
+      }
+    });
+  });
+  app.get('/get-notifications/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const notificationsRef = admin.database().ref(`users/${userId}/notifications`);
+  
+    notificationsRef.once('value', (snapshot) => {
+      const notifications = snapshot.val();
+  
+      if (notifications) {
+        const notificationsArray = Object.values(notifications);
+        return res.status(200).json(notificationsArray);
+      } else {
+        return res.status(404).json({ error: 'No notifications found for the user.' });
+      }
+    });
+  });
+  
+
+
+
 app.use('/auth', authRoutes);
 
 app.put('/api/update-user/:uid', (req, res) => {
