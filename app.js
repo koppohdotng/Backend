@@ -302,11 +302,11 @@ const dataRefz = db.ref('addMilestone'); // Change to your database reference
 //Define an API route for adding a new milestone
 app.post('/addMilestone/:userId', (req, res) => {
   const userId = req.params.userId;
-  const { milestoneName, milestoneDescription, milestoneDate } = req.body;
+  const {  milestoneDescription, milestoneDate } = req.body;
 
   // Create a new milestone object
   const newMilestone = {
-    name: milestoneName,
+    
     description: milestoneDescription,
     date: milestoneDate,
   };

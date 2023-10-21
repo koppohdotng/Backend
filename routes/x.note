@@ -22,6 +22,9 @@ curl "http://localhost:3000/auth/google?token=YOUR_ID_TOKEN"
 
 curl -X GET "http://localhost:3000/api/someendpoint" -H "Authorization: Bearer YOUR_FIREBASE_CUSTOM_TOKEN"
 
-curl -X POST http://localhost:3000/api/sendPasswordResetEmail \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:3000/auth/sendPasswordResetEmail \
+  -H "Content-Type: application/json" \curl -X GET http://localhost:3000/api/user/12345
+
   -d '{"email": "lhawhaltimi@gmail.com"}'
+
+curl -X GET http://localhost:3000/api/user/1x2bwZFRDrM8PFj3zxo4gbv5gtM2
