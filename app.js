@@ -288,7 +288,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     logoFileName,
   };
 
-  dataRef.child(userId).update(userData, (error) => {
+  dataRef.child(`${userId}/businessinfo`).update(userData, (error) => {
     if (error) {
       res.status(500).json({ error: 'Failed to update user data.' });
     } else {
