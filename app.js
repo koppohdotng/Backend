@@ -245,7 +245,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 });
 
 
-const dataRef = db.ref('businessInfo'); // Change to your database reference
+const dataRef = db.ref('users'); // Change to your database reference
 
 
 
