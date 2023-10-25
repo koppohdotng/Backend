@@ -290,6 +290,8 @@ app.delete('/api/deleteTeammate/:teammateId', (req, res) => {
       return res.status(404).json({ error: 'Teammate not found.' });
     }
 
+    
+
     // Delete the teammate
     teammateRef.remove((error) => {
       if (error) {
