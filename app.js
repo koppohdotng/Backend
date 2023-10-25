@@ -244,6 +244,63 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   }
 });
 
+app.put('/api/updateTeammate/:teammateId', (req, res) => {
+  const teammateId = req.params.teammateId;
+  const { name, role, imageURL } = req.body;
+
+  // Assuming you have a database reference for teammates, retrieve the teammate with the given ID
+  const teammateRef = teammatesRef.child(teammateId);
+
+  teammateRef.once('value', (snapshot) => {
+    const teammateData = snapshot.val();
+
+    // Check if the teammate with the given ID exists
+    if (!teammateData) {
+      return res.status(404).json({ error: 'Teammate not found.' });
+    }
+
+    // Update the teammate's details
+    const updatedTeammate = {
+      name: name || teammateData.name,
+      role: role || teammateData.role,
+      imageURL: imageURL || teammateData.imageURL,
+    };
+
+    teammateRef.update(updatedTeammate, (error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error updating teammate.' });
+      }
+
+      return res.status(200).json({ message: 'Teammate updated successfully.' });
+    });
+  });
+});
+
+app.delete('/api/deleteTeammate/:teammateId', (req, res) => {
+  const teammateId = req.params.teammateId;
+
+  // Assuming you have a database reference for teammates, retrieve the teammate with the given ID
+  const teammateRef = teammatesRef.child(teammateId);
+
+  teammateRef.once('value', (snapshot) => {
+    const teammateData = snapshot.val();
+
+    // Check if the teammate with the given ID exists
+    if (!teammateData) {
+      return res.status(404).json({ error: 'Teammate not found.' });
+    }
+
+    // Delete the teammate
+    teammateRef.remove((error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error deleting teammate.' });
+      }
+
+      return res.status(200).json({ message: 'Teammate deleted successfully.' });
+    });
+  });
+});
+
 
 const dataRef = db.ref('users'); // Change to your database reference
 
@@ -310,6 +367,41 @@ app.post('/addMilestone/:userId', (req, res) => {
     description: milestoneDescription,
     date: milestoneDate,
   };
+  app.put('/updateMilestone/:milestoneId', (req, res) => {
+    const milestoneId = req.params.milestoneId;
+    const { milestoneDescription, milestoneDate } = req.body;
+  
+    // Assuming you have an array or a database where milestones are stored.
+    // Find the milestone with the specified ID and update its properties.
+    const milestoneToUpdate = milestones.find(m => m.id === milestoneId);
+  
+    if (!milestoneToUpdate) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+  
+    milestoneToUpdate.description = milestoneDescription;
+    milestoneToUpdate.date = milestoneDate;
+  
+    return res.status(200).json({ message: 'Milestone updated successfully', milestone: milestoneToUpdate });
+  });
+
+  app.delete('/deleteMilestone/:milestoneId', (req, res) => {
+    const milestoneId = req.params.milestoneId;
+  
+    // Assuming you have an array or a database where milestones are stored.
+    // Find the milestone with the specified ID and remove it.
+    const milestoneIndex = milestones.findIndex(m => m.id === milestoneId);
+  
+    if (milestoneIndex === -1) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+  
+    const deletedMilestone = milestones.splice(milestoneIndex, 1)[0];
+  
+    return res.status(200).json({ message: 'Milestone deleted successfully', milestone: deletedMilestone });
+  });
+  
+
 
   // Push the new milestone to the user's milestones array
   dataRef.child(`${userId}/milestones`).push(newMilestone, (error) => {
