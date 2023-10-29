@@ -17,7 +17,7 @@ const { error } = require('console');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-  storageBucket: 'https://koppoh-4e5fb.appspot.com',
+  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
    // Replace with your Firebase project's Realtime Database URL
 });
 
