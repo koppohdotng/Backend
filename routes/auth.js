@@ -16,7 +16,9 @@ const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path 
 const { error } = require('console');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com' // Replace with your Firebase project's Realtime Database URL
+  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
+  storageBucket: 'https://koppoh-4e5fb.appspot.com',
+   // Replace with your Firebase project's Realtime Database URL
 });
 
 // Define a route for user signup
