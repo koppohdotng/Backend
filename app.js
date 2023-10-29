@@ -324,6 +324,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
   // Handle image upload and rename
   let logoFileName = '';
   if (req.file) {
+    console.log("odebe")
     logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
