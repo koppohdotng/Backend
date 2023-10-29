@@ -339,7 +339,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
   if (req.file) {
     console.log("Uploading image...");
   
-    logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
+    logoFileName = `https://firebasestorage.googleapis.com/v0/b/koppoh-4e5fb.appspot.com/o/logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
     const stream = file.createWriteStream({
