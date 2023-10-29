@@ -323,8 +323,22 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
 
   // Handle image upload and rename
   let logoFileName = '';
+  // if (req.file) {
+  //   console.log("odebe")
+  //   logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
+  //   const bucket = admin.storage().bucket();
+  //   const file = bucket.file(logoFileName);
+  //   const stream = file.createWriteStream({
+  //     metadata: {
+  //       contentType: req.file.mimetype,
+  //     },
+  //   });
+  //   stream.end(req.file.buffer);
+  // }
+
   if (req.file) {
-    console.log("odebe")
+    console.log("Uploading image...");
+  
     logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
@@ -333,8 +347,23 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
         contentType: req.file.mimetype,
       },
     });
+  
+    stream.on('finish', () => {
+      console.log("Image uploaded successfully.");
+      // Here you can perform any additional actions after successful upload.
+    });
+  
+    stream.on('error', (err) => {
+      console.error("Error uploading image:", err);
+      // Handle the error, e.g., by sending an error response.
+    });
+  
     stream.end(req.file.buffer);
+  } else {
+    console.log("No file to upload.");
+    // Handle the case where req.file is not defined.
   }
+  
 
   // Update user data in Firebase database
   const bunesinessData = {
