@@ -794,6 +794,109 @@ app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
   return res.status(200).json({ message: 'Milestone deleted successfully', milestone: deletedMilestone });
 });
 
+app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
+  const userId = req.params.userId;
+  const teammateId = req.params.teammateId;
+  const { name, role } = req.body;
+
+  // Check if name and role are provided (compulsory fields)
+  if (!name || !role) {
+    return res.status(400).json({ error: 'Name and role are compulsory fields.' });
+  }
+
+  // Get the existing teammate data
+  teammatesRef.child(userId).child(teammateId).once('value', (snapshot) => {
+    const existingTeammate = snapshot.val();
+
+    if (!existingTeammate) {
+      return res.status(404).json({ error: 'Teammate not found.' });
+    }
+
+    // Generate a unique filename for the updated image (e.g., using a timestamp)
+    const timestamp = Date.now();
+    const imageName = `${timestamp}_${req.file.originalname}`;
+
+    // Create a new teammate object with the updated data
+    const updatedTeammate = {
+      name,
+      role,
+      imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
+    };
+
+    // If a new image is provided, store it in Firebase Storage and update the download URL
+    if (req.file) {
+      const bucket = admin.storage().bucket();
+
+      const imageBuffer = req.file.buffer;
+
+      const file = bucket.file(imageName);
+
+      const blobStream = file.createWriteStream({
+        metadata: {
+          contentType: req.file.mimetype,
+        },
+      });
+
+      blobStream.on('error', (error) => {
+        return res.status(500).json({ error: 'Error uploading the image.' });
+      });
+
+      blobStream.on('finish', () => {
+        // Get the download URL for the updated image
+        file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
+          if (error) {
+            return res.status(500).json({ error: 'Error getting download URL.' });
+          }
+
+          updatedTeammate.imageURL = downloadUrl;
+
+          // Update the teammate data in the database
+          teammatesRef.child(userId).child(teammateId).update(updatedTeammate, (error) => {
+            if (error) {
+              return res.status(500).json({ error: 'Error updating teammate data.' });
+            }
+
+            return res.status(200).json({ message: 'Teammate updated successfully.' });
+          });
+        });
+      });
+
+      blobStream.end(imageBuffer);
+    } else {
+      // If no new image is provided, update the teammate data without changing the imageURL
+      teammatesRef.child(userId).child(teammateId).update(updatedTeammate, (error) => {
+        if (error) {
+          return res.status(500).json({ error: 'Error updating teammate data.' });
+        }
+
+        return res.status(200).json({ message: 'Teammate updated successfully.' });
+      });
+    }
+  });
+});
+
+app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
+  const userId = req.params.userId;
+  const teammateId = req.params.teammateId;
+
+  // Check if the teammate exists
+  teammatesRef.child(userId).child(teammateId).once('value', (snapshot) => {
+    const existingTeammate = snapshot.val();
+
+    if (!existingTeammate) {
+      return res.status(404).json({ error: 'Teammate not found.' });
+    }
+
+    // Delete the teammate data from the database
+    teammatesRef.child(userId).child(teammateId).remove((error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error deleting teammate data.' });
+      }
+
+      return res.status(200).json({ message: 'Teammate deleted successfully.' });
+    });
+  });
+});
 
 
 
