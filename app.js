@@ -754,6 +754,47 @@ app.get('/check-subscription-status', (req, res) => {
 });
 
 
+app.put('/updateMilestone/:userId/:milestoneId', (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const milestoneId = parseInt(req.params.milestoneId);
+  const { milestoneDescription, milestoneDate } = req.body;
+
+  // Find the milestone to update
+  const milestoneToUpdate = milestones.find(m => m.id === milestoneId && m.userId === userId);
+
+  if (!milestoneToUpdate) {
+    return res.status(404).json({ error: 'Milestone not found' });
+  }
+
+  // Update milestone properties
+  if (milestoneDescription) {
+    milestoneToUpdate.description = milestoneDescription;
+  }
+  if (milestoneDate) {
+    milestoneToUpdate.date = milestoneDate;
+  }
+
+  return res.status(200).json({ message: 'Milestone updated successfully', milestone: milestoneToUpdate });
+});
+
+// Delete Milestone
+app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const milestoneId = parseInt(req.params.milestoneId);
+
+  // Find the milestone to delete
+  const milestoneIndex = milestones.findIndex(m => m.id === milestoneId && m.userId === userId);
+
+  if (milestoneIndex === -1) {
+    return res.status(404).json({ error: 'Milestone not found' });
+  }
+
+  const deletedMilestone = milestones.splice(milestoneIndex, 1)[0];
+
+  return res.status(200).json({ message: 'Milestone deleted successfully', milestone: deletedMilestone });
+});
+
+
 
 
 // Start the server
