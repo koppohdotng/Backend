@@ -335,27 +335,11 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
   //   });
   //   stream.end(req.file.buffer);
   // }
-  
-
 
   if (req.file) {
     console.log("Uploading image...");
-    
-    let xx = '';
-  xx = `logo_${userId}_${Date.now()}.jpg`
-   
-  const buckets = admin.storage().bucket();
-
-  buckets.file(xx).getSignedUrl(options, (err, url) => {
-    if (err) {
-      console.error('Error generating download URL:', err);
-    } else {
-      console.log('Download URL with token:', url);
-    }
-  });
-   
-    
-   logoFileName = `https://firebasestorage.googleapis.com/v0/b/koppoh-4e5fb.appspot.com/o/logo_${userId}_${Date.now()}.jpg?alt=media&token=${url}`; // Change the naming convention as needed
+  
+    logoFileName = `https://firebasestorage.googleapis.com/v0/b/koppoh-4e5fb.appspot.com/o/logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
     const stream = file.createWriteStream({
