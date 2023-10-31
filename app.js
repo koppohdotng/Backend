@@ -83,6 +83,57 @@ app.post('/google-signin', async (req, res) => {
       }
     });
   });
+  
+  app.post('/request/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const  request = req.body.request;
+
+    if (! request || !Array.isArray(request) || request.length === 0) {
+        return res.status(400).json({ error: 'Request array is required and should not be empty.' });
+    }
+
+    const  requestRef = admin.database().ref(`users/${userId}/request`);
+    const timestamp = new Date().toISOString();
+
+    const promises = [];
+
+    request.forEach(request => {
+        if (!request) {
+            return;
+        }
+
+        // Add a "seenNotification" field with a default value of false
+        request.seenNotification = false;
+
+        const newRequestRef =  requestRef.push();
+
+        // Add the current timestamp to the notification data
+        request.timestamp = timestamp;
+
+        // Create a promise for setting each notification
+        const setrequestPromise = new Promise((resolve, reject) => {
+            newrequestRef.set( request, (error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        promises.push(setrequestPromise);
+    });
+
+    Promise.all(promises)
+        .then(() => {
+            return res.status(200).json({ message: ' Request added successfully.' });
+        })
+        .catch((error) => {
+            return res.status(500).json({ error: 'Failed to add one or more Request.' });
+        });
+});
+
+
 
   app.patch('/update-notification/:userId/:notificationId', (req, res) => {
     const userId = req.params.userId;
