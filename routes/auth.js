@@ -23,7 +23,7 @@ admin.initializeApp({
 
 // Define a route for user signup
 router.post('/signup', (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, refFrom } = req.body;
 
   admin
       .auth()
@@ -56,6 +56,7 @@ router.post('/signup', (req, res) => {
                 emailVerification,
                 firstTime,
                 Date: currentDate.toISOString(),
+                refFrom,
 
 
 
