@@ -224,7 +224,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // API endpoint to add a new teammate
-app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
+app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
   const { name, role } = req.body;
 
