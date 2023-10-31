@@ -1,99 +1,132 @@
-// Function to generate a unique file name
-function generateUniqueFileName(originalName) {
-  const fileExtension = path.extname(originalName);
-  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-  return uniqueSuffix + fileExtension;
-}
 
-// Set up multer for file uploads
-const storage = multer.memoryStorage({
-  filename: (req, file, callback) => {
-    // Check if a file was uploaded
-    if (file) {
-      const uniqueFileName = generateUniqueFileName(file.originalname);
-      callback(null, uniqueFileName);
-    } else {
-      // No file was uploaded, use the original name
-      callback(null, file.originalname);
-    }
-  },
+const imageElement = document.getElementById("uploaded-image");
+const imageInput = document.getElementById("imageInput");
+const headerX = document.getElementById("headerX");
+const headerXX = document.getElementById("headerXX");
+const headerXXX = document.getElementById("headerXXX");
+const headerY = document.getElementById("headerY");
+// const file = imageElement.files[0];
+
+// const imageRef = storage.ref("" + file.name);
+// const uploadTask = imageRef.put(file);
+
+imageElement.addEventListener("click", () => {
+  imageInput.click();
 });
 
-// Create an endpoint for uploading PDF documents
-app.post('/api/loanRequest', upload.fields([
-  { name: 'businessPlan', maxCount: 1 },
-  { name: 'bankStatement', maxCount: 1 },
-  { name: 'cashFlowAnalysis', maxCount: 1 },
-  { name: 'financial', maxCount: 1 },
-]), (req, res) => {
-  try {
-    const {
-      date,
-      problem,
-      solution,
-      stage,
-      currency,
-      fundingAmount,
-      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
-      financials,
-    } = req.body;
-
-    // Extract file objects from the request
-    const businessPlanFile = req.files['businessPlan'] ? req.files['businessPlan'][0] : null;
-    const bankStatementFile = req.files['bankStatement'] ? req.files['bankStatement'][0] : null;
-    const cashFlowAnalysisFile = req.files['cashFlowAnalysis'] ? req.files['cashFlowAnalysis'][0] : null;
-    const financialFile = req.files['financial'] ? req.files['financial'][0] : null;
-
-    // Reference to the database
-    const db = admin.database();
-    const entriesRef = db.ref('entries');
-
-    // Push the new entry to the database
-    const newEntryRef = entriesRef.push();
-    const entryId = newEntryRef.key;
-
-    // Store file URLs in the database if files are available
-    const fileUrls = {};
-    if (businessPlanFile) {
-      fileUrls.businessPlan = `https://your-firebase-storage-url.com/${entryId}/businessPlan.pdf`;
-    }
-    if (bankStatementFile) {
-      fileUrls.bankStatement = `https://your-firebase-storage-url.com/${entryId}/bankStatement.pdf`;
-    }
-    if (cashFlowAnalysisFile) {
-      fileUrls.cashFlowAnalysis = `https://your-firebase-storage-url.com/${entryId}/cashFlowAnalysis.pdf`;
-    }
-    if (financialFile) {
-      fileUrls.financial = `https://your-firebase-storage-url.com/${entryId}/financial.pdf`;
-    }
-
-    const entryData = {
-      date,
-      problem,
-      solution,
-      stage,
-      currency,
-      fundingAmount,
-      useOfFunds: {
-        product,
-        saleAndMarketing,
-        researchAndDevelopment,
-        capitalExpenditure,
-        operation,
-        other,
-      },
-      financials,
-      fileUrls,
-    };
-
-    newEntryRef.set(entryData, (error) => {
-      if (error) {
-        res.status(500).json({ error: 'Failed to store data in the database' });
-      } else {
-        res.status(201).json({ message: 'Data stored successfully' });
-      }
-    });
-  } catch (error) {
-    res.status(400).json({ error: 'Invalid request data' });
+imageInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file && file.type.includes("image")) {
+    displayImage(file);
   }
 });
+
+function displayImage(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imageElement.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("previewAndSave").addEventListener("click", () => {
+  
+
+  event.preventDefault();
+  console.log("we");
+  const imageUrl = imageElement.src;
+  const header = headerX.value;
+  const readTime = headerXX.value;
+  const publisher = headerXXX.value;
+  const content = headerY.value;
+ 
+  const file = imageInput.files[0];
+  console.log(file,header, readTime, publisher, content)
+
+if (!imageUrl || !header || !readTime || !publisher || !content){
+console.log(file,header, readTime, publisher, content)
+
+Swal.fire({
+    title: 'Empty Fill',
+    text: 'Please fill all inputs.',
+  
+   }
+    );
+}
+else{
+
+function submitForm() {
+  var button = document.getElementById("previewAndSave");
+
+    // Disable the button
+    button.disabled = true;
+
+    // Change the button text to "Loading..."
+    button.innerHTML = "Loading...";
+
+    // Here, you can add your code to submit the form or perform any other action
+    // For example, you can use AJAX to submit data to the server and then reset the button when the operation is complete.
+    // You may also want to handle errors and reset the button in case of failure.
+
+    // For demonstration purposes, we'll simulate a delay and then reset the button after 3 seconds.
+    setTimeout(function() {
+        // Re-enable the button
+        button.disabled = false;
+        
+        // Change the button text back to "Save"
+        button.innerHTML = "Save";
+    }, 3000000000000); // 3-second delay (you can adjust this as needed)
+}
+submitForm()
+
+  const imageRef = storage.ref("" + file.name);
+
+const uploadTask = imageRef.put(file);
+
+imageRef.put(file).then(snapshot => {
+
+snapshot.ref.getDownloadURL().then(imageUrl => {
+const draft = 0;
+function saveDataToFirestore(imageUrl, header, readTime, publisher, content) {
+return firebase.database().ref('blogPosts').push({
+  imageUrl: imageUrl,
+  header: header,
+  readTime: readTime,
+  publisher: publisher,
+  content: content,
+  draft: draft
+})
+.then(() => {
+  // Show a success message using Swal.fire
+  
+  // Redirect to a new page after the message is displayed
+  window.location.href = 'draft.html';
+})
+.catch(error => {
+  // Handle any errors that might occur during data saving
+  console.error('Error saving data:', error);
+});
+}
+
+// Example usage
+saveDataToFirestore(imageUrl, header, readTime, publisher, content);
+
+});
+
+});
+
+}
+
+
+});
+function logout() {
+          // Sign out the user from Firebase
+          firebase.auth().signOut().then(function() {
+              // Sign-out successful.
+              window.location.href = 'loginblog.html';
+              // You can redirect to another page or perform additional actions here if needed.
+          }).catch(function(error) {
+              // An error happened.
+              console.error('Error signing out:', error);
+          });
+      }
