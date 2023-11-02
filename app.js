@@ -217,7 +217,7 @@ app.put('/api/update-user/:uid', (req, res) => {
 
  // Initialize Firebase Realtime Database
 const db = admin.database();
-const teammatesRef = db.ref('teammates'); // Reference to the 'teammates' node in your database
+const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in your database
 
 // Initialize Multer for handling image uploads
 const storage = multer.memoryStorage();
