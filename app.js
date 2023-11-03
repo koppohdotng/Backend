@@ -272,7 +272,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
         newTeammate.imageURL = downloadUrl;
 
         // Add the new teammate to the database under the specified user ID
-        teammatesRef.child(userId).update(newTeammate, (error) => {
+        teammatesRef.child(userId).push(newTeammate, (error) => {
           if (error) {
             return res.status(500).json({ error: 'Error adding teammate to the database.' });
           }
