@@ -854,7 +854,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
   }
 
   // Get the existing teammate data
-  teammatesRef.child(userId).child(teammateId).once('value', (snapshot) => {
+  teammatesRef.child(`${userId}/Teammate`).child(teammateId).once('value', (snapshot) => {
     const existingTeammate = snapshot.val();
 
     if (!existingTeammate) {
@@ -929,7 +929,7 @@ app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
   const teammateId = req.params.teammateId;
 
   // Check if the teammate exists
-  teammatesRef.child(userId).child(teammateId).once('value', (snapshot) => {
+  teammatesRef.child(`${userId}/Teammate`).child(teammateId).once('value', (snapshot) => {
     const existingTeammate = snapshot.val();
 
     if (!existingTeammate) {
