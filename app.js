@@ -272,7 +272,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
         newTeammate.imageURL = downloadUrl;
 
         // Add the new teammate to the database under the specified user ID
-        teammatesRef.child(userId).push(newTeammate, (error) => {
+        teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error) => {
           if (error) {
             return res.status(500).json({ error: 'Error adding teammate to the database.' });
           }
@@ -447,6 +447,7 @@ app.post('/addMilestone/:userId', (req, res) => {
     description: milestoneDescription,
     date: milestoneDate,
   };
+
   app.put('/updateMilestone/:milestoneId', (req, res) => {
     const milestoneId = req.params.milestoneId;
     const { milestoneDescription, milestoneDate } = req.body;
