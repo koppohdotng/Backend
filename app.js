@@ -295,64 +295,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   }
 });
 
-app.put('/api/updateTeammate/:teammateId', (req, res) => {
-  const teammateId = req.params.teammateId;
-  const { name, role, imageURL } = req.body;
 
-  // Assuming you have a database reference for teammates, retrieve the teammate with the given ID
-  const teammateRef = teammatesRef.child(teammateId);
-
-  teammateRef.once('value', (snapshot) => {
-    const teammateData = snapshot.val();
-
-    // Check if the teammate with the given ID exists
-    if (!teammateData) {
-      return res.status(404).json({ error: 'Teammate not found.' });
-    }
-
-    // Update the teammate's details
-    const updatedTeammate = {
-      name: name || teammateData.name,
-      role: role || teammateData.role,
-      imageURL: imageURL || teammateData.imageURL,
-    };
-
-    teammateRef.update(updatedTeammate, (error) => {
-      if (error) {
-        return res.status(500).json({ error: 'Error updating teammate.' });
-      }
-
-      return res.status(200).json({ message: 'Teammate updated successfully.' });
-    });
-  });
-});
-
-app.delete('/api/deleteTeammate/:teammateId', (req, res) => {
-  const teammateId = req.params.teammateId;
-
-  // Assuming you have a database reference for teammates, retrieve the teammate with the given ID
-  const teammateRef = teammatesRef.child(teammateId);
-
-  teammateRef.once('value', (snapshot) => {
-    const teammateData = snapshot.val();
-
-    // Check if the teammate with the given ID exists
-    if (!teammateData) {
-      return res.status(404).json({ error: 'Teammate not found.' });
-    }
-
-    
-
-    // Delete the teammate
-    teammateRef.remove((error) => {
-      if (error) {
-        return res.status(500).json({ error: 'Error deleting teammate.' });
-      }
-
-      return res.status(200).json({ message: 'Teammate deleted successfully.' });
-    });
-  });
-});
 
 
 const dataRef = db.ref('users'); // Change to your database reference
@@ -378,7 +321,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
   if (req.file) {
     console.log("Uploading image...");
 
-    logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+    logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
 
