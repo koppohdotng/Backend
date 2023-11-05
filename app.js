@@ -321,7 +321,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
   if (req.file) {
     console.log("Uploading image...");
 
-    logoFileName = `logo_${userId}_${Date.now()}.jpg`; // Change the naming convention as needed
+    logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
     const file = bucket.file(logoFileName);
 
@@ -337,16 +337,16 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
       file.getSignedUrl({ action: 'read', expires: '03-01-2500' })
         .then(downloadUrls => {
           const imageUrl = downloadUrls[0];
-          // Update user data in Firebase database with the image URL
+          // Create a user data object with only the provided fields
           const businessData = {
-            businessName,
-            companyVision,
-            registrationStatus,
-            businessType,
-            businessRCNumber,
-            yearOfIncorporation,
-            businessSector,
-            logoUrl: imageUrl,
+            ...(businessName && { businessName }),
+            ...(companyVision && { companyVision }),
+            ...(registrationStatus && { registrationStatus }),
+            ...(businessType && { businessType }),
+            ...(businessRCNumber && { businessRCNumber }),
+            ...(yearOfIncorporation && { yearOfIncorporation }),
+            ...(businessSector && { businessSector }),
+            logoUrl: imageUrl, // Always include the logo URL
           };
 
           dataRef.child(userId).update(businessData, (error) => {
@@ -372,10 +372,36 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     stream.end(req.file.buffer);
   } else {
     console.log("No file to upload.");
-    // Handle the case where req.file is not defined.
-    res.status(400).json({ error: 'No image file provided.' });
+    // Create a user data object with only the provided fields when no image is uploaded
+    const businessData = {
+      ...(businessName && { businessName }),
+      ...(companyVision && { companyVision }),
+      ...(registrationStatus && { registrationStatus }),
+      ...(businessType && { businessType }),
+      ...(businessRCNumber && { businessRCNumber }),
+      ...(yearOfIncorporation && { yearOfIncorporation }),
+      ...(businessSector && { businessSector }),
+    };
+
+    // Include the logo URL if it already exists in the database
+    dataRef.child(userId).once('value', (snapshot) => {
+      const existingUserData = snapshot.val();
+      if (existingUserData && existingUserData.logoUrl) {
+        businessData.logoUrl = existingUserData.logoUrl;
+      }
+
+      // Update the user data
+      dataRef.child(userId).update(businessData, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update user data.' });
+        } else {
+          res.status(200).json({ message: 'User data updated successfully.' });
+        }
+      });
+    });
   }
 });
+
 
 const dataRefz = db.ref('addMilestone'); // Change to your database reference
 
