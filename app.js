@@ -417,42 +417,6 @@ app.post('/addMilestone/:userId', (req, res) => {
     date: milestoneDate,
   };
 
-  app.put('/updateMilestone/:milestoneId', (req, res) => {
-    const milestoneId = req.params.milestoneId;
-    const { milestoneDescription, milestoneDate } = req.body;
-  
-    // Assuming you have an array or a database where milestones are stored.
-    // Find the milestone with the specified ID and update its properties.
-    const milestoneToUpdate = milestones.find(m => m.id === milestoneId);
-  
-    if (!milestoneToUpdate) {
-      return res.status(404).json({ message: 'Milestone not found' });
-    }
-  
-    milestoneToUpdate.description = milestoneDescription;
-    milestoneToUpdate.date = milestoneDate;
-  
-    return res.status(200).json({ message: 'Milestone updated successfully', milestone: milestoneToUpdate });
-  });
-
-  app.delete('/deleteMilestone/:milestoneId', (req, res) => {
-    const milestoneId = req.params.milestoneId;
-  
-    // Assuming you have an array or a database where milestones are stored.
-    // Find the milestone with the specified ID and remove it.
-    const milestoneIndex = milestones.findIndex(m => m.id === milestoneId);
-  
-    if (milestoneIndex === -1) {
-      return res.status(404).json({ message: 'Milestone not found' });
-    }
-  
-    const deletedMilestone = milestones.splice(milestoneIndex, 1)[0];
-  
-    return res.status(200).json({ message: 'Milestone deleted successfully', milestone: deletedMilestone });
-  });
-  
-
-
   // Push the new milestone to the user's milestones array
   dataRef.child(`${userId}/milestones`).push(newMilestone, (error) => {
     if (error) {
