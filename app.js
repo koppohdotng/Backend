@@ -736,28 +736,28 @@ app.get('/check-subscription-status', (req, res) => {
 });
 
 
+// Define an API route for updating a milestone
 app.put('/updateMilestone/:userId/:milestoneId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const milestoneId = parseInt(req.params.milestoneId);
+  const userId = req.params.userId;
+  const milestoneId = req.params.milestoneId;
   const { milestoneDescription, milestoneDate } = req.body;
+  // Create an updated milestone object
+  const updatedMilestone = {
+    description: milestoneDescription,
+    date: milestoneDate,
+     // Assuming you're sending the image URL or base64 data
+  };
 
-  // Find the milestone to update
-  const milestoneToUpdate = milestones.find(m => m.id === milestoneId && m.userId === userId);
-
-  if (!milestoneToUpdate) {
-    return res.status(404).json({ error: 'Milestone not found' });
-  }
-
-  // Update milestone properties
-  if (milestoneDescription) {
-    milestoneToUpdate.description = milestoneDescription;
-  }
-  if (milestoneDate) {
-    milestoneToUpdate.date = milestoneDate;
-  }
-
-  return res.status(200).json({ message: 'Milestone updated successfully', milestone: milestoneToUpdate });
+  // Update the milestone in the user's milestones array
+  dataRef.child(`${userId}/milestones/${milestoneId}`).update(updatedMilestone, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update the milestone.' });
+    } else {
+      res.status(200).json({ message: 'Milestone updated successfully.' });
+    }
+  });
 });
+
 
 // Delete Milestone
 app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
