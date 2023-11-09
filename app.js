@@ -761,20 +761,22 @@ app.put('/updateMilestone/:userId/:milestoneId', (req, res) => {
 
 // Delete Milestone
 app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const milestoneId = parseInt(req.params.milestoneId);
+  const userId = req.params.userId;
+  const milestoneId = req.params.milestoneId;
 
-  // Find the milestone to delete
-  const milestoneIndex = milestones.findIndex(m => m.id === milestoneId && m.userId === userId);
-
-  if (milestoneIndex === -1) {
-    return res.status(404).json({ error: 'Milestone not found' });
-  }
-
-  const deletedMilestone = milestones.splice(milestoneIndex, 1)[0];
-
-  return res.status(200).json({ message: 'Milestone deleted successfully', milestone: deletedMilestone });
+  // Remove the milestone from the user's milestones array
+  dataRef.child(`${userId}/milestones/${milestoneId}`).remove((error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to delete the milestone.' });
+    } else {
+      res.status(200).json({ message: 'Milestone deleted successfully.' });
+    }
+  });
 });
+
+
+
+
 
 app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
   const userId = req.params.userId;
