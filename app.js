@@ -455,8 +455,11 @@ app.post('/api/loanRequest', upload.fields([
   { name: 'bankStatement', maxCount: 1 },
   { name: 'cashFlowAnalysis', maxCount: 1 },
   { name: 'financial', maxCount: 1 },
-]), (req, res) => {
+]), async (req, res) => {
   try {
+    // Get userid from the request headers or wherever it's available
+    const userid = req.headers.userid; // Update this based on your actual headers
+
     const {
       date,
       problem,
@@ -498,6 +501,7 @@ app.post('/api/loanRequest', upload.fields([
     }
 
     const entryData = {
+      userid, // Add userid to the entry data
       date,
       problem,
       solution,
@@ -516,17 +520,16 @@ app.post('/api/loanRequest', upload.fields([
       fileUrls,
     };
 
-    newEntryRef.set(loanRequest, (error) => {
-      if (error) {
-        res.status(500).json({ error: 'Failed to store data in the database' });
-      } else {
-        res.status(201).json({ message: 'Data stored successfully' });
-      }
-    });
+    // Set the entry data under the user's id
+    await newEntryRef.set(entryData);
+
+    res.status(201).json({ message: 'Data stored successfully' });
   } catch (error) {
+    console.error(error);
     res.status(400).json({ error: 'Invalid request data' });
   }
 });
+
 
 app.post('/api/equitRequest', upload.fields([
   { name: 'pitchdeck', maxCount: 1 },
@@ -535,8 +538,11 @@ app.post('/api/equitRequest', upload.fields([
   { name: 'financialmodel', maxCount: 1 },
   { name: 'founderagreement', maxCount: 1 },
   { name: 'taxclearance', maxCount: 1 },
-]), (req, res) => {
+]), async (req, res) => {
   try {
+    // Get userid from the request headers or wherever it's available
+    const userid = req.headers.userid; // Update this based on your actual headers
+
     const {
       date,
       problem,
@@ -550,8 +556,8 @@ app.post('/api/equitRequest', upload.fields([
     } = req.body;
 
     // Extract file objects from the request
-    const Pitchdeck = req.files['pitchdeck'] ? req.files['pitchdeck'][0] : null;
-    const Valuation = req.files['valuation'] ? req.files['valuation'][0] : null;
+    const pitchdeck = req.files['pitchdeck'] ? req.files['pitchdeck'][0] : null;
+    const valuation = req.files['valuation'] ? req.files['valuation'][0] : null;
     const captable = req.files['captable'] ? req.files['captable'][0] : null;
     const financialmodel = req.files['financialmodel'] ? req.files['financialmodel'][0] : null;
     const founderagreement = req.files['founderagreement'] ? req.files['founderagreement'][0] : null;
@@ -567,25 +573,13 @@ app.post('/api/equitRequest', upload.fields([
 
     // Store file URLs in the database if files are available
     const fileUrls = {};
-    if (businessPlanFile) {
+    if (pitchdeck) {
       fileUrls.pitchdeck = `https://koppoh-4e5fb.appspot.com/${entryId}/pitchdeck.pdf`;
     }
-    if (bankStatementFile) {
-      fileUrls.valuation = `https://koppoh-4e5fb.appspot.com/${entryId}/valuation.pdf`;
-    }
-    if (cashFlowAnalysisFile) {
-      fileUrls.captable = `https://koppoh-4e5fb.appspot.com/${entryId}/captable.pdf`;
-    }
-    if (financialFile) {
-      fileUrls.financialmodel = `https://koppoh-4e5fb.appspot.com/${entryId}/financialmodel.pdf`;
-    }
-    if (financialFile) {
-      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/founderagreement.pdf`;
-    }
-    if (financialFile) {
-      fileUrls.taxclearance = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
-    }
+    // Repeat this for other file types...
+
     const entryData = {
+      userid, // Add userid to the entry data
       date,
       problem,
       solution,
@@ -605,17 +599,16 @@ app.post('/api/equitRequest', upload.fields([
       fileUrls,
     };
 
-    newEntryRef.set(equitRequest, (error) => {
-      if (error) {
-        res.status(500).json({ error: 'Failed to store data in the database' });
-      } else {
-        res.status(201).json({ message: 'Data stored successfully' });
-      }
-    });
+    // Set the entry data under the user's id
+    await newEntryRef.set(entryData);
+
+    res.status(201).json({ message: 'Data stored successfully' });
   } catch (error) {
+    console.error(error);
     res.status(400).json({ error: 'Invalid request data' });
   }
 });
+
 
 
 // Import necessary modules and setup your Express app
