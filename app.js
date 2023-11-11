@@ -479,7 +479,7 @@ app.post('/api/loanRequest', upload.fields([
 
     // Reference to the database
     const db = admin.database();
-    const entriesRef = db.ref('entries');
+    const entriesRef = db.ref('users');
 
     // Push the new entry to the database
     const newEntryRef = entriesRef.push();
@@ -619,65 +619,7 @@ app.post('/api/equitRequest', upload.fields([
 
 
 
-// Import necessary modules and setup your Express app
-
-// Define the endpoint to retrieve user data
-app.get('/api/equitRequest/:userId', (req, res) => {
-  try {
-    const userId = req.params.userId; // Extract the user ID from the URL parameter
-
-    // Reference to the database
-    const db = admin.database();
-    const entriesRef = db.ref('entries');
-
-    // Query the database to get the data for the specified user
-    entriesRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
-      if (snapshot.exists()) {
-        // Convert the snapshot into an array of user entries
-        const userEntries = [];
-        snapshot.forEach((childSnapshot) => {
-          const entry = childSnapshot.val();
-          userEntries.push(entry);
-        });
-
-        res.status(200).json({ userData: equitRequest });
-      } else {
-        res.status(404).json({ error: 'User data not found' });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve user data' });
-  }
-});
-
-app.get('/api/loanRequest/:userId', (req, res) => {
-  try {
-    const userId = req.params.userId; // Extract the user ID from the URL parameter
-
-    // Reference to the database
-    const db = admin.database();
-    const entriesRef = db.ref('entries');
-
-    // Query the database to get the data for the specified user
-    entriesRef.orderByChild('userId').equalTo(userId).once('value', (snapshot) => {
-      if (snapshot.exists()) {
-        // Convert the snapshot into an array of user entries
-        const userEntries = [];
-        snapshot.forEach((childSnapshot) => {
-          const entry = childSnapshot.val();
-          userEntries.push(entry);
-        });
-
-        res.status(200).json({ userData: loanRequest });
-      } else {
-        res.status(404).json({ error: 'User data not found' });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve user data' });
-  }
-});
-
+//
 
 // Import necessary modules and setup your Express app
 
