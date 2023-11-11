@@ -460,6 +460,11 @@ app.post('/api/loanRequest', upload.fields([
     // Get userid from the request headers or wherever it's available
     const userid = req.headers.userid; // Update this based on your actual headers
 
+    // Check if userid is available
+    if (!userid) {
+      return res.status(400).json({ error: 'User ID not provided in headers' });
+    }
+
     const {
       date,
       problem,
@@ -479,7 +484,7 @@ app.post('/api/loanRequest', upload.fields([
 
     // Reference to the database
     const db = admin.database();
-    const entriesRef = db.ref('users');
+    const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
 
     // Push the new entry to the database
     const newEntryRef = entriesRef.push();
@@ -530,6 +535,7 @@ app.post('/api/loanRequest', upload.fields([
   }
 });
 
+
 app.post('/api/equitRequest', upload.fields([
   { name: 'pitchdeck', maxCount: 1 }, 
   { name: 'valuation', maxCount: 1 },
@@ -572,7 +578,7 @@ app.post('/api/equitRequest', upload.fields([
 
     // Reference to the database
     const db = admin.database();
-    const entriesRef = db.ref('entries');
+    const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
 
     // Push the new entry to the database
     const newEntryRef = entriesRef.push();
@@ -583,7 +589,21 @@ app.post('/api/equitRequest', upload.fields([
     if (pitchdeck) {
       fileUrls.pitchdeck = `https://koppoh-4e5fb.appspot.com/${entryId}/pitchdeck.pdf`;
     }
-    // Repeat this for other file types...
+    if (valuation) {
+      fileUrls.valuation = `https://koppoh-4e5fb.appspot.com/${entryId}/valuation.pdf`;
+    }
+    if (captable) {
+      fileUrls.captable = `https://koppoh-4e5fb.appspot.com/${entryId}/captable.pdf`;
+    }
+    if (financialmodel) {
+      fileUrls.financialmodel = `https://koppoh-4e5fb.appspot.com/${entryId}/financialmodel.pdf`;
+    }
+    if (founderagreement) {
+      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/founderagreement.pdf`;
+    }
+    if (taxclearance) {
+      fileUrls.taxclearance = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
+    }
 
     const entryData = {
       userid, // Add userid to the entry data
