@@ -530,7 +530,6 @@ app.post('/api/loanRequest', upload.fields([
   }
 });
 
-
 app.post('/api/equitRequest', upload.fields([
   { name: 'pitchdeck', maxCount: 1 },
   { name: 'valuation', maxCount: 1 },
@@ -543,6 +542,10 @@ app.post('/api/equitRequest', upload.fields([
     // Get userid from the request headers or wherever it's available
     const userid = req.headers.userid; // Update this based on your actual headers
 
+    if (!userid) {
+      return res.status(400).json({ error: 'User ID not provided in headers' });
+    }
+
     const {
       date,
       problem,
@@ -554,6 +557,10 @@ app.post('/api/equitRequest', upload.fields([
       useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
       financials,
     } = req.body;
+
+    if (!date || !problem || !solution || !stage || !investmentStage || !currency || !fundingAmount || !useOfFunds || !financials) {
+      return res.status(400).json({ error: 'Incomplete request data' });
+    }
 
     // Extract file objects from the request
     const pitchdeck = req.files['pitchdeck'] ? req.files['pitchdeck'][0] : null;
@@ -605,9 +612,10 @@ app.post('/api/equitRequest', upload.fields([
     res.status(201).json({ message: 'Data stored successfully' });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: 'Invalid request data' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 
