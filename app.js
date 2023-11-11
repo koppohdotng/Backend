@@ -531,7 +531,7 @@ app.post('/api/loanRequest', upload.fields([
 });
 
 app.post('/api/equitRequest', upload.fields([
-  { name: 'pitchdeck', maxCount: 1 },
+  { name: 'pitchdeck', maxCount: 1 }, 
   { name: 'valuation', maxCount: 1 },
   { name: 'captable', maxCount: 1 },
   { name: 'financialmodel', maxCount: 1 },
