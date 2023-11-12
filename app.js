@@ -550,7 +550,10 @@ app.post('/api/equitRequest', upload.fields([
 
     if (!userid) {
       return res.status(400).json({ error: 'User ID not provided in headers' });
-    }
+    }  
+
+    console.log(req.files);  // Log received files
+    console.log(req.body);
 
     const {
       date,
