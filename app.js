@@ -459,7 +459,7 @@ app.post('/api/loanRequest', upload.fields([
   try {
     // Get userid from the request headers or wherever it's available
     const userid = req.headers.userid; // Update this based on your actual headers
-
+    console.log("debe 1",userid)
     // Check if userid is available
     if (!userid) {
       return res.status(400).json({ error: 'User ID not provided in headers' });
