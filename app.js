@@ -485,7 +485,9 @@ app.post('/api/loanRequest', upload.fields([
     // Reference to the database
     const db = admin.database();
     const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
-
+    console.log(req.files);  // Log received files
+    console.log(req.body);   // Log received fields
+    
     // Push the new entry to the database
     const newEntryRef = entriesRef.push();
     const entryId = newEntryRef.key;
