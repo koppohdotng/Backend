@@ -464,7 +464,7 @@ app.post('/api/loanRequest', upload.fields([
     if (!userid) {
       return res.status(400).json({ error: 'User ID not provided in headers' });
     }
-
+    console.log("debe")
     const {
       date,
       problem,
