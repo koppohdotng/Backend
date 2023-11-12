@@ -459,12 +459,15 @@ app.post('/api/loanRequest', upload.fields([
   try {
     // Get userid from the request headers or wherever it's available
     const userid = req.headers.userid; // Update this based on your actual headers
-    console.log("debe 1",userid)
+    console.log("debe 1", userid);
+
     // Check if userid is available
     if (!userid) {
       return res.status(400).json({ error: 'User ID not provided in headers' });
     }
-    console.log("debe")
+    console.log("debe");
+
+    // Destructure request body for readability
     const {
       date,
       problem,
@@ -487,7 +490,7 @@ app.post('/api/loanRequest', upload.fields([
     const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
     console.log(req.files);  // Log received files
     console.log(req.body);   // Log received fields
-    
+
     // Push the new entry to the database
     const newEntryRef = entriesRef.push();
     const entryId = newEntryRef.key;
@@ -532,8 +535,8 @@ app.post('/api/loanRequest', upload.fields([
 
     res.status(201).json({ message: 'Data stored successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: 'Invalid request data' });
+    console.error("Error in /api/loanRequest:", error);
+    res.status(500).json({ error: 'Internal server error' }); // Adjust the status code and message accordingly
   }
 });
 
