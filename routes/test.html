@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Request Form</title>
+    <title>Upload Business Plan</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
         }
 
         form {
-            max-width: 600px;
+            max-width: 400px;
             margin: auto;
         }
 
@@ -20,7 +20,7 @@
             margin-bottom: 8px;
         }
 
-        input, select {
+        input {
             width: 100%;
             padding: 8px;
             margin-bottom: 16px;
@@ -45,38 +45,29 @@
 </head>
 <body>
 
-    <form id="loanForm">
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required>
-
-        <!-- Add other input fields as needed -->
-
+    <form id="uploadForm" enctype="multipart/form-data">
         <label for="businessPlan">Business Plan (PDF):</label>
         <input type="file" id="businessPlan" name="businessPlan" accept=".pdf" required>
 
-        <label for="bankStatement">Bank Statement (PDF):</label>
-        <input type="file" id="bankStatement" name="bankStatement" accept=".pdf" required>
-
-        <label for="cashFlowAnalysis">Cash Flow Analysis (PDF):</label>
-        <input type="file" id="cashFlowAnalysis" name="cashFlowAnalysis" accept=".pdf" required>
-
-        <label for="financial">Financial (PDF):</label>
-        <input type="file" id="financial" name="financial" accept=".pdf" required>
-
-        <button type="button" onclick="submitForm()">Submit</button>
+        <button type="button" onclick="submitForm()">Upload Business Plan</button>
     </form>
 
     <div id="response"></div>
 
     <script>
         function submitForm() {
-            const form = document.getElementById('loanForm');
+            const form = document.getElementById('uploadForm');
             const formData = new FormData(form);
-            formData.append('userid', '1x2bwZFRDrM8PFj3zxo4gbv5gtM2'); // Add the user ID
+            const userId = '1x2bwZFRDrM8PFj3zxo4gbv5gtM2'; // Replace with the actual user ID
 
-            fetch('https://koppoh-41a7d984a436.herokuapp.com/api/loanRequest', {
+            // Set the user ID in headers
+            const headers = new Headers();
+            headers.append('userid', userId);
+
+            fetch('https://koppoh-41a7d984a436.herokuapp.com/api/uploadBusinessPlan', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: headers,
             })
             .then(response => response.json())
             .then(data => {

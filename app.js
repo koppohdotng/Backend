@@ -450,236 +450,217 @@ const storages = multer.memoryStorage({
 });
 
 // Create an endpoint for uploading PDF documents
-app.post('/api/loanRequest', upload.fields([
-  { name: 'businessPlan', maxCount: 1 },
-  { name: 'bankStatement', maxCount: 1 },
-  { name: 'cashFlowAnalysis', maxCount: 1 },
-  { name: 'financial', maxCount: 1 },
-]), async (req, res) => {
-  try {
-    // Get userid from the request headers or wherever it's available
-    const userid = req.headers.userid; // Update this based on your actual headers
-    console.log("debe 1", userid);
+app.put('/loanRequest/:userId', upload.fields([
+  { name: 'businessPlanFile', maxCount: 1 },
+  { name: 'bankStatementFile', maxCount: 1 },
+  { name: 'cashFlowAnalysisFile', maxCount: 1 },
+  { name: 'financialFile', maxCount: 1 },
+]), (req, res) => {
+  const userId = req.params.userId;
+  const {
+    date,
+    problem,
+    solution,
+    stage,
+    currency,
+    fundingAmount,
+    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+    financials,
+  } = req.body;
 
-    // Check if userid is available
-    if (!userid) {
-      return res.status(400).json({ error: 'User ID not provided in headers' });
-    }
-    console.log("debe");
+  // Handle file uploads
+  const files = req.files;
+  const uploadPromises = [];
+  const fileUrls = {};
 
-    // Destructure request body for readability
-    const {
-      date,
-      problem,
-      solution,
-      stage,
-      currency,
-      fundingAmount,
-      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
-      financials,
-    } = req.body;
+  if (files) {
+    Object.keys(files).forEach((key) => {
+      const file = files[key][0];
+      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const bucket = admin.storage().bucket();
+      const fileRef = bucket.file(fileName);
 
-    // Extract file objects from the request
-    const businessPlanFile = req.files['businessPlan'] ? req.files['businessPlan'][0] : null;
-    const bankStatementFile = req.files['bankStatement'] ? req.files['bankStatement'][0] : null;
-    const cashFlowAnalysisFile = req.files['cashFlowAnalysis'] ? req.files['cashFlowAnalysis'][0] : null;
-    const financialFile = req.files['financial'] ? req.files['financial'][0] : null;
-
-    // Reference to the database
-    const db = admin.database();
-    const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
-    console.log(req.files);  // Log received files
-    console.log(req.body);   // Log received fields
-
-    // Push the new entry to the database
-    const newEntryRef = entriesRef.push();
-    const entryId = newEntryRef.key;
-
-    // Store file URLs in the database if files are available
-    const fileUrls = {};
-    if (businessPlanFile) {
-      fileUrls.businessPlan = `https://koppoh-4e5fb.appspot.com/${entryId}/businessPlan.pdf`;
-    }
-    if (bankStatementFile) {
-      fileUrls.bankStatement = `https://koppoh-4e5fb.appspot.com/${entryId}/bankStatement.pdf`;
-    }
-    if (cashFlowAnalysisFile) {
-      fileUrls.cashFlowAnalysis = `https://koppoh-4e5fb.appspot.com/${entryId}/cashFlowAnalysis.pdf`;
-    }
-    if (financialFile) {
-      fileUrls.financial = `https://koppoh-4e5fb.appspot.com/${entryId}/financial.pdf`;
-    }
-
-    const entryData = {
-      userid, // Add userid to the entry data
-      date,
-      problem,
-      solution,
-      stage,
-      currency,
-      fundingAmount,
-      useOfFunds: {
-        product,
-        saleAndMarketing,
-        researchAndDevelopment,
-        capitalExpenditure,
-        operation,
-        other,
-      },
-      financials,
-      fileUrls,
-    };
-
-    // Set the entry data under the user's id
-    await newEntryRef.set(entryData);
-
-    res.status(201).json({ message: 'Data stored successfully' });
-  } catch (error) {
-    console.error("Error in /api/loanRequest:", error);
-    res.status(500).json({ error: 'Internal server error' }); // Adjust the status code and message accordingly
-  }
-});
-
-app.post('/api/uploadBusinessPlan', upload.single('businessPlan'), async (req, res) => {
-  try {
-      const userId = req.headers.userid; // Assuming userId is passed in headers
-
-      if (!userId) {
-          return res.status(400).json({ error: 'User ID not provided in headers' });
-      }
-
-      const businessPlanFile = req.file;
-
-      if (!businessPlanFile) {
-          return res.status(400).json({ error: 'Business Plan file not provided' });
-      }
-
-      // Upload the file to GCS
-      const fileName = `businessPlan_${Date.now()}.pdf`;
-      const fileBuffer = businessPlanFile.buffer;
-      const bucket = storageClient.bucket(bucketName);
-      const file = bucket.file(fileName);
-
-      await file.save(fileBuffer, {
-          metadata: {
-              contentType: businessPlanFile.mimetype,
-          },
+      const stream = fileRef.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
       });
 
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+      const uploadPromise = new Promise((resolve, reject) => {
+        stream.on('finish', () => {
+          fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+            .then(downloadUrls => {
+              fileUrls[key] = downloadUrls[0];
+              resolve();
+            })
+            .catch(error => {
+              console.error(`Error generating download URL for ${key} file:`, error);
+              reject(`Failed to generate ${key} file URL.`);
+            });
+        });
 
-      // You can save the file URL in your database along with the userId
-      // Save to database logic goes here
+        stream.on('error', (err) => {
+          console.error(`Error uploading ${key} file:`, err);
+          reject(`Failed to upload ${key} file.`);
+        });
 
-      res.json({ message: 'Business Plan uploaded successfully', fileUrl });
-  } catch (error) {
-      console.error("Error in /api/uploadBusinessPlan:", error);
-      res.status(500).json({ error: 'Internal server error' });
+        stream.end(file.buffer);
+      });
+
+      uploadPromises.push(uploadPromise);
+    });
   }
+
+  // Wait for all file uploads to complete
+  Promise.all(uploadPromises)
+    .then(() => {
+      // Create a loan request data object with the provided fields and file URLs
+      const loanRequestData = {
+        date,
+        problem,
+        solution,
+        stage,
+        currency,
+        fundingAmount,
+        useOfFunds: {
+          product,
+          saleAndMarketing,
+          researchAndDevelopment,
+          capitalExpenditure,
+          operation,
+          other,
+        },
+        financials,
+        businessPlanFileUrl: fileUrls.businessPlanFile || '',
+        bankStatementFileUrl: fileUrls.bankStatementFile || '',
+        cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
+        financialFileUrl: fileUrls.financialFile || '',
+      };
+
+      // Update the loan request data
+      dataRef.child(userId).update(loanRequestData, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update loan request data.' });
+        } else {
+          res.status(200).json({ message: 'Loan request data updated successfully.' });
+        }
+      });
+    })
+    .catch(error => {
+      res.status(500).json({ error });
+    });
 });
 
-app.post('/api/equitRequest', upload.fields([
-  { name: 'pitchdeck', maxCount: 1 }, 
+
+
+
+app.put('/equityRequest/:userId', upload.fields([
+  { name: 'pitchdeck', maxCount: 1 },
   { name: 'valuation', maxCount: 1 },
   { name: 'captable', maxCount: 1 },
   { name: 'financialmodel', maxCount: 1 },
   { name: 'founderagreement', maxCount: 1 },
   { name: 'taxclearance', maxCount: 1 },
-]), async (req, res) => {
-  try {
-    // Get userid from the request headers or wherever it's available
-    const userid = req.headers.userid; // Update this based on your actual headers
+]), (req, res) => {
+  const userId = req.params.userId;
+  const {
+    date,
+    problem,
+    solution,
+    stage,
+    investmentStage,
+    currency,
+    fundingAmount,
+    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+    financials,
+  } = req.body;
 
-    if (!userid) {
-      return res.status(400).json({ error: 'User ID not provided in headers' });
-    }  
+  // Handle file uploads
+  const files = req.files;
+  const uploadPromises = [];
+  const fileUrls = {};
 
-    console.log(req.files);  // Log received files
-    console.log(req.body);
+  if (files) {
+    Object.keys(files).forEach((key) => {
+      const file = files[key][0];
+      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const bucket = admin.storage().bucket();
+      const fileRef = bucket.file(fileName);
 
-    const {
-      date,
-      problem,
-      solution,
-      stage,
-      investmentStage,
-      currency,
-      fundingAmount,
-      useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
-      financials,
-    } = req.body;
+      const stream = fileRef.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
 
-    if (!date || !problem || !solution || !stage || !investmentStage || !currency || !fundingAmount || !useOfFunds || !financials) {
-      return res.status(400).json({ error: 'Incomplete request data' });
-    }
+      const uploadPromise = new Promise((resolve, reject) => {
+        stream.on('finish', () => {
+          fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+            .then(downloadUrls => {
+              fileUrls[key] = downloadUrls[0];
+              resolve();
+            })
+            .catch(error => {
+              console.error(`Error generating download URL for ${key} file:`, error);
+              reject(`Failed to generate ${key} file URL.`);
+            });
+        });
 
-    // Extract file objects from the request
-    const pitchdeck = req.files['pitchdeck'] ? req.files['pitchdeck'][0] : null;
-    const valuation = req.files['valuation'] ? req.files['valuation'][0] : null;
-    const captable = req.files['captable'] ? req.files['captable'][0] : null;
-    const financialmodel = req.files['financialmodel'] ? req.files['financialmodel'][0] : null;
-    const founderagreement = req.files['founderagreement'] ? req.files['founderagreement'][0] : null;
-    const taxclearance = req.files['taxclearance'] ? req.files['taxclearance'][0] : null;
+        stream.on('error', (err) => {
+          console.error(`Error uploading ${key} file:`, err);
+          reject(`Failed to upload ${key} file.`);
+        });
 
-    // Reference to the database
-    const db = admin.database();
-    const entriesRef = db.ref('users').child(userid); // Use the user's ID as a child node
+        stream.end(file.buffer);
+      });
 
-    // Push the new entry to the database
-    const newEntryRef = entriesRef.push();
-    const entryId = newEntryRef.key;
-
-    // Store file URLs in the database if files are available
-    const fileUrls = {};
-    if (pitchdeck) {
-      fileUrls.pitchdeck = `https://koppoh-4e5fb.appspot.com/${entryId}/pitchdeck.pdf`;
-    }
-    if (valuation) {
-      fileUrls.valuation = `https://koppoh-4e5fb.appspot.com/${entryId}/valuation.pdf`;
-    }
-    if (captable) {
-      fileUrls.captable = `https://koppoh-4e5fb.appspot.com/${entryId}/captable.pdf`;
-    }
-    if (financialmodel) {
-      fileUrls.financialmodel = `https://koppoh-4e5fb.appspot.com/${entryId}/financialmodel.pdf`;
-    }
-    if (founderagreement) {
-      fileUrls.founderagreement = `https://koppoh-4e5fb.appspot.com/${entryId}/founderagreement.pdf`;
-    }
-    if (taxclearance) {
-      fileUrls.taxclearance = `https://koppoh-4e5fb.appspot.com/${entryId}/taxclearance.pdf`;
-    }
-
-    const entryData = {
-      userid, // Add userid to the entry data
-      date,
-      problem,
-      solution,
-      stage,
-      investmentStage,
-      currency,
-      fundingAmount,
-      useOfFunds: {
-        product,
-        saleAndMarketing,
-        researchAndDevelopment,
-        capitalExpenditure,
-        operation,
-        other,
-      },
-      financials,
-      fileUrls,
-    };
-
-    // Set the entry data under the user's id
-    await newEntryRef.set(entryData);
-
-    res.status(201).json({ message: 'Data stored successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+      uploadPromises.push(uploadPromise);
+    });
   }
+
+  // Wait for all file uploads to complete
+  Promise.all(uploadPromises)
+    .then(() => {
+      // Create an equity request data object with the provided fields and file URLs
+      const equityRequestData = {
+        date,
+        problem,
+        solution,
+        stage,
+        investmentStage,
+        currency,
+        fundingAmount,
+        useOfFunds: {
+          product,
+          saleAndMarketing,
+          researchAndDevelopment,
+          capitalExpenditure,
+          operation,
+          other,
+        },
+        financials,
+        pitchdeckUrl: fileUrls.pitchdeck || '',
+        valuationUrl: fileUrls.valuation || '',
+        captableUrl: fileUrls.captable || '',
+        financialmodelUrl: fileUrls.financialmodel || '',
+        founderagreementUrl: fileUrls.founderagreement || '',
+        taxclearanceUrl: fileUrls.taxclearance || '',
+      };
+
+      // Update the equity request data
+      dataRef.child(userId).update(equityRequestData, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update equity request data.' });
+        } else {
+          res.status(200).json({ message: 'Equity request data updated successfully.' });
+        }
+      });
+    })
+    .catch(error => {
+      res.status(500).json({ error });
+    });
 });
+
 
 
 // Import necessary modules and setup your Express app
