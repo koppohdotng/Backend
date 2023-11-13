@@ -3,58 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Header and Footer Website</title>
+    <title>Loan Request Form</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
+            margin: 20px;
         }
 
-        header {
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 20px 0;
-            position: fixed;
-            top: 0;
-            left: 0;
+        form {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input, select {
             width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
         }
 
-        footer {
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
 
-        .content {
-            margin: 80px 0 50px;
-            padding: 20px;
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #response {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Fixed Header</h1>
-    </header>
 
-    <div class="content">
-        <h2>Content Goes Here</h2>
-        <p>This is the main content of your website.</p>
-    </div>
+    <form id="loanForm">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
 
-    <footer>
-        <p>Fixed Footer</p>
-    </footer>
+        <!-- Add other input fields as needed -->
+
+        <label for="businessPlan">Business Plan (PDF):</label>
+        <input type="file" id="businessPlan" name="businessPlan" accept=".pdf" required>
+
+        <label for="bankStatement">Bank Statement (PDF):</label>
+        <input type="file" id="bankStatement" name="bankStatement" accept=".pdf" required>
+
+        <label for="cashFlowAnalysis">Cash Flow Analysis (PDF):</label>
+        <input type="file" id="cashFlowAnalysis" name="cashFlowAnalysis" accept=".pdf" required>
+
+        <label for="financial">Financial (PDF):</label>
+        <input type="file" id="financial" name="financial" accept=".pdf" required>
+
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <div id="response"></div>
 
     <script>
-        // You can add JavaScript code here if needed.
+        function submitForm() {
+            const form = document.getElementById('loanForm');
+            const formData = new FormData(form);
+            formData.append('userid', '1x2bwZFRDrM8PFj3zxo4gbv5gtM2'); // Add the user ID
+
+            fetch('https://koppoh-41a7d984a436.herokuapp.com/api/loanRequest', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerHTML = `<p>${data.message}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('response').innerHTML = '<p>An error occurred. Please try again.</p>';
+            });
+        }
     </script>
+
 </body>
 </html>

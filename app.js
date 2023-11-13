@@ -540,6 +540,43 @@ app.post('/api/loanRequest', upload.fields([
   }
 });
 
+app.post('/api/uploadBusinessPlan', upload.single('businessPlan'), async (req, res) => {
+  try {
+      const userId = req.headers.userid; // Assuming userId is passed in headers
+
+      if (!userId) {
+          return res.status(400).json({ error: 'User ID not provided in headers' });
+      }
+
+      const businessPlanFile = req.file;
+
+      if (!businessPlanFile) {
+          return res.status(400).json({ error: 'Business Plan file not provided' });
+      }
+
+      // Upload the file to GCS
+      const fileName = `businessPlan_${Date.now()}.pdf`;
+      const fileBuffer = businessPlanFile.buffer;
+      const bucket = storageClient.bucket(bucketName);
+      const file = bucket.file(fileName);
+
+      await file.save(fileBuffer, {
+          metadata: {
+              contentType: businessPlanFile.mimetype,
+          },
+      });
+
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+      // You can save the file URL in your database along with the userId
+      // Save to database logic goes here
+
+      res.json({ message: 'Business Plan uploaded successfully', fileUrl });
+  } catch (error) {
+      console.error("Error in /api/uploadBusinessPlan:", error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.post('/api/equitRequest', upload.fields([
   { name: 'pitchdeck', maxCount: 1 }, 
