@@ -650,7 +650,7 @@ app.post('/equityRequest/:userId', upload.fields([
         founderagreementUrl: fileUrls.founderagreement || '',
         taxclearanceUrl: fileUrls.taxclearance || '',
       };
-
+      console.log(equityRequestData);
       // Update the equity request data
       dataRef.child(userId).update(equityRequestData, (error) => {
         if (error) {
