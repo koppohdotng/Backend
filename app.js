@@ -472,8 +472,10 @@ app.post('/loanRequest/:userId', upload.fields([
   const files = req.files;
   const uploadPromises = [];
   const fileUrls = {};
-
+  console.log("odebe")
   if (files) {
+
+    console.log("odebe 1")
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
       const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
@@ -514,6 +516,7 @@ app.post('/loanRequest/:userId', upload.fields([
   // Wait for all file uploads to complete
   Promise.all(uploadPromises)
     .then(() => {
+      console.log("odebe 2")
       // Create a loan request data object with the provided fields and file URLs
       const loanRequestData = {
         date,
@@ -540,7 +543,7 @@ app.post('/loanRequest/:userId', upload.fields([
       // Update the loan request data
       dataRef.child(userId).update(loanRequestData, (error) => {
         if (error) {
-          res.status(500).json({ error: 'Failed to update loan request data.' });
+          res.status(500).json({ error: 'Failed to update loan request data.', error});
         } else {
           res.status(200).json({ message: 'Loan request data updated successfully.' });
         }
