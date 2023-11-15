@@ -450,7 +450,7 @@ const storages = multer.memoryStorage({
 });
 
 // Create an endpoint for uploading PDF documents
-app.put('/loanRequest/:userId', upload.fields([
+app.post('/loanRequest/:userId', upload.fields([
   { name: 'businessPlanFile', maxCount: 1 },
   { name: 'bankStatementFile', maxCount: 1 },
   { name: 'cashFlowAnalysisFile', maxCount: 1 },
@@ -554,7 +554,7 @@ app.put('/loanRequest/:userId', upload.fields([
 
 
 
-app.put('/equityRequest/:userId', upload.fields([
+app.post('/equityRequest/:userId', upload.fields([
   { name: 'pitchdeck', maxCount: 1 },
   { name: 'valuation', maxCount: 1 },
   { name: 'captable', maxCount: 1 },
