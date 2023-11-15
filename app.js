@@ -539,9 +539,10 @@ app.post('/loanRequest/:userId', upload.fields([
         cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
         financialFileUrl: fileUrls.financialFile || '',
       };
-
+         
       // Update the loan request data
       dataRef.child(userId).update(loanRequestData, (error) => {
+        console.log("odebe 3")
         if (error) {
           res.status(500).json({ error: 'Failed to update loan request data.', error});
         } else {
