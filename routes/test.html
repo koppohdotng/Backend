@@ -1,84 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Business Plan</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        form {
-            max-width: 400px;
-            margin: auto;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 16px;
-        }
-
-        button {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #response {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #response {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
 
-    <form id="uploadForm" enctype="multipart/form-data">
-        <label for="businessPlan">Business Plan (PDF):</label>
-        <input type="file" id="businessPlan" name="businessPlan" accept=".pdf" required>
+  <h1>API Test</h1>
 
-        <button type="button" onclick="submitForm()">Upload Business Plan</button>
-    </form>
+  <button onclick="testApi()">Test API</button>
 
-    <div id="response"></div>
+  <div id="response"></div>
 
-    <script>
-        function submitForm() {
-            const form = document.getElementById('uploadForm');
-            const formData = new FormData(form);
-            const userId = '1x2bwZFRDrM8PFj3zxo4gbv5gtM2'; // Replace with the actual user ID
+  <script>
+    function testApi() {
+      const userId = 'rV1oTca6Fnd3nXibLXkajCXeHTs2';
+      const endpoint = 'https://koppoh-41a7d984a436.herokuapp.com/equityRequest/' + userId;
 
-            // Set the user ID in headers
-            const headers = new Headers();
-            headers.append('userid', userId);
+      // Sample data to be sent in the POST request
+      const postData = {
+        date: '2023-11-16',
+        problem: 'Sample Problem',
+        solution: 'Sample Solution',
+        stage: 'Seed',
+        investmentStage: 'Angel',
+        currency: 'USD',
+        fundingAmount: 100000,
+        useOfFunds: {
+          product: 30000,
+          saleAndMarketing: 20000,
+          researchAndDevelopment: 25000,
+          capitalExpenditure: 15000,
+          operation: 10000,
+          other: 20000,
+        },
+        financials: {
+          revenue: 50000,
+          expenses: 30000,
+          netProfit: 20000,
+        },
+      };
 
-            fetch('https://koppoh-41a7d984a436.herokuapp.com/api/uploadBusinessPlan', {
-                method: 'POST',
-                body: formData,
-                headers: headers,
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('response').innerHTML = `<p>${data.message}</p>`;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('response').innerHTML = '<p>An error occurred. Please try again.</p>';
-            });
-        }
-    </script>
+      // Perform the HTTP POST request
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Display the response from the server
+        document.getElementById('response').innerHTML = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        // Display any errors that occurred during the request
+        document.getElementById('response').innerHTML = 'Error: ' + error.message;
+      });
+    }
+  </script>
 
 </body>
 </html>
