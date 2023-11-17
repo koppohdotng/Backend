@@ -837,7 +837,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       blobStream.end(imageBuffer);
     } else {
       // If no new image is provided, update the teammate data without changing the imageURL
-      teammatesRef.child(userId).child(teammateId).update(updatedTeammate, (error) => {
+      teammatesRef.child(`${userId}/Teammate/${teammateId}`).update(updatedTeammate, (error) => {
         if (error) {
           return res.status(500).json({ error: 'Error updating teammate data.' });
         }
