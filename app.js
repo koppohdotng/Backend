@@ -665,7 +665,30 @@ app.post('/equityRequest/:userId', upload.fields([
     });
 });
 
+app.post('/successPayment/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const { paymentType, date, amount, paymentMethod } = req.body;
 
+  // Create a reference to the database
+  const db = admin.database();
+  const successPaymentsRef = db.ref(`users/${userId}/successPayments`);
+
+  // Save payment data
+  const newPaymentRef = successPaymentsRef.push();
+  newPaymentRef.set({
+    paymentType,
+    date,
+    amount,
+    paymentMethod,
+  })
+    .then(() => {
+      res.status(200).json({ message: 'Success payment data saved successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error saving payment data:', error);
+      res.status(500).json({ error: 'Failed to save success payment data.' });
+    });
+});
 
 // Import necessary modules and setup your Express app
 
