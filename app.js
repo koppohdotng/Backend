@@ -885,7 +885,7 @@ app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
       }
 
       // Delete the teammate data from the database
-      return teammatesRef.child(userId).child(teammateId).remove();
+      return teammatesRef.child(`${userId}/Teammate`).child(teammateId).remove();
     })
     .then(() => {
       return res.status(200).json({ message: 'Teammate deleted successfully.' });
