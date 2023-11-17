@@ -876,23 +876,26 @@ app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
   const teammateId = req.params.teammateId;
 
   // Check if the teammate exists
-  teammatesRef.child(`${userId}/Teammate`).child(teammateId).once('value', (snapshot) => {
-    const existingTeammate = snapshot.val();
+  teammatesRef.child(`${userId}/Teammate`).child(teammateId).once('value')
+    .then(snapshot => {
+      const existingTeammate = snapshot.val();
 
-    if (!existingTeammate) {
-      return res.status(404).json({ error: 'Teammate not found.' });
-    }
-
-    // Delete the teammate data from the database
-    teammatesRef.child(userId).child(teammateId).remove((error) => {
-      if (error) {
-        return res.status(500).json({ error: 'Error deleting teammate data.' });
+      if (!existingTeammate) {
+        return res.status(404).json({ error: 'Teammate not found.' });
       }
 
+      // Delete the teammate data from the database
+      return teammatesRef.child(userId).child(teammateId).remove();
+    })
+    .then(() => {
       return res.status(200).json({ message: 'Teammate deleted successfully.' });
+    })
+    .catch(error => {
+      console.error(error);
+      return res.status(500).json({ error: 'Error deleting teammate data.' });
     });
-  });
 });
+
 
 
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Test</title>
+  <title>Delete Teammate API Test</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,48 +17,24 @@
 </head>
 <body>
 
-  <h1>API Test</h1>
+  <h1>Delete Teammate API Test</h1>
 
-  <button onclick="testApi()">Test API</button>
+  <button onclick="deleteTeammate()">Delete Teammate</button>
 
   <div id="response"></div>
 
   <script>
-    function testApi() {
+    function deleteTeammate() {
       const userId = 'IhnAoGNDnUXmbgORidHtNqUekeB3';
-      const endpoint = 'https://koppoh-41a7d984a436.herokuapp.com/equityRequest/' + userId;
+      const teammateId = '-NiVEccICH_0PGzvlFgg';
+      const endpoint = `https://your-api-url/api/deleteTeammate/${userId}/${teammateId}`;
 
-      // Sample data to be sent in the POST request
-      const postData = {
-        date: '2023-11-16',
-        problem: 'Sample Problem',
-        solution: 'Sample Solution',
-        stage: 'Seed',
-        investmentStage: 'Angel',
-        currency: 'USD',
-        fundingAmount: 100000,
-        useOfFunds: {
-          product: 30000,
-          saleAndMarketing: 20000,
-          researchAndDevelopment: 25000,
-          capitalExpenditure: 15000,
-          operation: 10000,
-          other: 20000,
-        },
-        financials: {
-          revenue: 50000,
-          expenses: 30000,
-          netProfit: 20000,
-        },
-      };
-
-      // Perform the HTTP POST request
+      // Perform the HTTP DELETE request
       fetch(endpoint, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(postData),
       })
       .then(response => response.json())
       .then(data => {
@@ -70,8 +46,6 @@
         document.getElementById('response').innerHTML = 'Error: ' + error.message;
       });
     }
-  
-  
   </script>
 
 </body>
