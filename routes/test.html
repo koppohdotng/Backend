@@ -9,52 +9,65 @@
   </style>
 </head>
 <body>
-  <h2>Update Teammate</h2>
+  <h2>Uxdf</h2>
   <form id="updateForm" enctype="multipart/form-data">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required>
-    <br>
-    <label for="role">Role:</label>
-    <input type="text" id="role" name="role" required>
-    <br>
-    <label for="image">Image:</label>
-    <input type="file" id="image" name="image">
-    <br>
-    <button type="button" onclick="updateTeammate()">Update Teammate</button>
+    
+    <button type="button" onclick="testApi()">Update Teammate</button>
   </form>
 
-  <div id="updateMessage"></div>
+  <div id="response"></div>
 
   <script>
-    function updateTeammate() {
-      const form = document.getElementById('updateForm');
-      const formData = new FormData(form);
+    function testApi() {
       const userId = 'IhnAoGNDnUXmbgORidHtNqUekeB3';
-      const teammateId = '-Nia41pGv82yMsVhLVQ7';
+      const endpoint = 'https://koppoh-41a7d984a436.herokuapp.com/loanRequest/' + userId;
 
-      fetch(`https://koppoh-41a7d984a436.herokuapp.com/api/updateTeammate/${userId}/${teammateId}`, {
-        method: 'PUT',
-        body: formData
+      // Sample data to be sent in the POST request
+      const postData = {
+        date: '2023-11-16',
+        problem: 'Sample Problem',
+        solution: 'Sample Solution',
+        stage: 'Seed',
+        investmentStage: 'Angel',
+        currency: 'USD',
+        fundingAmount: 100000,
+        useOfFunds: {
+          product: 30000,
+          saleAndMarketing: 20000,
+          researchAndDevelopment: 25000,
+          capitalExpenditure: 15000,
+          operation: 10000,
+          other: 20000,
+        },
+        financials: {
+          revenue: 50000,
+          expenses: 30000,
+          netProfit: 20000,
+        },
+      };
+
+      // Perform the HTTP POST request
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
       })
       .then(response => response.json())
       .then(data => {
-        console.log(data); // You can handle the response here
-
-        const updateMessage = document.getElementById('updateMessage');
-
-        if (data.message) {
-          updateMessage.innerHTML = `<p style="color: green;">${data.message}</p>`;
-        } else {
-          updateMessage.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
-        }
-
-        // Optionally, update the UI or show a success message
+        // Display the response from the server
+        document.getElementById('response').innerHTML = JSON.stringify(data, null, 2);
       })
       .catch(error => {
-        console.error('Error:', error);
-        // Handle the error, show an error message, etc.
+        // Display any errors that occurred during the request
+        document.getElementById('response').innerHTML = 'Error: ' + error.message;
       });
     }
+
   </script>
 </body>
 </html>
+
+
+

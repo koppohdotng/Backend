@@ -786,7 +786,7 @@ app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
 });
 
 
-app.put(' ', upload.single('image'), (req, res) => {
+app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
   const userId = req.params.userId;
   const teammateId = req.params.teammateId;
   const { name, role } = req.body;
