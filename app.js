@@ -892,6 +892,74 @@ app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
     });
 });
 
+const receiptsRef = db.ref('users'); // Reference to the 'receipts' node in your database
+
+// Initialize Multer for handling file uploads
+
+app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
+  const userId = req.params.userId;
+  const { date, type } = req.body;
+
+  // Check if date and type are provided (compulsory fields)
+  if (!date || !type) {
+    return res.status(400).json({ error: 'Date and type are compulsory fields.' });
+  }
+
+  // Generate a unique filename for the receipt (e.g., using a timestamp)
+  const timestamp = Date.now();
+  const receiptName = `${timestamp}_${req.file.originalname}`;
+
+  // Create a new receipt object
+  const newReceipt = {
+    date,
+    type,
+    receiptURL: '', // Initialize the receiptURL field
+  };
+
+  // If a receipt is provided, store it in Firebase Storage and add its download URL to the receipt object
+  if (req.file) {
+    const bucket = admin.storage().bucket();
+
+    const receiptBuffer = req.file.buffer;
+
+    const file = bucket.file(receiptName); // Use the generated filename
+
+    const blobStream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    blobStream.on('error', (error) => {
+      return res.status(500).json({ error: 'Error uploading the receipt.' });
+    });
+
+    blobStream.on('finish', () => {
+      // Get the download URL for the uploaded receipt
+      file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
+        if (error) {
+          return res.status(500).json({ error: 'Error getting download URL.' });
+        }
+
+        newReceipt.receiptURL = downloadUrl;
+
+        // Add the new receipt to the database under the specified user ID
+        receiptsRef.child(`${userId}/Receipt`).push(newReceipt, (error) => {
+          if (error) {
+            return res.status(500).json({ error: 'Error adding receipt to the database.' });
+          }
+
+          return res.status(200).json({ message: 'Receipt added successfully.' });
+        });
+      });
+    });
+
+    blobStream.end(receiptBuffer);
+  } else {
+    // If no receipt is provided, return an error
+    return res.status(400).json({ error: 'Receipt file is required.' });
+  }
+});
 
 
 
