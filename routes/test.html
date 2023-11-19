@@ -3,50 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delete Teammate API Test</title>
+  <title>Update Teammate</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    #response {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-    }
+    /* Add your CSS styling here */
   </style>
 </head>
 <body>
+  <h2>Update Teammate</h2>
+  <form id="updateForm" enctype="multipart/form-data">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+    <br>
+    <label for="role">Role:</label>
+    <input type="text" id="role" name="role" required>
+    <br>
+    <label for="image">Image:</label>
+    <input type="file" id="image" name="image">
+    <br>
+    <button type="button" onclick="updateTeammate()">Update Teammate</button>
+  </form>
 
-  <h1>Delete Teammate API Test</h1>
-
-  <button onclick="deleteTeammate()">Delete Teammate</button>
-
-  <div id="response"></div>
+  <div id="updateMessage"></div>
 
   <script>
-    function deleteTeammate() {
+    function updateTeammate() {
+      const form = document.getElementById('updateForm');
+      const formData = new FormData(form);
       const userId = 'IhnAoGNDnUXmbgORidHtNqUekeB3';
-      const teammateId = '-NiVEccICH_0PGzvlFgg';
-      const endpoint = `https://your-api-url/api/deleteTeammate/${userId}/${teammateId}`;
+      const teammateId = '-Nia41pGv82yMsVhLVQ7';
 
-      // Perform the HTTP DELETE request
-      fetch(endpoint, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      fetch(`https://koppoh-41a7d984a436.herokuapp.com/api/updateTeammate/${userId}/${teammateId}`, {
+        method: 'PUT',
+        body: formData
       })
       .then(response => response.json())
       .then(data => {
-        // Display the response from the server
-        document.getElementById('response').innerHTML = JSON.stringify(data, null, 2);
+        console.log(data); // You can handle the response here
+
+        const updateMessage = document.getElementById('updateMessage');
+
+        if (data.message) {
+          updateMessage.innerHTML = `<p style="color: green;">${data.message}</p>`;
+        } else {
+          updateMessage.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+        }
+
+        // Optionally, update the UI or show a success message
       })
       .catch(error => {
-        // Display any errors that occurred during the request
-        document.getElementById('response').innerHTML = 'Error: ' + error.message;
+        console.error('Error:', error);
+        // Handle the error, show an error message, etc.
       });
     }
   </script>
-
 </body>
 </html>
