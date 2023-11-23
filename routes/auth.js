@@ -104,7 +104,7 @@ router.get('/login', (req, res) => {
 
   
   // Example usage in an Express.js route
-  routerpost('/login', async (req, res) => {
+  router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
     try {
