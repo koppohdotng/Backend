@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('118360199442016913320');
 const { ServerClient } = require('postmark');
+const bcrypt = require('bcrypt');
 
 const postmarkClient = new ServerClient('61211298-3714-4551-99b0-1164f8a9cb33');
 
@@ -110,14 +111,15 @@ router.get('/login', (req, res) => {
     try {
       // Get the user by email
       const user = await admin.auth().getUserByEmail(email);
-       console.log(user);
+  
       // Check if the user has a custom claim named 'password'
       if (user.customClaims && user.customClaims.password) {
         const storedPassword = user.customClaims.password;
   
-        // Perform a secure password comparison using a library like bcrypt
-        // Here, we use a simple equality check for demonstration purposes
-        if (password === storedPassword) {
+        // Use bcrypt to compare passwords securely
+        const passwordMatch = await bcrypt.compare(password, storedPassword);
+  
+        if (passwordMatch) {
           res.json({
             uid: user.uid,
             email: user.email,
@@ -134,7 +136,6 @@ router.get('/login', (req, res) => {
       res.status(401).json({ error: 'Invalid credentials' });
     }
   });
-
 
   router.get('/google', async (req, res) => {
     const { token } = req.query;
