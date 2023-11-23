@@ -108,30 +108,21 @@ router.get('/login', (req, res) => {
     const { email, password } = req.body;
   
     try {
-      // Check if the email exists
-      const userRecord = await admin.auth().getUserByEmail(email);
-  
-      // If the email exists, attempt to sign in
-      const userCredential = await admin.auth().getAuth().signInWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-  
-      res.json({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        // Add any additional user data you want to include in the response
-      });
-    } catch (error) {
-      console.error('Login error:', error.message);
-  
-      // If the error is due to the email not existing, return a specific error message
-      if (error.code === 'auth/user-not-found') {
-        res.status(404).json({ error: 'Email not found' });
-      } else if (error.code === 'auth/wrong-password') {
-        res.status(401).json({ error: 'Incorrect password' });
+      // Get the user by email
+      const user = await admin.auth().getUserByEmail(email);
+
+      if (user.customClaims && user.customClaims.password === password) {
+        res.json({
+          uid: user.uid,
+          email: user.email,
+          // Add more user details as needed
+        });
       } else {
         res.status(401).json({ error: 'Invalid credentials' });
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(401).json({ error: 'Invalid credentials' });
     }
   });
 
