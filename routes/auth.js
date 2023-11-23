@@ -110,10 +110,9 @@ router.get('/login', (req, res) => {
     try {
       // Check if the email exists
       const userRecord = await admin.auth().getUserByEmail(email);
-      
+  
       // If the email exists, attempt to sign in
       const userCredential = await admin.auth().getAuth().signInWithEmailAndPassword(email, password);
-      console(userCredential);
       const user = userCredential.user;
   
       res.json({
