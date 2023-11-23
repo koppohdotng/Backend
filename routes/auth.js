@@ -107,17 +107,12 @@ router.get('/login', (req, res) => {
   router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
-    try {
-      // Check Firebase authentication
-      const userRecord = await admin.auth().getUserByEmail(email);
-      { message: "Login successful" }
-      const loginResult = await login(email, password);
-
-      res.status(200).json({ message: "Login successful", user: userRecord.user});
-
-    } catch (error) {
-      console.error('Firebase authentication error:', error);
-      res.status(401).json({ error: 'Invalid credentials' });
+    const loginResult = await login(email, password);
+  
+    if (loginResult.success) {
+      res.status(200).json({ message: loginResult.message, user: loginResult.user });
+    } else {
+      res.status(401).json({ error: loginResult.error });
     }
   });
 
