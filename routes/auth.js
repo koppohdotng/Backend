@@ -110,7 +110,7 @@ router.get('/login', (req, res) => {
     try {
       // Get the user by email
       const user = await admin.auth().getUserByEmail(email);
-      res.status(401).json({ user });
+      res.status(200).json({ user });
       if (user.customClaims && user.customClaims.password === password) {
         res.json({
           uid: user.uid,
