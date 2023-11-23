@@ -104,19 +104,28 @@ router.get('/login', (req, res) => {
 
   
   // Example usage in an Express.js route
-  router.post('/login', async (req, res) => {
+  routerpost('/api/login', async (req, res) => {
     const { email, password } = req.body;
   
     try {
       // Get the user by email
       const user = await admin.auth().getUserByEmail(email);
-      res.status(200).json({ user });
-      if (user.customClaims && user.customClaims.password === password) {
-        res.json({
-          uid: user.uid,
-          email: user.email,
-          // Add more user details as needed
-        });
+  
+      // Check if the user has a custom claim named 'password'
+      if (user.customClaims && user.customClaims.password) {
+        const storedPassword = user.customClaims.password;
+  
+        // Perform a secure password comparison using a library like bcrypt
+        // Here, we use a simple equality check for demonstration purposes
+        if (password === storedPassword) {
+          res.json({
+            uid: user.uid,
+            email: user.email,
+            // Add more user details as needed
+          });
+        } else {
+          res.status(401).json({ error: 'Invalid credentials' });
+        }
       } else {
         res.status(401).json({ error: 'Invalid credentials' });
       }
