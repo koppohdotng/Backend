@@ -104,7 +104,7 @@ router.get('/login', (req, res) => {
 
   
   // Example usage in an Express.js route
-  routerpost('/api/login', async (req, res) => {
+  routerpost('/login', async (req, res) => {
     const { email, password } = req.body;
   
     try {
