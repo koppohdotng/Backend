@@ -111,15 +111,14 @@ router.get('/login', (req, res) => {
     try {
       // Get the user by email
       const user = await admin.auth().getUserByEmail(email);
-  
+       console.log(user);
       // Check if the user has a custom claim named 'password'
       if (user.customClaims && user.customClaims.password) {
         const storedPassword = user.customClaims.password;
   
-        // Use bcrypt to compare passwords securely
-        const passwordMatch = await bcrypt.compare(password, storedPassword);
-  
-        if (passwordMatch) {
+        // Perform a secure password comparison using a library like bcrypt
+        // Here, we use a simple equality check for demonstration purposes
+        if (password === storedPassword) {
           res.json({
             uid: user.uid,
             email: user.email,
@@ -136,6 +135,7 @@ router.get('/login', (req, res) => {
       res.status(401).json({ error: 'Invalid credentials' });
     }
   });
+
 
   router.get('/google', async (req, res) => {
     const { token } = req.query;
