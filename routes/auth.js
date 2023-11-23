@@ -108,14 +108,27 @@ router.get('/login', (req, res) => {
     const { email, password } = req.body;
   
     try {
-      // Authenticate user using email and password
       const userRecord = await admin.auth().getUserByEmail(email);
+  
+      // Use Firebase Authentication method to verify the password
       await admin.auth().signInWithEmailAndPassword(email, password);
   
-      res.status(200).json({ message: 'Login successful', uid: userRecord.uid });
+      // Additional checks (you can customize this based on your requirements)
+      // For example, you may want to check if the user is verified or has specific roles
+      if (!userRecord.emailVerified) {
+        return res.status(401).json({ message: 'Email not verified' });
+      }
+  
+      // You can add more checks here based on your application's requirements
+  
+      res.status(200).json({ message: 'Login successful', user: userRecord });
     } catch (error) {
-      console.error('Error logging in:', error);
-      res.status(401).json({ message: 'Invalid credentials' });
+      console.error('Error during login:', error);
+      // Handle specific errors
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
