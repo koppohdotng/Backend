@@ -110,7 +110,7 @@ router.get('/login', (req, res) => {
     try {
       // Get the user by email
       const user = await admin.auth().getUserByEmail(email);
-       console.log(user.customClaims);
+       console.log(user);
       // Check if the user has a custom claim named 'password'
       if (user.customClaims && user.customClaims.password) {
         const storedPassword = user.customClaims.password;
