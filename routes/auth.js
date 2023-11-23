@@ -143,23 +143,22 @@ router.get('/login', (req, res) => {
     const { email, password } = req.body;
   
     try {
-      // Check Firebase authentication
-      const firebaseUser = await admin.auth().getUserByEmail(email);
+      // Check Firebase authentication with email and password
+      const signInResult = await admin.auth().signInWithEmailAndPassword(email, password);
   
-      // Perform your custom login logic (e.g., compare password, etc.)
-      const loginResult = await login(email, password);
+      // Perform any additional checks or custom logic if needed
   
-      if (loginResult.success) {
-        res.status(200).json({ message: loginResult.message, user: loginResult.user });
-      } else {
-        res.status(401).json({ error: loginResult.error });
-      }
+      res.status(200).json({ message: 'Login successful', user: signInResult.user });
     } catch (error) {
       console.error('Firebase authentication error:', error);
-      res.status(401).json({ error: 'Invalid credentials' });
+      // Handle different Firebase authentication errors
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        res.status(401).json({ error: 'Invalid credentials' });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   });
-
 
   router.get('/google', async (req, res) => {
     const { token } = req.query;
