@@ -110,12 +110,8 @@ router.get('/login', (req, res) => {
     try {
       // Check Firebase authentication
       const userRecord = await admin.auth().getUserByEmail(email);
-      const userData = {
-        uid: userRecord.uid,
-        email: userRecord.email,
-        // Add other user data you want to include
-      };
-      res.json(userData);
+     
+      res.status(200).json({ message: loginResult.message, user: loginResult.user },);
 
     } catch (error) {
       console.error('Firebase authentication error:', error);
