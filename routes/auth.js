@@ -102,40 +102,20 @@ router.get('/login', (req, res) => {
   });
 
 
-  async function login(email, password) {
-    try {
-      const userSnapshot = await admin.database().ref('users').orderByChild('email').equalTo(email).once('value');
-      const userData = userSnapshot.val();
   
-      if (!userData) {
-        return { success: false, error: 'User not found' };
-      }
-  
-      const userId = Object.keys(userData)[0]; // Assuming there's only one user with a given email
-      const user = userData[userId];
-  
-      // Check if the provided password matches the stored password (in a real-world scenario, you'd use a secure password hashing library)
-      if (password !== user.password) {
-        return { success: false, error: 'Incorrect password' };
-      }
-  
-      // Login successful
-      return { success: true, message: 'Login successful', user: { id: userId, ...user } };
-    } catch (error) {
-      console.error('Error during login:', error);
-      return { success: false, error: 'Internal server error' };
-    }
-  }
   // Example usage in an Express.js route
   router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
-    const loginResult = await login(email, password);
-  
-    if (loginResult.success) {
-      res.status(200).json({ message: loginResult.message, user: loginResult.user });
-    } else {
-      res.status(401).json({ error: loginResult.error });
+    try {
+      // Check Firebase authentication
+      const userRecord = await admin.auth().getUserByEmail(email);
+      { message: "Login successful" }
+      res.status(200).json({ message: "Login successful", user: loginResult.user  });
+
+    } catch (error) {
+      console.error('Firebase authentication error:', error);
+      res.status(401).json({ error: 'Invalid credentials' });
     }
   });
 
