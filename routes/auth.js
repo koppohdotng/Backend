@@ -110,7 +110,7 @@ router.get('/login', (req, res) => {
     try {
       // Check Firebase authentication
       const userRecord = await admin.auth().getUserByEmail(email);
-      { message: "Login successful" }
+     
       res.status(200).json({ message: "Login successful", user: loginResult.user  });
 
     } catch (error) {
