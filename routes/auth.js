@@ -145,7 +145,7 @@ router.get('/login', (req, res) => {
     const loginResult = await login(email, password);
   
     if (loginResult.success) {
-      res.status(200).json({ message: loginResult.message, user: loginResult.user });
+      res.status(200).json({ message: loginResult.message, user: loginResult.user }, "working fine");
     } else {
       res.status(401).json({ error: loginResult.error });
     }
