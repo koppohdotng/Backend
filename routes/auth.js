@@ -139,24 +139,18 @@ router.get('/login', (req, res) => {
   };
   
   // Example usage in an Express.js route
-  router.post('/login', async (req, res) => {
+  app.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
     try {
-      // Check Firebase authentication with email and password
-      const signInResult = await admin.auth().signInWithEmailAndPassword(email, password);
+      // Authenticate user using email and password
+      const userRecord = await admin.auth().getUserByEmail(email);
+      await admin.auth().signInWithEmailAndPassword(email, password);
   
-      // Perform any additional checks or custom logic if needed
-  
-      res.status(200).json({ message: 'Login successful', user: signInResult.user });
+      res.status(200).json({ message: 'Login successful', uid: userRecord.uid });
     } catch (error) {
-      console.error('Firebase authentication error:', error);
-      // Handle different Firebase authentication errors
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        res.status(401).json({ error: 'Invalid credentials' });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+      console.error('Error logging in:', error);
+      res.status(401).json({ message: 'Invalid credentials' });
     }
   });
 
