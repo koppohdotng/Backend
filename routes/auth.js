@@ -101,45 +101,10 @@ router.get('/login', (req, res) => {
     res.send('It is working');
   });
 
- 
 
-
-  const login = async (email, password) => {
-    try {
-      const userCredential = await admin.auth().getUserByEmail(email);
-  
-      // Attempt to verify the password (you may need to implement password checking logic)
-      if (userCredential) {
-        const user = userCredential.toJSON();
-        return { success: true, message: 'Login successful', user };
-      } else {
-        return { success: false, error: 'Incorrect password' };
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-  
-      if (error.code === 'auth/user-not-found') {
-        // Check if the email exists in the database
-        const snapshot = await admin
-          .database()
-          .ref('users')
-          .orderByChild('email')
-          .equalTo(email)
-          .once('value');
-  
-        if (snapshot.exists()) {
-          return { success: false, error: 'Incorrect password' };
-        } else {
-          return { success: false, error: 'Email not found' };
-        }
-      } else {
-        return { success: false, error: 'Login failed' };
-      }
-    }
-  };
   
   // Example usage in an Express.js route
-  app.post('/login', async (req, res) => {
+  router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
     try {
