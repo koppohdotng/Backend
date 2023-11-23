@@ -107,21 +107,12 @@ router.get('/login', (req, res) => {
   router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
-    try {
-      // Get the user by email
-      const user = await admin.auth().getUserByEmail(email);
-       console.log(user.customClaims);
-
-       res.json({
-        uid: user.uid,
-        email: user.email,
-        user 
-        
-      });
-     
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(401).json({ error: 'Invalid credentials' });
+    const loginResult = await login(email, password);
+  
+    if (loginResult.success) {
+      res.status(200).json({ message: loginResult.message, user: loginResult.user },);
+    } else {
+      res.status(401).json({ error: loginResult.error });
     }
   });
 
