@@ -142,12 +142,21 @@ router.get('/login', (req, res) => {
   router.post('/login', async (req, res) => {
     const { email, password } = req.body;
   
-    const loginResult = await login(email, password);
+    try {
+      // Check Firebase authentication
+      const firebaseUser = await admin.auth().getUserByEmail(email);
   
-    if (loginResult.success) {
-      res.status(200).json({ message: loginResult.message, user: loginResult.user },);
-    } else {
-      res.status(401).json({ error: loginResult.error });
+      // Perform your custom login logic (e.g., compare password, etc.)
+      const loginResult = await login(email, password);
+  
+      if (loginResult.success) {
+        res.status(200).json({ message: loginResult.message, user: loginResult.user });
+      } else {
+        res.status(401).json({ error: loginResult.error });
+      }
+    } catch (error) {
+      console.error('Firebase authentication error:', error);
+      res.status(401).json({ error: 'Invalid credentials' });
     }
   });
 
