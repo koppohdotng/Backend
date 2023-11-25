@@ -792,11 +792,6 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
   const teammateId = req.params.teammateId;
   const { name, role } = req.body;
 
-  // Check if name and role are provided (compulsory fields)
-  if (!name || !role) {
-    return res.status(400).json({ error: 'Name and role are compulsory fields.' });
-  }
-
   // Reference to the specific teammate in the database
   const teammateRef = teammatesRef.child(`${userId}/Teammate/${teammateId}`);
 
@@ -810,7 +805,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     }
 
     // Generate a unique filename for the image if provided
-    let imageName = existingTeammate.imageURL.split('/').pop(); // Extract existing filename
+    let imageName = existingTeammate.imageURL ? existingTeammate.imageURL.split('/').pop() : null;
 
     if (req.file) {
       const timestamp = Date.now();
@@ -819,8 +814,8 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
 
     // Update the teammate object with the new information
     const updatedTeammate = {
-      name,
-      role,
+      name: name || existingTeammate.name,
+      role: role || existingTeammate.role,
       imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
     };
 
@@ -873,6 +868,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     }
   });
 });
+
 
 
 app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
