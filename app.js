@@ -786,6 +786,7 @@ app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
 });
 
 
+// API endpoint to update a teammate
 app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
   const userId = req.params.userId;
   const teammateId = req.params.teammateId;
@@ -796,31 +797,37 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     return res.status(400).json({ error: 'Name and role are compulsory fields.' });
   }
 
-  // Get the existing teammate data
-  teammatesRef.child(`${userId}/Teammate`).child(teammateId).once('value', (snapshot) => {
+  // Reference to the specific teammate in the database
+  const teammateRef = teammatesRef.child(`${userId}/Teammate/${teammateId}`);
+
+  // Fetch the existing teammate data
+  teammateRef.once('value', (snapshot) => {
     const existingTeammate = snapshot.val();
 
+    // Check if the teammate exists
     if (!existingTeammate) {
       return res.status(404).json({ error: 'Teammate not found.' });
     }
 
-    // Generate a unique filename for the updated image (e.g., using a timestamp)
-    const timestamp = Date.now();
-    const imageName = `${timestamp}_${req.file.originalname}`;
+    // Generate a unique filename for the image if provided
+    let imageName = existingTeammate.imageURL.split('/').pop(); // Extract existing filename
 
-    // Create a new teammate object with the updated data
+    if (req.file) {
+      const timestamp = Date.now();
+      imageName = `${timestamp}_${req.file.originalname}`;
+    }
+
+    // Update the teammate object with the new information
     const updatedTeammate = {
       name,
       role,
       imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
     };
 
-    // If a new image is provided, store it in Firebase Storage and update the download URL
+    // If an image is provided, update it in Firebase Storage and update its download URL in the teammate object
     if (req.file) {
       const bucket = admin.storage().bucket();
-
       const imageBuffer = req.file.buffer;
-
       const file = bucket.file(imageName);
 
       const blobStream = file.createWriteStream({
@@ -842,10 +849,10 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
 
           updatedTeammate.imageURL = downloadUrl;
 
-          // Update the teammate data in the database
-          teammatesRef.child(`${userId}/Teammate/${teammateId}`).update(updatedTeammate, (error) => {
+          // Update the teammate in the database
+          teammateRef.update(updatedTeammate, (error) => {
             if (error) {
-              return res.status(500).json({ error: 'Error updating teammate data.' });
+              return res.status(500).json({ error: 'Error updating teammate in the database.' });
             }
 
             return res.status(200).json({ message: 'Teammate updated successfully.' });
@@ -855,10 +862,10 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
 
       blobStream.end(imageBuffer);
     } else {
-      // If no new image is provided, update the teammate data without changing the imageURL
-      teammatesRef.child(`${userId}/Teammate/${teammateId}`).update(updatedTeammate, (error) => {
+      // If no new image is provided, update the teammate object in the database directly
+      teammateRef.update(updatedTeammate, (error) => {
         if (error) {
-          return res.status(500).json({ error: 'Error updating teammate data.' });
+          return res.status(500).json({ error: 'Error updating teammate in the database.' });
         }
 
         return res.status(200).json({ message: 'Teammate updated successfully.' });
@@ -866,6 +873,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     }
   });
 });
+
 
 app.delete('/api/deleteTeammate/:userId/:teammateId', (req, res) => {
   const userId = req.params.userId;
