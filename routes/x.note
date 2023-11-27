@@ -8,9 +8,9 @@ curl -X POST -H "Content-Type: application/json" -d '{
 curl -X POST -H "Content-Type: application/json" -d '{
   "firstName": "John",
   "lastName": "Doe",
-  "email": "johweendoe@example.com",
+  "email": "johwessendoe@example.com",
   "password": "password123"
-}' http://localhost:3000/auth/signup
+}' https://koppoh-41a7d984a436.herokuapp.com/auth/signup
 
 curl -X POST -H "Content-Type: application/json" -d '{
   "email": "johweendoe@example.com",

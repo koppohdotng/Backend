@@ -85,7 +85,7 @@ router.post('/signup', (req, res) => {
             .catch((signupError) => {
               // Handle signup errors
               console.error('Signup error:', signupError);
-              res.status(400).json({ error: 'Signup failed' }), signupError;
+              res.status(400).json({ error: 'Signup failed',signupError });
             });
         } else {
           // Handle other errors that may occur while checking the email
