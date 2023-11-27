@@ -24,7 +24,6 @@ admin.initializeApp({
 // Define a route for user signup
 router.post('/signup', (req, res) => {
   const { firstName, lastName, email, password, refFrom } = req.body;
-
   admin
       .auth()
       .getUserByEmail(email)
@@ -80,7 +79,7 @@ router.post('/signup', (req, res) => {
               } catch (databaseError) {
                 // Handle any unexpected database error
                 console.error('Unexpected database error:', databaseError);
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: 'Server error' }, databaseError);
               }
             })
             .catch((signupError) => {

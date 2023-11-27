@@ -26,13 +26,11 @@
 
   <form id="updateTeammateForm">
     
-    
-
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required>
+    <input type="text" id="name" name="name">
 
     <label for="role">Role:</label>
-    <input type="text" id="role" name="role" required>
+    <input type="text" id="role" name="role">
 
     <label for="image">Image (optional):</label>
     <input type="file" id="image" name="image">
@@ -60,6 +58,8 @@
           method: 'PUT',
           body: formData,
         });
+
+        console.log(response); // Log the entire response for debugging
 
         const result = await response.json();
 
