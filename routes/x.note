@@ -5,10 +5,10 @@ curl -X POST -H "Content-Type: application/json" -d '{
   "password": "password123"
 }' http://localhost:3000/auth/signup
 
-curl -X POST -H "Content-Type: application/json" -d '{
+curl -X POST -H "Content-Type: application/json" -d '{ 
   "firstName": "John",
   "lastName": "Doe",
-  "email": "johwesseddndoe@example.com",
+  "email": "johwessssseddndoe@example.com",
   "password": "password123"
 }' https://koppoh-41a7d984a436.herokuapp.com/auth/signup
 
