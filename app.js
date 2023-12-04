@@ -751,7 +751,32 @@ app.get('/check-subscription-status', (req, res) => {
   });
 });
 
+const authenticateUser = async (req, res, next) => {
+  const idToken = req.header('Authorization');
 
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+// Logout endpoint
+app.post('/logout/:userId', authenticateUser, async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Perform logout operations here (if needed)
+    // For example, you might want to invalidate any tokens or update the user's status
+
+    res.status(200).json({ message: 'User logged out successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 // Define an API route for updating a milestone
