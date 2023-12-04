@@ -518,7 +518,7 @@ app.post('/loanRequest/:userId', upload.fields([
     .then(() => {
       console.log("odebe 2")
       // Create a loan request data object with the provided fields and file URLs
-      const loanRequestData = {
+      const fundingRequest = {
         date,
         problem,
         solution,
@@ -535,6 +535,7 @@ app.post('/loanRequest/:userId', upload.fields([
           
         },
         reviewstage: "not yet",
+        fundingType:"loan" ,
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
@@ -543,7 +544,7 @@ app.post('/loanRequest/:userId', upload.fields([
       };
          
       // Update the loan request data
-      dataRef.child(`${userId}/fundingRequest`).push(loanRequestData, (error) => {
+      dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         console.log("odebe 3")
         if (error) {
           res.status(500).json({ error: 'Failed to update loan request data.', error});
@@ -628,7 +629,7 @@ app.post('/equityRequest/:userId', upload.fields([
   Promise.all(uploadPromises)
     .then(() => {
       // Create an equity request data object with the provided fields and file URLs
-      const equityRequestData = {
+      const fundingRequest = {
         date,
         problem,
         solution,
@@ -647,6 +648,7 @@ app.post('/equityRequest/:userId', upload.fields([
         financials,
         
         reviewstage: "not yet",
+        fundingType:"equity" ,
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
@@ -656,7 +658,7 @@ app.post('/equityRequest/:userId', upload.fields([
       };
       console.log(equityRequestData);
       // Update the equity request data
-      dataRef.child(`${userId}/fundingRequest`).push(equityRequestData, (error) => {
+      dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         if (error) {
           res.status(500).json({ error: 'Failed to update equity request data.' });
         } else {
