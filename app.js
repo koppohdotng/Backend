@@ -751,45 +751,7 @@ app.get('/check-subscription-status', (req, res) => {
   });
 });
 
-const authenticate = async (req, res, next) => {
-  const idToken = req.headers.authorization;
 
-  if (!idToken) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    req.uid = decodedToken.uid;
-    next();
-  } catch (error) {
-    console.error('Error verifying ID token:', error);
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-};
-
-// Logout route
-app.post('/logout', authenticate, (req, res) => {
-  const { uid } = req;
-
-  // Implement logout logic
-  // You can use Firebase Authentication SDK to invalidate the user's session
-
-  // For example, sign out the user
-  admin.auth().revokeRefreshTokens(uid)
-    .then(() => {
-      return admin.auth().getUser(uid);
-    })
-    .then((userRecord) => {
-      // Perform any additional logout actions if needed
-      console.log(`User ${userRecord.displayName} (${uid}) has been logged out`);
-      res.status(200).json({ message: 'Logout successful' });
-    })
-    .catch((error) => {
-      console.error('Error revoking refresh tokens:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    });
-});
 
 
 // Define an API route for updating a milestone
