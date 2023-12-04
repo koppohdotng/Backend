@@ -532,8 +532,9 @@ app.post('/loanRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
-          reviewstage: "not yet"
+          
         },
+        reviewstage: "not yet",
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
@@ -642,9 +643,10 @@ app.post('/equityRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
-          reviewstage: "not yet"
         },
         financials,
+        
+        reviewstage: "not yet",
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
