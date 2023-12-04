@@ -648,7 +648,7 @@ app.post('/equityRequest/:userId', upload.fields([
         financials,
         
         reviewstage: "not yet",
-        fundingType:"equity" ,
+        fundingType: "equity" ,
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
@@ -656,7 +656,7 @@ app.post('/equityRequest/:userId', upload.fields([
         founderagreementUrl: fileUrls.founderagreement || '',
         taxclearanceUrl: fileUrls.taxclearance || '',
       };
-      console.log(equityRequestData);
+     
       // Update the equity request data
       dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         if (error) {
