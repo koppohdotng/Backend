@@ -20,3 +20,4 @@ app.post('/logout', authenticateUser, (req, res) => {
 
   res.json({ message: `Logout successful for user ${uid}` });
 });
+
