@@ -23,32 +23,44 @@ app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
-app.post('/storeChat', (req, res) => {
-  const { userId, fundingRequestId, newChat, sourceChat } = req.body;
+// app.post('/storeChat', (req, res) => {
+//   const { userId, fundingRequestId, newChat, sourceChat } = req.body;
 
-  if (!userId || !fundingRequestId || !newChat || !sourceChat) {
-    return res.status(400).json({ error: 'Missing required parameters' });
-  }
+//   if (!userId || !fundingRequestId || !newChat || !sourceChat) {
+//     return res.status(400).json({ error: 'Missing required parameters' });
+//   }
 
-  const database = admin.database();
-  const fundingRequestRef = database.ref(`users/${userId}/fundingRequest/${fundingRequestId}/chats`);
+//   const database = admin.database();
+//   const fundingRequestRef = database.ref(`users/${userId}/fundingRequest/${fundingRequestId}/chats`);
 
-  const chatData = {
-    date: new Date().toISOString(),
-    message: newChat,
-    source: sourceChat
-  };
+//   const chatData = {
+//     date: new Date().toISOString(),
+//     message: newChat,
+//     source: sourceChat
+//   };
 
-  fundingRequestRef.push(chatData, (error) => {
-    if (error) {
-      return res.status(500).json({ error: 'Failed to store chat data' });
-    }
+//   fundingRequestRef.push(chatData, (error) => {
+//     if (error) {
+//       return res.status(500).json({ error: 'Failed to store chat data' });
+//     }
 
-    return res.status(200).json({ success: true });
-  });
-});
+//     return res.status(200).json({ success: true });
+//   });
+// });
 
+// wss.on('connection', (ws) => {
+//   ws.on('message', (message) => {
+//     // Handle incoming WebSocket messages
+//     const data = JSON.parse(message);
 
+//     // Broadcast the message to all connected clients
+//     wss.clients.forEach((client) => {
+//       if (client !== ws && client.readyState === WebSocket.OPEN) {
+//         client.send(JSON.stringify(data));
+//       }
+//     });
+//   });
+// });
 
 
 app.get('/api/user/:userId', (req, res) => {
