@@ -8,9 +8,12 @@ const multer = require('multer');
 const path = require('path');
 const WebSocket = require('ws');
 const http = require('http'); 
+const socketIO = require('socket.io');
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+//const wss = new WebSocket.Server({ server });
 // const verifyGoogleIdToken = require('./google-signin');
+
+const io = socketIO(server);
 
 
 
@@ -19,6 +22,27 @@ app.use(cors());
 const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());
 
+app.use(express.json());
+
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('newChat', (data) => {
+    const { userId, fundingRequestId, newChat, sourceChat } = data;
+
+    // Handle the chat data as needed
+
+    // Broadcast the new chat data to all connected clients
+    io.emit('newChat', { userId, fundingRequestId, message: newChat, source: sourceChat });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
+
+
+
 // Use the authentication routes defined in auth.js
 
 // Define a route
@@ -26,91 +50,53 @@ app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
-app.post('/api/storeChat', (req, res) => {
-  const { userId, fundingRequestId, newChat, sourceChat } = req.body;
-
-  // Get a reference to the chat data in the Firebase Realtime Database
-  const chatRef = admin.database().ref(`/users/${userId}/fundingRequest/${fundingRequestId}/chat`);
-
-  // Push new chat data
-  const chatData = {
-    message: newChat,
-    source: sourceChat,
-    timestamp: admin.database.ServerValue.TIMESTAMP,
-  };
-
-  chatRef.push(chatData, (error) => {
-    if (error) {
-      console.error('Error storing chat data:', error);
-      res.status(500).send('Internal Server Error');
-    } else {
-      // Send the new chat data to connected WebSocket clients
-      wss.clients.forEach((client) => {
-        if (client.userId === userId && client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ event: 'newChat', data: chatData }));
-        }
-      });
-
-      res.status(200).send('Chat data stored successfully');
-    }
-  });
-});
-
-// WebSocket connection handling
-wss.on('connection', (ws, req) => {
-  const userId = req.url.split('=')[1];
-
-  ws.userId = userId;
-
-  ws.on('message', (message) => {
-    // Handle WebSocket messages if needed
-  });
-
-  ws.on('close', () => {
-    // Handle WebSocket disconnection if needed
-  });
-});
-
-
-
-// app.post('/storeChat', (req, res) => {
+// app.post('/api/storeChat', (req, res) => {
 //   const { userId, fundingRequestId, newChat, sourceChat } = req.body;
 
-//   if (!userId || !fundingRequestId || !newChat || !sourceChat) {
-//     return res.status(400).json({ error: 'Missing required parameters' });
-//   }
+//   // Get a reference to the chat data in the Firebase Realtime Database
+//   const chatRef = admin.database().ref(`/users/${userId}/fundingRequest/${fundingRequestId}/chat`);
 
-//   const database = admin.database();
-//   const fundingRequestRef = database.ref(`users/${userId}/fundingRequest/${fundingRequestId}/chats`);
-
+//   // Push new chat data
 //   const chatData = {
-//     date: new Date().toISOString(),
 //     message: newChat,
-//     source: sourceChat
+//     source: sourceChat,
+//     timestamp: admin.database.ServerValue.TIMESTAMP,
 //   };
 
-//   fundingRequestRef.push(chatData, (error) => {
+//   chatRef.push(chatData, (error) => {
 //     if (error) {
-//       return res.status(500).json({ error: 'Failed to store chat data' });
+//       console.error('Error storing chat data:', error);
+//       res.status(500).send('Internal Server Error');
+//     } else {
+//       // Send the new chat data to connected WebSocket clients
+//       wss.clients.forEach((client) => {
+//         if (client.userId === userId && client.readyState === WebSocket.OPEN) {
+//           client.send(JSON.stringify({ event: 'newChat', data: chatData }));
+//         }
+//       });
+
+//       res.status(200).send('Chat data stored successfully');
 //     }
-
-//     return res.status(200).json({ success: true });
 //   });
 // });
 
-// wss.on('connection', (ws) => {
+// // WebSocket connection handling
+// wss.on('connection', (ws, req) => {
+//   const userId = req.url.split('=')[1];
+
+//   ws.userId = userId;
+
 //   ws.on('message', (message) => {
-//     // Handle incoming WebSocket messages
-//     const data = JSON.parse(message);
+//     // Handle WebSocket messages if needed
+//   });
 
-//     // Broadcast the message to all connected clients
-//     wss.clients.forEach((client) => {
-//       if (client !== ws && client.readyState === WebSocket.OPEN) {
-//         client.send(JSON.stringify(data));
-//       }
-//     });
+//   ws.on('close', () => {
+//     // Handle WebSocket disconnection if needed
 //   });
 // });
+
+
+
 
 
 app.get('/api/user/:userId', (req, res) => {

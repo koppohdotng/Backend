@@ -43,17 +43,19 @@
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatMessages = document.getElementById('chatMessages');
+      
+    console.log(chatMessages)
+    const userId = 'wsqLwGE4IEZlSCXC9FQIndOr3vG3'; // Replace with your actual user ID
 
-    const userId = 'your_user_id'; // Replace with your actual user ID
-
-    const ws = new WebSocket('ws:http://localhost:3000/api/storeChat'); // Replace with your actual WebSocket server URL
+    const ws = new WebSocket('wss://koppoh-41a7d984a436.herokuapp.com/');
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.event === 'newChat') {
-        displayChatMessage(data.data);
-      }
-    };
+  const data = JSON.parse(event.data);
+  console.log('WebSocket message received:', data);
+  if (data.event === 'newChat') {
+    displayChatMessage(data.data);
+  }
+};
 
     function sendMessage() {
       const newChat = chatInput.value.trim();
@@ -66,7 +68,7 @@
         };
 
         // Make a POST request to the API
-        fetch('http://localhost:3000/api/storeChat', {
+        fetch('https://koppoh-41a7d984a436.herokuapp.com/api/storeChat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
