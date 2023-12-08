@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat API Test</title>
+  <title>Socket.io Chat Test</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -39,45 +39,31 @@
     <!-- Display chat messages here -->
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
   <script>
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatMessages = document.getElementById('chatMessages');
-      
-    console.log(chatMessages)
-    const userId = 'wsqLwGE4IEZlSCXC9FQIndOr3vG3'; // Replace with your actual user ID
 
-    const ws = new WebSocket('wss://koppoh-41a7d984a436.herokuapp.com/');
+    const userId = 'wsqLwGE4IEZlSCXC9FQIndOr3vG3';
+    const socket = io();
 
-    ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log('WebSocket message received:', data);
-  if (data.event === 'newChat') {
-    displayChatMessage(data.data);
-  }
-};
+    socket.on('newChat', (data) => {
+      displayChatMessage(data);
+    });
 
     function sendMessage() {
       const newChat = chatInput.value.trim();
       if (newChat !== '') {
         const data = {
           userId: 'wsqLwGE4IEZlSCXC9FQIndOr3vG3',
-          fundingRequestId: '-Nl084BsuXRqQSL6tNwD', // Replace with your actual funding request ID
+          fundingRequestId: '-Nl084BsuXRqQSL6tNwD',
           newChat: newChat,
           sourceChat: 'Admin',
         };
 
-        // Make a POST request to the API
-        fetch('https://koppoh-41a7d984a436.herokuapp.com/api/storeChat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        })
-        .then(response => response.text())
-        .then(message => console.log(message))
-        .catch(error => console.error('Error sending message:', error));
+        // Emit the 'newChat' event to the server
+        socket.emit('newChat', data);
 
         // Clear the input field
         chatInput.value = '';
