@@ -22,24 +22,24 @@ app.use(cors());
 const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());
 
-app.use(express.json());
+// app.use(express.json());
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
 
-  socket.on('newChat', (data) => {
-    const { userId, fundingRequestId, newChat, sourceChat } = data;
+//   socket.on('newChat', (data) => {
+//     const { userId, fundingRequestId, newChat, sourceChat } = data;
 
-    // Handle the chat data as needed
+//     // Handle the chat data as needed
 
-    // Broadcast the new chat data to all connected clients
-    io.emit('newChat', { userId, fundingRequestId, message: newChat, source: sourceChat });
-  });
+//     // Broadcast the new chat data to all connected clients
+//     io.emit('newChat', { userId, fundingRequestId, message: newChat, source: sourceChat });
+//   });
 
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('A user disconnected');
+//   });
+// });
 
 
 
