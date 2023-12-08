@@ -48,19 +48,7 @@ app.post('/storeChat', (req, res) => {
   });
 });
 
-wss.on('connection', (ws) => {
-  ws.on('message', (message) => {
-    // Handle incoming WebSocket messages
-    const data = JSON.parse(message);
 
-    // Broadcast the message to all connected clients
-    wss.clients.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(data));
-      }
-    });
-  });
-});
 
 
 app.get('/api/user/:userId', (req, res) => {
