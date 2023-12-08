@@ -46,7 +46,17 @@
     const chatMessages = document.getElementById('chatMessages');
 
     const userId = 'wsqLwGE4IEZlSCXC9FQIndOr3vG3';
-    const socket = io();
+    const io = socketIO(server, {
+  cors: {
+    origin: "https://koppoh-41a7d984a436.herokuapp.com/", // Replace with your actual domain
+    methods: ["GET", "POST"]
+  }
+});
+    const socket = io('https://koppoh-41a7d984a436.herokuapp.com/');
+
+  
+
+
 
     socket.on('newChat', (data) => {
       displayChatMessage(data);
