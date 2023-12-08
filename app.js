@@ -6,7 +6,7 @@ const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
-const wss = new WebSocket.Server({ server });
+// const wss = new WebSocket.Server({ server });
 // const verifyGoogleIdToken = require('./google-signin');
 
 
