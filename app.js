@@ -11,46 +11,30 @@ const http = require('http');
 
 const socketIO = require('socket.io');
 
-
-
-
-app.use(cors());
-
-
-app.use(bodyParser.json());
-
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// Define a route
-app.get('/', (req, res) => {
-  res.send('Hello, Express!');
-});
+app.use(express.static('public'));
 
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  // Listen for new chat messages and store them in the database
-  socket.on('newChat', async ({ userId, fundingRequestId, newChat, sourceChat }) => {
+  // Listen for new chat messages and broadcast to all clients
+  socket.on('newChat', ({ userId, fundingRequestId, newChat, sourceChat }) => {
     try {
-      const chatRef = admin
-        .database()
-        .ref(`/users/${userId}/fundingRequest/${fundingRequestId}/chats`);
+      const chatRef = `/users/${userId}/fundingRequest/${fundingRequestId}/chats`;
 
-      const newMessageRef = chatRef.push();
-      await newMessageRef.set({
+      const newMessage = {
         message: newChat,
         source: sourceChat,
-        timestamp: admin.database.ServerValue.TIMESTAMP,
-      });
+        timestamp: new Date(),
+      };
 
       // Broadcast the new chat message to all connected clients in the same room
       io.to(fundingRequestId).emit('newChat', {
         fundingRequestId,
-        chatId: newMessageRef.key,
-        message: newChat,
-        source: sourceChat,
-        timestamp: admin.database.ServerValue.TIMESTAMP,
+        chatId: socket.id, // You can use socket.id as a unique identifier for the message
+        message: newMessage,
       });
     } catch (error) {
       console.error('Error storing chat:', error);
@@ -67,6 +51,18 @@ io.on('connection', (socket) => {
     console.log('User disconnected');
   });
 });
+
+
+app.use(cors());
+
+
+app.use(bodyParser.json());
+
+// Define a route
+app.get('/', (req, res) => {
+  res.send('Hello, Express!');
+});
+
 
 
 
