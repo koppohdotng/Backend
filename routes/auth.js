@@ -3,10 +3,10 @@ const admin = require('firebase-admin');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client('118360199442016913320');
-var postmark = require("postmark");
+// const client = new OAuth2Client('118360199442016913320');
+// var postmark = require("postmark");
 
-const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
+// const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
 
 
 
