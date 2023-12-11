@@ -107,23 +107,23 @@ console.log(randomNumber);
         }
       });
       
-      // client.sendEmailWithTemplate({
-      //   From: 'info@koppoh.com',
-      //   To: email,
-      //   TemplateId: '33232370',
-      //   TemplateModel: {
-      //     firstName,
-      //     verifyNumber: randomNumber,
-      //   },
-      // })
-      // .then((response) => {
-      //   console.log('Email sent successfully:', response);
-      //   res.status(201).json({ message: 'Signup successful', user: userData });
-      // })
-      // .catch((error) => {
-      //   console.error('Email sending error:', error);
-      //   res.status(500).json({ error: 'Email sending error' });
-      // });
+      client.sendEmailWithTemplate({
+        From: 'test@blackhole.postmarkapp.com',
+        To: email,
+        TemplateId: '33232370',
+        TemplateModel: {
+          firstName,
+          verifyNumber: randomNumber,
+        },
+      })
+      .then((response) => {
+        console.log('Email sent successfully:', response);
+        res.status(201).json({ message: 'Signup successful', user: userData });
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
+      });
 
 
 });
