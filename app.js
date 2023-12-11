@@ -6,8 +6,8 @@ const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
-const http = require('http');
-const socketIO = require('socket.io');
+// const http = require('http');
+// const socketIO = require('socket.io');
 
 
 
@@ -17,55 +17,55 @@ app.use(cors());
 const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());
 
-const io = socketIO(port);
+// const io = socketIO(port);
 
 // Define a route
 app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
-
-  // Listen for new chat messages and store them in the database
-  socket.on('newChat', async ({ userId, fundingRequestId, newChat, sourceChat }) => {
-    try {
-      const chatRef = admin
-        .database()
-        .ref(`/users/${userId}/fundingRequest/${fundingRequestId}/chats`);
-
-      const newMessageRef = chatRef.push();
-      await newMessageRef.set({
-        message: newChat,
-        source: sourceChat,
-        timestamp: admin.database.ServerValue.TIMESTAMP,
-      });
-
-      // Broadcast the new chat message to all connected clients in the same room
-      io.to(fundingRequestId).emit('newChat', {
-        fundingRequestId,
-        chatId: newMessageRef.key,
-        message: newChat,
-        source: sourceChat,
-        timestamp: admin.database.ServerValue.TIMESTAMP,
-      });
-    } catch (error) {
-      console.error('Error storing chat:', error);
-    }
-  });
-
-  // Join a room based on fundingRequestId
-  socket.on('joinRoom', (fundingRequestId) => {
-    socket.join(fundingRequestId);
-  });
-
-  // Listen for disconnect event
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
 
 
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
+
+//   // Listen for new chat messages and store them in the database
+//   socket.on('newChat', async ({ userId, fundingRequestId, newChat, sourceChat }) => {
+//     try {
+//       const chatRef = admin
+//         .database()
+//         .ref(`/users/${userId}/fundingRequest/${fundingRequestId}/chats`);
+
+//       const newMessageRef = chatRef.push();
+//       await newMessageRef.set({
+//         message: newChat,
+//         source: sourceChat,
+//         timestamp: admin.database.ServerValue.TIMESTAMP,
+//       });
+
+//       // Broadcast the new chat message to all connected clients in the same room
+//       io.to(fundingRequestId).emit('newChat', {
+//         fundingRequestId,
+//         chatId: newMessageRef.key,
+//         message: newChat,
+//         source: sourceChat,
+//         timestamp: admin.database.ServerValue.TIMESTAMP,
+//       });
+//     } catch (error) {
+//       console.error('Error storing chat:', error);
+//     }
+//   });
+
+//   // Join a room based on fundingRequestId
+//   socket.on('joinRoom', (fundingRequestId) => {
+//     socket.join(fundingRequestId);
+//   });
+
+//   // Listen for disconnect event
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected');
+//   });
+// });
 
 
 
