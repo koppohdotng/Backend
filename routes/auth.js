@@ -6,7 +6,7 @@ const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('118360199442016913320');
 const { ServerClient } = require('postmark');
 
-const postmarkClient = new ServerClient('61211298-3714-4551-99b0-1164f8a9cb33');
+const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
 
 
 
@@ -24,6 +24,18 @@ admin.initializeApp({
 // Define a route for user signup
 router.post('/signup', (req, res) => {
   const { firstName, lastName, email, password } = req.body;
+
+  // Function to generate a random 6-digit number
+function generateRandomNumber() {
+  return Math.floor(Math.random() * 900000) + 100000;
+}
+
+// Call the function to generate a random 6-digit number
+var randomNumber = generateRandomNumber();
+
+// Output the result
+console.log(randomNumber);
+
 
   admin
       .auth()
@@ -56,6 +68,7 @@ router.post('/signup', (req, res) => {
                 emailVerification,
                 firstTime,
                 Date: currentDate.toISOString(),
+                verifyNumber: randomNumber
 
 
 
@@ -93,8 +106,27 @@ router.post('/signup', (req, res) => {
           res.status(500).json({ error: 'Server error' });
         }
       });
-});
+      
+      client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: email,
+        TemplateId: '33232370',
+        TemplateModel: {
+          firstName,
+          verifyNumber: randomNumber,
+        },
+      })
+      .then((response) => {
+        console.log('Email sent successfully:', response);
+        res.status(201).json({ message: 'Signup successful', user: userData });
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
+      });
 
+
+});
 
 
 
