@@ -4,7 +4,7 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('118360199442016913320');
-const { ServerClient } = require('postmark');
+var postmark = require("postmark");
 
 const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
 
