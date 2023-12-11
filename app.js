@@ -7,50 +7,50 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 
-const http = require('http');
+// const http = require('http');
 
-const socketIO = require('socket.io');
+// const socketIO = require('socket.io');
 
-const server = http.createServer(app);
-const io = socketIO(server);
+// const server = http.createServer(app);
+// const io = socketIO(server);
 
-app.use(express.static('public'));
+// app.use(express.static('public'));
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
 
-  // Listen for new chat messages and broadcast to all clients
-  socket.on('newChat', ({ userId, fundingRequestId, newChat, sourceChat }) => {
-    try {
-      const chatRef = `/users/${userId}/fundingRequest/${fundingRequestId}/chats`;
+//   // Listen for new chat messages and broadcast to all clients
+//   socket.on('newChat', ({ userId, fundingRequestId, newChat, sourceChat }) => {
+//     try {
+//       const chatRef = `/users/${userId}/fundingRequest/${fundingRequestId}/chats`;
 
-      const newMessage = {
-        message: newChat,
-        source: sourceChat,
-        timestamp: new Date(),
-      };
+//       const newMessage = {
+//         message: newChat,
+//         source: sourceChat,
+//         timestamp: new Date(),
+//       };
 
-      // Broadcast the new chat message to all connected clients in the same room
-      io.to(fundingRequestId).emit('newChat', {
-        fundingRequestId,
-        chatId: socket.id, // You can use socket.id as a unique identifier for the message
-        message: newMessage,
-      });
-    } catch (error) {
-      console.error('Error storing chat:', error);
-    }
-  });
+//       // Broadcast the new chat message to all connected clients in the same room
+//       io.to(fundingRequestId).emit('newChat', {
+//         fundingRequestId,
+//         chatId: socket.id, // You can use socket.id as a unique identifier for the message
+//         message: newMessage,
+//       });
+//     } catch (error) {
+//       console.error('Error storing chat:', error);
+//     }
+//   });
 
-  // Join a room based on fundingRequestId
-  socket.on('joinRoom', (fundingRequestId) => {
-    socket.join(fundingRequestId);
-  });
+//   // Join a room based on fundingRequestId
+//   socket.on('joinRoom', (fundingRequestId) => {
+//     socket.join(fundingRequestId);
+//   });
 
-  // Listen for disconnect event
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
+//   // Listen for disconnect event
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected');
+//   });
+// });
 
 
 app.use(cors());
