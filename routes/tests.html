@@ -3,88 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Socket.io Chat Test</title>
+  <title>Socket.IO Chat</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-
-    #chatInput {
-      width: 300px;
-      margin-right: 10px;
-    }
-
-    #sendMessageBtn {
-      cursor: pointer;
-    }
-
-    #chatMessages {
-      margin-top: 20px;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
+    /* Add your styles here */
   </style>
 </head>
 <body>
-  <div>
-    <label for="chatInput">Type a message:</label>
-    <input type="text" id="chatInput" placeholder="Type your message">
-    <button id="sendMessageBtn" onclick="sendMessage()">Send Message</button>
-  </div>
-
-  <div id="chatMessages">
+  <div id="chatContainer">
     <!-- Display chat messages here -->
   </div>
+  <input type="text" id="messageInput" placeholder="Type your message">
+  <button onclick="sendMessage()">Send</button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
   <script>
-    const chatInput = document.getElementById('chatInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-    const chatMessages = document.getElementById('chatMessages');
-
-    const userId = 'wsqLwGE4IEZlSCXC9FQIndOr3vG3';
-    const io = socketIO(server, {
-  cors: {
-    origin: "https://koppoh-41a7d984a436.herokuapp.com/", // Replace with your actual domain
-    methods: ["GET", "POST"]
-  }
-});
-    const socket = io('https://koppoh-41a7d984a436.herokuapp.com/');
-
-  
-
-
-
-    socket.on('newChat', (data) => {
-      displayChatMessage(data);
-    });
+    const socket = io('https://koppoh-41a7d984a436.herokuapp.com/'); // Replace with your server URL
 
     function sendMessage() {
-      const newChat = chatInput.value.trim();
-      if (newChat !== '') {
-        const data = {
-          userId: 'wsqLwGE4IEZlSCXC9FQIndOr3vG3',
-          fundingRequestId: '-Nl084BsuXRqQSL6tNwD',
-          newChat: newChat,
-          sourceChat: 'Admin',
-        };
+      const userId = "wsqLwGE4IEZlSCXC9FQIndOr3vG3"; // Replace with the actual user ID
+      const fundingRequestId = "-NkqA2yqm494SfZK4sKw"; // Replace with the actual funding request ID
+      const newChat = document.getElementById('messageInput').value;
+      const sourceChat = "user"; // Replace with the actual source (e.g., "user" or "admin")
 
-        // Emit the 'newChat' event to the server
-        socket.emit('newChat', data);
-
-        // Clear the input field
-        chatInput.value = '';
-      }
+      // Emit a new chat message to the server
+      socket.emit('newChat', { userId, fundingRequestId, newChat, sourceChat });
     }
 
-    function displayChatMessage(chatData) {
-      const messageDiv = document.createElement('div');
-      messageDiv.innerHTML = `<strong>${chatData.source}:</strong> ${chatData.message}`;
-      chatMessages.appendChild(messageDiv);
-    }
+    // Listen for new chat messages from the server
+    socket.on('newChat', ({ fundingRequestId, chatId, message, source, timestamp }) => {
+      // Handle the new chat message, update your UI
+      const chatContainer = document.getElementById('chatContainer');
+      const newMessage = document.createElement('div');
+      newMessage.innerHTML = `<strong>${source}:</strong> ${message}`;
+      chatContainer.appendChild(newMessage);
+    });
+
+    // Join the room based on fundingRequestId
+    socket.emit('joinRoom', "-NkqA2yqm494SfZK4sKw"); // Replace with the actual funding request ID
   </script>
 </body>
 </html>

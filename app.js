@@ -10,8 +10,6 @@ const http = require('http');
 const socketIO = require('socket.io');
 
 
-const server = http.createServer(app);
-const io = socketIO(server);
 
 
 app.use(cors());
@@ -19,13 +17,12 @@ app.use(cors());
 const port = process.env.PORT || 3000; // You can change this port to any other port you prefer
 app.use(bodyParser.json());
 
-
+const io = socketIO(port);
 
 // Define a route
 app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
-
 
 io.on('connection', (socket) => {
   console.log('A user connected');
@@ -67,6 +64,8 @@ io.on('connection', (socket) => {
     console.log('User disconnected');
   });
 });
+
+
 
 
 
