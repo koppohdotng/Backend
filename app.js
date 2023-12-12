@@ -6,6 +6,10 @@ const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
+var postmark = require("postmark");
+var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+
+
 
 // const http = require('http');
 
@@ -61,6 +65,18 @@ app.use(bodyParser.json());
 // Define a route
 app.get('/', (req, res) => {
   res.send('Hello, Express!');
+   
+ 
+client.sendEmail({
+  "From": "info@koppoh.com",
+  "To": "lhawhaltimi@gmail.com",
+  "Subject": "Hello from Postmark",
+  "HtmlBody": "<strong>Hello</strong> dear Postmark user.",
+  "TextBody": "Hello from Postmark!",
+  "MessageStream": "outbound"
+});
+
+
 });
 
 
