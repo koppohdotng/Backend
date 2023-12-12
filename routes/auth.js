@@ -367,7 +367,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
         TemplateId: '34126584',
         TemplateModel: {
           reset,
-          firstName
+          firstName 
         },
       })
       .then((response) => {
