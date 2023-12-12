@@ -132,6 +132,38 @@ console.log(randomNumber);
 
 });
 
+router.post('/verify', (req, res) => {
+  const { userId, verifyNumber } = req.body;
+
+  // Fetch user data from the database
+  const db = admin.database();
+  const usersRef = db.ref('users');
+
+  usersRef.child(userId).once('value', (snapshot) => {
+    const userData = snapshot.val();
+
+    if (!userData) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      const storedVerifyNumber = userData.verifyNumber;
+
+      if (verifyNumber === storedVerifyNumber) {
+        // Verification successful, update emailVerification to true
+        usersRef.child(userId).update({ emailVerification: true })
+          .then(() => {
+            res.status(200).json({ message: 'Verification successful' });
+          })
+          .catch((updateError) => {
+            console.error('Update error:', updateError);
+            res.status(500).json({ error: 'Server error' });
+          });
+      } else {
+        res.status(400).json({ error: 'Incorrect verification number' });
+      }
+    }
+  });
+});
+
 
 
 
