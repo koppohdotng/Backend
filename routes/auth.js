@@ -152,7 +152,7 @@ router.post('/verify', (req, res) => {
         // Verification successful, update emailVerification to true
         usersRef.child(userId).update({ emailVerification: true })
           .then(() => {
-            res.status(200).json({ message: 'Verification successful' });
+            // res.status(200).json({ message: 'Verification successful' });
 
             client.sendEmailWithTemplate({
               From: 'info@koppoh.com',
@@ -163,8 +163,8 @@ router.post('/verify', (req, res) => {
               },
             })
             .then((response) => {
-              console.log('Email sent successfully:', response);
-              res.status(201).json({ message: 'Signup successful',});
+              console.log('Verified  successfully:', response);
+              res.status(201).json({ message: 'Verified successful',});
             })
             .catch((error) => {
               console.error('Email sending error:', error);
