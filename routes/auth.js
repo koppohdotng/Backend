@@ -7,8 +7,7 @@ const { OAuth2Client } = require('google-auth-library');
 
 
 var postmark = require("postmark");
-const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
-
+var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
 
