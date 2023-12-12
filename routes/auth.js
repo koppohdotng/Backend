@@ -110,7 +110,7 @@ console.log(randomNumber);
       });
       
       client.sendEmailWithTemplate({
-        From: 'info',
+        From: 'info@koppoh.com',
         To: email,
         TemplateId: '33232370',
         TemplateModel: {
@@ -124,7 +124,7 @@ console.log(randomNumber);
       })
       .catch((error) => {
         console.error('Email sending error:', error);
-        res.status(500).json({ error: 'Email sending error' });
+        res.status(500).json({ error: 'Email sending error' },error);
       });
 
 
