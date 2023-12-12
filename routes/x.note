@@ -19,6 +19,8 @@ curl -X POST -H "Content-Type: application/json" -d '{
 
 curl "http://localhost:3000/auth/google?token=YOUR_ID_TOKEN"
 
+curl -X POST -H "Content-Type: application/json" -d '{"userId": "lCTJP0SfZAP8I5FtVXwIxGr8UCn1", "verifyNumber": 889458}' https://koppoh-41a7d984a436.herokuapp.com/auth/verify
+
 
 curl -X GET "http://localhost:3000/api/someendpoint" -H "Authorization: Bearer YOUR_FIREBASE_CUSTOM_TOKEN"
 

@@ -146,12 +146,32 @@ router.post('/verify', (req, res) => {
       res.status(404).json({ error: 'User not found' });
     } else {
       const storedVerifyNumber = userData.verifyNumber;
+      const storeFirstname = userData.firstName
 
       if (verifyNumber === storedVerifyNumber) {
         // Verification successful, update emailVerification to true
         usersRef.child(userId).update({ emailVerification: true })
           .then(() => {
             res.status(200).json({ message: 'Verification successful' });
+
+            client.sendEmailWithTemplate({
+              From: 'info@koppoh.com',
+              To: email,
+              TemplateId: '34126600',
+              TemplateModel: {
+                storeFirstname   
+              },
+            })
+            .then((response) => {
+              console.log('Email sent successfully:', response);
+              res.status(201).json({ message: 'Signup successful',});
+            })
+            .catch((error) => {
+              console.error('Email sending error:', error);
+              res.status(500).json({ error: 'Email sending error' });
+            });
+            
+
           })
           .catch((updateError) => {
             console.error('Update error:', updateError);
