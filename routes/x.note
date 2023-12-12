@@ -28,3 +28,23 @@ curl -X POST http://localhost:3000/auth/sendPasswordResetEmail \
   -d '{"email": "lhawhaltimi@gmail.com"}'
 
 curl -X GET http://localhost:3000/api/user/1x2bwZFRDrM8PFj3zxo4gbv5gtM2
+var postmark = require("postmark");
+var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+
+client.sendEmailWithTemplate({
+      //   From: 'info@koppoh.com',
+      //   To: email,
+      //   TemplateId: '33232370',
+      //   TemplateModel: {
+      //     firstName,
+      //     verifyNumber: randomNumber,
+      //   },
+      // })
+      // .then((response) => {
+      //   console.log('Email sent successfully:', response);
+      //   res.status(201).json({ message: 'Signup successful', user: userData });
+      // })
+      // .catch((error) => {
+      //   console.error('Email sending error:', error);
+      //   res.status(500).json({ error: 'Email sending error' },error);
+      // });

@@ -4,10 +4,12 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 // const client = new OAuth2Client('118360199442016913320');
+// var postmark = require("postmark");
 
 
-var postmark = require("postmark");
-var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+
+// const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
+
 
 
 
@@ -108,24 +110,24 @@ console.log(randomNumber);
           res.status(500).json({ error: 'Server error' });
         }
       });
-      console.log(email)
-      // client.sendEmailWithTemplate({
-      //   From: 'info@koppoh.com',
-      //   To: email,
-      //   TemplateId: '33232370',
-      //   TemplateModel: {
-      //     firstName,
-      //     verifyNumber: randomNumber,
-      //   },
-      // })
-      // .then((response) => {
-      //   console.log('Email sent successfully:', response);
-      //   res.status(201).json({ message: 'Signup successful', user: userData });
-      // })
-      // .catch((error) => {
-      //   console.error('Email sending error:', error);
-      //   res.status(500).json({ error: 'Email sending error' },error);
-      // });
+      
+      client.sendEmailWithTemplate({
+        From: 'info',
+        To: email,
+        TemplateId: '33232370',
+        TemplateModel: {
+          firstName,
+          verifyNumber: randomNumber,
+        },
+      })
+      .then((response) => {
+        console.log('Email sent successfully:', response);
+        res.status(201).json({ message: 'Signup successful', user: userData });
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
+      });
 
 
 });
