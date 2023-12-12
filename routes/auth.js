@@ -8,6 +8,10 @@ const { OAuth2Client } = require('google-auth-library');
 
 // const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
 
+var postmark = require("postmark");
+var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+
+
 
 
 
@@ -107,23 +111,23 @@ console.log(randomNumber);
         }
       });
       
-      // client.sendEmailWithTemplate({
-      //   From: 'test@blackhole.postmarkapp.com',
-      //   To: email,
-      //   TemplateId: '33232370',
-      //   TemplateModel: {
-      //     firstName,
-      //     verifyNumber: randomNumber,
-      //   },
-      // })
-      // .then((response) => {
-      //   console.log('Email sent successfully:', response);
-      //   res.status(201).json({ message: 'Signup successful', user: userData });
-      // })
-      // .catch((error) => {
-      //   console.error('Email sending error:', error);
-      //   res.status(500).json({ error: 'Email sending error' });
-      // });
+      client.sendEmailWithTemplate({
+        From: 'test@blackhole.postmarkapp.com',
+        To: email,
+        TemplateId: '33232370',
+        TemplateModel: {
+          firstName,
+          verifyNumber: randomNumber,
+        },
+      })
+      .then((response) => {
+        console.log('Email sent successfully:', response);
+        res.status(201).json({ message: 'Signup successful',});
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
+      });
 
 
 });
