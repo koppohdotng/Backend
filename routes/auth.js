@@ -358,6 +358,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
         const firstName = userRecord.firstName;
       // Generate a password reset link
       const reset = await admin.auth().generatePasswordResetLink(email);
+      console.log(reset);
   
       // Configure email data
       
