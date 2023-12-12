@@ -108,7 +108,7 @@ console.log(randomNumber);
           res.status(500).json({ error: 'Server error' });
         }
       });
-      
+      console.log(email)
       client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
         To: email,
