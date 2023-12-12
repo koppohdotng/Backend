@@ -312,31 +312,41 @@ router.get('/login', (req, res) => {
     const email = req.body.email;
   
     try {
+
+      const userRecord = await admin.auth().getUserByEmail(email);
+        
+        // Get the userId from the userRecord
+        const firstName = userRecord.firstName;
       // Generate a password reset link
-      const resetLink = await admin.auth().generatePasswordResetLink(email);
+      const reset = await admin.auth().generatePasswordResetLink(email);
   
       // Configure email data
-      const mailOptions = {
-        from: 'info.koppoh@gmail.com', // Sender's email address
-        to: email, // Recipient's email address
-        subject: 'Password Reset Request',
-        text: `Click the following link to reset your password: ${resetLink}` // Body of the email
-      };
-  
-      // Send the email using Nodemailer (as you did before)
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Email sending error:', error);
-          res.status(400).json({ error: 'Password reset email sending failed' });
-        } else {
-          console.log('Email sent: ' + info.response);
-          res.status(200).json({ message: 'Password reset email sent successfully' });
-        }
+      
+      client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: storeemail,
+        TemplateId: '34126584',
+        TemplateModel: {
+          reset,
+          firstName
+        },
+      })
+      .then((response) => {
+        console.log('Verified  successfully:', response);
+        res.status(201).json({ message: 'Verified successful',});
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
       });
-    } catch (error) {
+
+     
+    }
+     catch (error) {
       console.error('Password reset link generation error:', error);
       res.status(400).json({ error: 'Password reset link generation failed' });
     }
+
   });
   
 
