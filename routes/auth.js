@@ -363,7 +363,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
       
       client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
-        To: storeemail,
+        To: email,
         TemplateId: '34126584',
         TemplateModel: {
           reset,

@@ -52,7 +52,7 @@ client.sendEmailWithTemplate({
       // });
 
       curl -X POST \
-  http://your-api-url/sendPasswordResetEmail \
+  https://koppoh-41a7d984a436.herokuapp.com/auth/sendPasswordResetEmail \
   -H 'Content-Type: application/json' \
   -d '{
     "email": "lhawhaltimi@gmail.com"
