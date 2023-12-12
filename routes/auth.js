@@ -112,7 +112,7 @@ console.log(randomNumber);
       });
       
       client.sendEmailWithTemplate({
-        From: 'test@blackhole.postmarkapp.com',
+        From: 'info@koppoh.com',
         To: email,
         TemplateId: '33232370',
         TemplateModel: {
