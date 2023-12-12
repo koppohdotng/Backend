@@ -158,7 +158,7 @@ router.post('/verify', (req, res) => {
 
             client.sendEmailWithTemplate({
               From: 'info@koppoh.com',
-              To: email,
+              To: estoreemail,
               TemplateId: '34126600',
               TemplateModel: {
                 storeFirstname   
