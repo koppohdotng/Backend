@@ -147,7 +147,7 @@ router.post('/verify', (req, res) => {
     } else {
       const storedVerifyNumber = userData.verifyNumber;
       const storeFirstname = userData.firstName;
-      const storeemail = userData.femail
+      const storeemail = userData.email
 
 
       if (verifyNumber === storedVerifyNumber) {
