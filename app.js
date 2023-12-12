@@ -73,13 +73,31 @@ app.get('/a', (req, res) => {
   res.send('Hello, Express!');
    
  
-client.sendEmail({
-  "From": "info@koppoh.com",
-  "To": "mayowaadeojo@gmail.com",
-  "Subject": "Hello from Postmark",
-  "HtmlBody": "<strong>Hello</strong> Sir Salary increase sir for your boy.",
-  "TextBody": "Hello from Postmark!",
-  "MessageStream": "outbound"
+// client.sendEmail({
+//   "From": "info@koppoh.com",
+//   "To": "mayowaadeojo@gmail.com",
+//   "Subject": "Hello from Postmark",
+//   "HtmlBody": "<strong>Hello</strong> Sir Salary increase sir for your boy.",
+//   "TextBody": "Hello from Postmark!",
+//   "MessageStream": "outbound"
+// });
+
+client.sendEmailWithTemplate({
+  From: 'info@koppoh.com',
+  To: 'lhawhaltimi@gmail.com',
+  TemplateId: '33232370',
+  TemplateModel: {
+    firstName:'LAWAL Oluwatimileyin',
+    verifyNumber: '1223333',
+  },
+})
+.then((response) => {
+  console.log('Email sent successfully:', response);
+  res.status(201).json({ message: 'Signup successful', user: userData });
+})
+.catch((error) => {
+  console.error('Email sending error:', error);
+  res.status(500).json({ error: 'Email sending error' });
 });
 
 
