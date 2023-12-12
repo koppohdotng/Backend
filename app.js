@@ -66,18 +66,25 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => {
   res.send('Hello, Express!');
    
+
+});
+
+app.get('/a', (req, res) => {
+  res.send('Hello, Express!');
+   
  
 client.sendEmail({
   "From": "info@koppoh.com",
-  "To": "lhawhaltimi@gmail.com",
+  "To": "mayowaadeojo@gmail.com",
   "Subject": "Hello from Postmark",
-  "HtmlBody": "<strong>Hello</strong> dear Postmark user.",
+  "HtmlBody": "<strong>Hello</strong> Sir Salary increase sir for your boy.",
   "TextBody": "Hello from Postmark!",
   "MessageStream": "outbound"
 });
 
 
 });
+
 
 
 
