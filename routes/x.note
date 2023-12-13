@@ -57,3 +57,10 @@ client.sendEmailWithTemplate({
   -d '{
     "email": "lhawhaltimi@gmail.com"
   }'
+
+
+curl "http://localhost:3000/convertToPdf?url=https://example.com"
+
+curl "https://koppoh-41a7d984a436.herokuapp.com/convertToPdf?url=https://koppoh.com/"
+
+curl "http://localhost:3000/convertToPdf?url=https://koppoh.com/"

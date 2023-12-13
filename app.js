@@ -9,6 +9,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+const fs = require('fs');
 
 
 
@@ -1112,7 +1113,20 @@ app.get('/convertToPdf', async (req, res) => {
 
     await browser.close();
 
-    res.status(200).send(`PDF generated successfully: ${outputFileName}`);
+    // Send the PDF as a downloadable attachment
+    res.download(outputFileName, (err) => {
+      if (err) {
+        console.error('Error downloading the PDF:', err);
+        res.status(500).send('Internal Server Error');
+      }
+
+      // Delete the generated PDF file after download
+      fs.unlink(outputFileName, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Error deleting the PDF file:', unlinkErr);
+        }
+      });
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).send('Internal Server Error');
