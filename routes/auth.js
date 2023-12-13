@@ -223,6 +223,68 @@ router.post('/verify', (req, res) => {
   });
 });
 
+router.post('/assist', (req, res) => {
+  try {
+      const {email, phone, message,subject} = req.body;
+
+      if (!email || !phone || !message || !subject) {
+          return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      else{
+
+        client.sendEmailWithTemplate({
+          From: 'info@koppoh.com',
+          To: 'info@koppoh.com',
+          TemplateId: '34142331',
+          TemplateModel: {
+            email,
+            phone,
+            message,
+            subject
+
+          },
+        })         
+
+      }
+  } 
+  catch (error) {
+      return res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
+
+router.post('/Message', (req, res) => {
+  try {
+      const {email, firstName,lastName, message,subject} = req.body;
+
+      if (!email || !firstName || !message || !subject || !lastName) {
+          return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      else{
+
+        client.sendEmailWithTemplate({
+          From: 'info@koppoh.com',
+          To: 'info@koppoh.com',
+          TemplateId: '34142478',
+          TemplateModel: {
+            email,
+            message,
+            subject,
+            firstName,
+            lastName
+
+          },
+        })         
+
+      }
+  } 
+  catch (error) {
+      return res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
 
 
 
