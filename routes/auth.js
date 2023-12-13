@@ -28,19 +28,15 @@ admin.initializeApp({
 // Define a route for user signup
 router.post('/signup', (req, res) => {
   const { firstName, lastName, email, password } = req.body;
-
   // Function to generate a random 6-digit number
 function generateRandomNumber() {
   return Math.floor(Math.random() * 900000) + 100000;
 }
-
 // Call the function to generate a random 6-digit number
 var randomNumber = generateRandomNumber();
 
 // Output the result
 console.log(randomNumber);
-
-
   admin
       .auth()
       .getUserByEmail(email)
