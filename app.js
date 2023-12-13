@@ -8,6 +8,7 @@ const multer = require('multer');
 const path = require('path');
 const puppeteer = require('puppeteer');
 var postmark = require("postmark");
+const axios = require('axios');
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
 
@@ -1132,6 +1133,92 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
 //     res.status(500).send('Internal Server Error');
 //   }
 // });
+
+app.get('/convertToPdf', async (req, res) => {
+  const { userId, fundRequestId } = req.query;
+
+  if (!userId || !fundRequestId) {
+    return res.status(400).send('Please provide both userId and fundRequestId.');
+  }
+
+  // Get a reference to the Firebase Realtime Database
+  const db = admin.database();
+  const userRef = db.ref(`/users/${userId}`);
+  
+  try {
+    // Fetch user data from the database
+    const userSnapshot = await userRef.once('value');
+    const user = userSnapshot.val();
+
+    if (!user) {
+      return res.status(404).send('User not found.');
+    }
+
+    const fundRequest = user.fundingRequest[fundRequestId];
+
+    if (!fundRequest) {
+      return res.status(404).send('Fund Request not found.');
+    }
+
+    const url = fundRequest.pitchdeckUrl; // Replace with the appropriate URL property from your data
+    if (!url) {
+      return res.status(400).send('URL not found in the fund request data.');
+    }
+
+    // Generate a unique name for the PDF
+    const uniqueName = `output_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+    const outputFileName = `./pdfs/${uniqueName}`;
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    const pdfOptions = {
+      path: outputFileName,
+      format: 'A4',
+    };
+
+    await page.pdf(pdfOptions);
+    console.log(`PDF generated successfully: ${outputFileName}`);
+
+    await browser.close();
+
+    // Upload the generated PDF to a server or cloud storage
+    const uploadResponse = await axios.post('https://koppoh.com/upload', {
+      pdf: fs.createReadStream(outputFileName),
+    });
+
+    // Assuming the server/cloud storage returns a URL for the uploaded PDF
+    const uploadedPdfUrl = uploadResponse.data.url;
+
+    // Update the fund request with the new PDF URL
+    fundRequest.generatedPdfUrl = uploadedPdfUrl;
+
+    // Update the data in the Firebase Realtime Database
+    await userRef.child(`fundingRequest/${fundRequestId}/generatedPdfUrl`).set(uploadedPdfUrl);
+
+    // Send the PDF as a downloadable attachment
+    res.download(outputFileName, (err) => {
+      if (err) {
+        console.error('Error downloading the PDF:', err);
+        res.status(500).send('Internal Server Error');
+      }
+
+      // Delete the generated PDF file after download
+      fs.unlink(outputFileName, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Error deleting the PDF file:', unlinkErr);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 
 
 const port = process.env.PORT || 3000;
