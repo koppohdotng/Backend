@@ -1097,8 +1097,10 @@ app.get('/convertToPdf', async (req, res) => {
   const outputFileName = 'output.pdf';
 
   try {
-    const browser = await puppeteer.launch( { executablePath: '/path/to/chrome' });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
+    
+
     await page.goto(url, { waitUntil: 'networkidle2' });
 
     const pdfOptions = {
