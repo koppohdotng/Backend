@@ -1094,15 +1094,21 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
 const storagex = admin.storage();
 
 app.get('/generate-pdf', async (req, res) => {
-  const { userId, fundingRequestId  } = req.query;
+  const { userId, fundingRequestId } = req.query;
       
   url = 'https://koppoh.com/'
+
   if (!userId || !fundingRequestId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+      ],
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
