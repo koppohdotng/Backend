@@ -123,7 +123,8 @@ console.log(randomNumber);
       .catch((error) => {
         console.error('Email sending error:');
         res.status(500).json({ error: 'Email sending error'});
-      });
+        return; // Add this line to stop the function execution
+    })
 
 
 });

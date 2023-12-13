@@ -8,7 +8,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
 curl -X POST -H "Content-Type: application/json" -d '{ 
   "firstName": "John",
   "lastName": "Doe",
-  "email": "a.olunrebi@alphaafrican.com",
+  "email": "mayowaadeojo@gmail.com",
   "password": "password123"
 }' https://koppoh-41a7d984a436.herokuapp.com/auth/signup
 
