@@ -1088,50 +1088,50 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
   }
 });
 
-app.get('/convertToPdf', async (req, res) => {
-  const { url } = req.query;
-  if (!url) {
-    return res.status(400).send('Please provide a valid URL.');
-  }
+// app.get('/convertToPdf', async (req, res) => {
+//   const { url } = req.query;
+//   if (!url) {
+//     return res.status(400).send('Please provide a valid URL.');
+//   }
 
-  const outputFileName = 'output.pdf';
+//   const outputFileName = 'output.pdf';
 
-  try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+//   try {
+//     const browser = await puppeteer.launch();
+//     const page = await browser.newPage();
     
 
-    await page.goto(url, { waitUntil: 'networkidle2' });
+//     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    const pdfOptions = {
-      path: outputFileName,
-      format: 'A4',
-    };
+//     const pdfOptions = {
+//       path: outputFileName,
+//       format: 'A4',
+//     };
 
-    await page.pdf(pdfOptions);
-    console.log(`PDF generated successfully: ${outputFileName}`);
+//     await page.pdf(pdfOptions);
+//     console.log(`PDF generated successfully: ${outputFileName}`);
 
-    await browser.close();
+//     await browser.close();
 
-    // Send the PDF as a downloadable attachment
-    res.download(outputFileName, (err) => {
-      if (err) {
-        console.error('Error downloading the PDF:', err);
-        res.status(500).send('Internal Server Error');
-      }
+//     // Send the PDF as a downloadable attachment
+//     res.download(outputFileName, (err) => {
+//       if (err) {
+//         console.error('Error downloading the PDF:', err);
+//         res.status(500).send('Internal Server Error');
+//       }
 
-      // Delete the generated PDF file after download
-      fs.unlink(outputFileName, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error('Error deleting the PDF file:', unlinkErr);
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+//       // Delete the generated PDF file after download
+//       fs.unlink(outputFileName, (unlinkErr) => {
+//         if (unlinkErr) {
+//           console.error('Error deleting the PDF file:', unlinkErr);
+//         }
+//       });
+//     });
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
 
 
 const port = process.env.PORT || 3000;
