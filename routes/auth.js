@@ -207,6 +207,7 @@ router.post('/verify', (req, res) => {
             .catch((error) => {
               console.error('Email sending error:', error);
               res.status(500).json({ error: 'Email sending error' });
+              return;
             });
             
 
