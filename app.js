@@ -1097,7 +1097,7 @@ app.get('/generate-pdf', async (req, res) => {
   const { userId, fundingRequestId  } = req.query;
       
   url = 'https://koppoh.com/'
-  
+
   if (!userId || !fundingRequestId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -1132,7 +1132,7 @@ app.get('/generate-pdf', async (req, res) => {
     res.status(200).json({ success: true, pdfUrl: signedUrl });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' },error);
   }
 });
 
