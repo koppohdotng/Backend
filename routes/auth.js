@@ -125,8 +125,8 @@ console.log(randomNumber);
         res.status(201).json({ message: 'Signup successful',});
       })
       .catch((error) => {
-        console.error('Email sending error:', error);
-        res.status(500).json({ error: 'Email sending error' });
+        console.error('Email sending error:');
+        res.status(500).json({ error: 'Email sending error'});
       });
 
 
