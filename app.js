@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
+const puppeteer = require('puppeteer');
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
@@ -1084,6 +1085,37 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
   } else {
     // If no receipt is provided, return an error
     return res.status(400).json({ error: 'Receipt file is required.' });
+  }
+});
+
+app.get('/convertToPdf', async (req, res) => {
+  const { url } = req.query;
+  if (!url) {
+    return res.status(400).send('Please provide a valid URL.');
+  }
+
+  const outputFileName = 'output.pdf';
+
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    const pdfOptions = {
+      path: outputFileName,
+      format: 'A4',
+    };
+
+    await page.pdf(pdfOptions);
+    console.log(`PDF generated successfully: ${outputFileName}`);
+
+    await browser.close();
+
+    res.status(200).send(`PDF generated successfully: ${outputFileName}`);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
