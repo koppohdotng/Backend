@@ -74,7 +74,7 @@ console.log(randomNumber);
 
               };
   
-              // Store user data in Firebase Realtime Database (or Firestore)
+              // Store user data in Firebase Realtime Database (or Firsestore)
               const db = admin.database();
               const usersRef = db.ref('users');
 
