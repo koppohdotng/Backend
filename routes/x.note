@@ -65,4 +65,4 @@ curl "https://koppoh-41a7d984a436.herokuapp.com/convertToPdf?url=https://koppoh.
 
 curl "http://localhost:3000/convertToPdf?url=https://koppoh.com/"
 
-curl -X GET "https://koppoh-41a7d984a436.herokuapp.com/generate-pdf?userId=wsqLwGE4IEZlSCXC9FQIndOr3vG3"
+curl -X GET "https://koppoh-41a7d984a436.herokuapp.com/generate-pdf?userId=wsqLwGE4IEZlSCXC9FQIndOr3vG3&fundingRequestId=-NkqA2yqm494SfZK4sKw"
