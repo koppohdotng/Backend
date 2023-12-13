@@ -1132,6 +1132,7 @@ app.get('/generate-pdf', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error'},error);
+    res.status(503).json({ error: 'Internal server error1'},error);
   }
 });
 
