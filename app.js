@@ -1093,10 +1093,10 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
 
 const storagex = admin.storage();
 
-app.get('/generate-pdf', async (req, res) => {
+app.get('/generate-pdf', async (req, res, url) => {
   const { userId, fundingRequestId } = req.query;
       
-  url = 'https://koppoh.com/'
+  
 
   if (!userId || !fundingRequestId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
