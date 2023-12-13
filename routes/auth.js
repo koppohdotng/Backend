@@ -132,6 +132,45 @@ console.log(randomNumber);
 
 });
 
+router.post('/change-password', (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  // Authenticate the user with the current email and password
+  admin
+    .auth()
+    .getUserByEmail(email)
+    .then((userRecord) => {
+      // Sign in the user with the current email and password
+      return admin.auth().updateUser(userRecord.uid, {
+        email: email,
+        password: currentPassword,
+      });
+    })
+    .then(() => {
+      // If authentication succeeds, update the password
+      return admin.auth().updateUser(userRecord.uid, {
+        password: newPassword,
+      });
+    })
+    .then(() => {
+      // Password updated successfully
+      res.status(200).json({ message: 'Password updated successfully' });
+    })
+    .catch((error) => {
+      // Handle errors during the process
+      console.error('Change password error:', error);
+      let errorMessage = 'Error changing password';
+      if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Current password is incorrect';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'User not found';
+      }
+      res.status(400).json({ error: errorMessage });
+    });
+});
+
+
+
 router.post('/verify', (req, res) => {
   const { userId, verifyNumber } = req.body;
 
