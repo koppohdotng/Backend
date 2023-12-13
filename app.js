@@ -11,6 +11,7 @@ var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
 
+const browser = await puppeteer.launch({ headless: true });
 
 
 // const http = require('http');
