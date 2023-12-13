@@ -1093,8 +1093,8 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
 
 const storagex = admin.storage();
 
-app.get('/generate-pdf', async (req, res, url) => {
-  const { userId, fundingRequestId } = req.query;
+app.get('/generate-pdf', async (req, res) => {
+  const { userId, fundingRequestId, url } = req.query;
       
   
 
