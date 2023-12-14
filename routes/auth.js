@@ -190,7 +190,7 @@ router.post('/verify', (req, res) => {
 
       console.log(storedVerifyNumber,verifyNumber);
 
-      if (verifyNumber === storedVerifyNumber) {
+      if (verifyNumber == storedVerifyNumber) {
         // Verification successful, update emailVerification to true
         usersRef.child(userId).update({ emailVerification: true })
           .then(() => {
@@ -226,7 +226,7 @@ router.post('/verify', (req, res) => {
     }
   });
 
-  
+
 }
 
 });

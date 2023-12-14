@@ -68,4 +68,4 @@ curl "http://localhost:3000/convertToPdf?url=https://koppoh.com/"
 curl -X GET "https://koppoh-41a7d984a436.herokuapp.com/generate-pdf?userId=wsqLwGE4IEZlSCXC9FQIndOr3vG3&fundingRequestId=-NkqA2yqm494SfZK4sKw"
 
 
-curl -X POST -H "Content-Type: application/json" -d '{"userId": "yourUserId", "verifyNumber": "yourVerifyNumber"}' https://your-api-url/auth/verify
+curl -X POST -H "Content-Type: application/json" -d '{"userId": "lCTJP0SfZAP8I5FtVXwIxGr8UCn1", "verifyNumber": "889458"}' https://koppoh-41a7d984a436.herokuapp.com/auth/verify
