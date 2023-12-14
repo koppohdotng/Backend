@@ -1057,7 +1057,22 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
   const newReceipt = {
     Datereceipt: date,
     type,
-    receiptURL: '', // Initialize the receiptURL field
+    receiptURL: '', 
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessSector,
+    problem
+    ,solution,
+    businessStage,
+    investmentStage,
+    currency,
+    fundingAmount,
+    useOfFunds,
+    financials,
+     fundingType 
+    
+    // Initialize the receiptURL field
   };
 
   // If a receipt is provided, store it in Firebase Storage and add its download URL to the receipt object
