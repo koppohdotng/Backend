@@ -204,15 +204,7 @@ router.post('/verify', (req, res) => {
                 storeFirstname   
               },
             })
-            .then((response) => {
-              console.log('Verified  successfully:', response);
-              res.status(201).json({ message: 'Verified successful',});
-            })
-            .catch((error) => {
-              console.error('Email sending error:', error);
-              res.status(500).json({ error: 'Email sending error' });
-              return;
-            });
+            
             
 
           })
