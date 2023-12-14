@@ -185,7 +185,7 @@ router.post('/verify', (req, res) => {
       const storeFirstname = userData.firstName;
       const storeemail = userData.email
 
-      res.status().json(storedVerifyNumber,verifyNumber);
+      console.log(storedVerifyNumber,verifyNumber);
 
       if (verifyNumber === storedVerifyNumber) {
         // Verification successful, update emailVerification to true
