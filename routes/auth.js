@@ -174,6 +174,9 @@ router.post('/verify', (req, res) => {
   // Fetch user data from the database
   const db = admin.database();
   const usersRef = db.ref('users');
+  if (!userId || !verifyNumber) {
+    return res.status(400).json({ error: 'Missing userId or verifyNumber in request body' });
+  }else{
 
   usersRef.child(userId).once('value', (snapshot) => {
     const userData = snapshot.val();
@@ -222,6 +225,10 @@ router.post('/verify', (req, res) => {
       }
     }
   });
+
+  
+}
+
 });
 
 router.post('/assist', (req, res) => {
