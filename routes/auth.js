@@ -190,7 +190,7 @@ router.post('/verify', (req, res) => {
         // Verification successful, update emailVerification to true
         usersRef.child(userId).update({ emailVerification: true })
           .then(() => {
-            // res.status(200).json({ message: 'Verification successful' });
+            res.status(200).json({ message: 'Verification successful' });
 
             client.sendEmailWithTemplate({
               From: 'info@koppoh.com',
