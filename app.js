@@ -1027,7 +1027,22 @@ const receiptsRef = db.ref('users'); // Reference to the 'receipts' node in your
 
 app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
   const userId = req.params.userId;
-  const { date, type } = req.body;
+  const { date, 
+    type, 
+    
+    businessName,
+    companyVision,
+    registrationStatus,
+    businessSector,
+    problem
+    ,solution,
+    businessStage,
+    investmentStage,
+    currency,
+    fundingAmount,
+    useOfFunds,
+    financials,
+     fundingType } = req.body;
 
   // Check if date and type are provided (compulsory fields)
   if (!date || !type) {
