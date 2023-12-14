@@ -1040,7 +1040,7 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
 
   // Create a new receipt object
   const newReceipt = {
-    date,
+    dateReceipt,
     type,
     receiptURL: '', // Initialize the receiptURL field
   };
