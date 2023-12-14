@@ -1073,7 +1073,7 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
         newReceipt.receiptURL = downloadUrl;
 
         // Add the new receipt to the database under the specified user ID
-        receiptsRef.child(userId).push(newReceipt, (error) => {
+        receiptsRef.child(`${userId}/Receipt`).push(newReceipt, (error) => {
           if (error) {
             return res.status(500).json({ error: 'Error adding receipt to the database.' });
           }
@@ -1089,7 +1089,6 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
     return res.status(400).json({ error: 'Receipt file is required.' });
   }
 });
-
 
 const storagex = admin.storage();
 
