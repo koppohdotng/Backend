@@ -626,7 +626,7 @@ app.post('/loanRequest/:userId', upload.fields([
           other,
           
         },
-        reviewstage: "In review",
+        reviewstage: "Submitted",
         fundingType:"loan" ,
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
@@ -739,7 +739,7 @@ app.post('/equityRequest/:userId', upload.fields([
         },
         financials,
         
-        reviewstage: "In review",
+        reviewstage: "submitted",
         fundingType: "equity" ,
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
