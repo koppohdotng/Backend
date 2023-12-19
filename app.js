@@ -1192,6 +1192,44 @@ app.delete('/deleteFundingRequest/:userid/:fundingrequestid', (req, res) => {
   res.json({ message: 'Funding request deleted successfully' });
 });
 
+app.get('/api/latestBlogPost/:number', async (req, res) => {
+  const { number } = req.params;
+
+  try {
+    const database = admin.database();
+    const snapshot = await database.ref('blogPosts').orderByKey().limitToLast(Number(number)).once('value');
+    const blogPosts = snapshot.val();
+
+    // Extract the latest blog post
+    const latestBlogPostKeys = Object.keys(blogPosts);
+    const latestBlogPosts = latestBlogPostKeys.map(key => blogPosts[key]);
+
+    res.json({ latestBlogPosts });
+  } catch (error) {
+    console.error('Error fetching blog posts:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/blogPost/:postId', async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const database = admin.database();
+    const snapshot = await database.ref('blogPosts').child(postId).once('value');
+    const blogPost = snapshot.val();
+
+    if (blogPost) {
+      res.json({ blogPost });
+    } else {
+      res.status(404).json({ error: 'Blog post not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching blog post:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 const port = process.env.PORT || 3000;
 // Start the server
 app.listen(port, () => {
