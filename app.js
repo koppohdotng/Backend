@@ -1171,25 +1171,18 @@ app.get('/generate-pdf', async (req, res) => {
   }
 });
 
-app.delete('/deleteFundingRequest/:userid/:fundingrequestid', (req, res) => {
-  const userId = req.params.userid;
-  const fundingRequestId = req.params.fundingrequestid;
-
-  // Check if the user exists
-  if (!userData.users[userId]) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-
-  // Check if the funding request exists
-  if (!userData.users[userId].fundingRequest || !userData.users[userId].fundingRequest[fundingRequestId]) {
-    return res.status(404).json({ error: 'Funding request not found' });
-  }
+app.delete('/deleteFundingRequest/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
 
   // Delete the funding request
-  delete userData.users[userId].fundingRequest[fundingRequestId];
-
-  // Respond with a success message
-  res.json({ message: 'Funding request deleted successfully' });
+  dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).remove((error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to delete funding request.' });
+    } else {
+      res.status(200).json({ message: 'Funding request deleted successfully.' });
+    }
+  });
 });
 
 app.get('/api/latestBlogPost/:number', async (req, res) => {
