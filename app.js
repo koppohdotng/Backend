@@ -1193,9 +1193,12 @@ app.get('/api/latestBlogPost/:number', async (req, res) => {
     const snapshot = await database.ref('blogPosts').orderByKey().limitToLast(Number(number)).once('value');
     const blogPosts = snapshot.val();
 
-    // Extract the latest blog post
+    // Extract the latest blog post with BlogPostId
     const latestBlogPostKeys = Object.keys(blogPosts);
-    const latestBlogPosts = latestBlogPostKeys.map(key => blogPosts[key]);
+    const latestBlogPosts = latestBlogPostKeys.map(key => ({
+      BlogPostId: key,
+      ...blogPosts[key]
+    }));
 
     res.json({ latestBlogPosts });
   } catch (error) {
@@ -1203,6 +1206,7 @@ app.get('/api/latestBlogPost/:number', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 app.get('/api/blogPost/:postId', async (req, res) => {
   const { postId } = req.params;
