@@ -1226,6 +1226,27 @@ app.get('/api/blogPost/:postId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+app.post('/requestTemplate/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const { email, phone, message } = req.body;
+
+  // Create a new request template object
+  const newRequest = {
+    email,
+    phone,
+    message,
+  };
+
+  // Push the new request template to the user's requests array
+  dataRef.child(`${userId}/requests`).push(newRequest, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to add a new request template.' });
+    } else {
+      res.status(200).json({ message: 'New request template added successfully.' });
+    }
+  });
+});
+
 
 const port = process.env.PORT || 3000;
 // Start the server
