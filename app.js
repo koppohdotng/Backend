@@ -624,9 +624,10 @@ app.post('/loanRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
+          reviewstage
           
         },
-        reviewstage: "Submitted",
+       
         fundingType:"loan" ,
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
@@ -736,10 +737,11 @@ app.post('/equityRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
+          reviewstage
         },
         financials,
         
-        reviewstage: "submitted",
+       
         fundingType: "equity" ,
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
