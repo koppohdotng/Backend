@@ -642,7 +642,13 @@ app.post('/loanRequest/:userId', upload.fields([
         if (error) {
           res.status(500).json({ error: 'Failed to update loan request data.', error});
         } else {
-          res.status(200).json({ message: 'Loan request data updated successfully.' });
+          const newKey = dataRef.key;
+
+          // Retrieve the saved data using the key
+                const savedData = fundingRequest[newKey];
+
+          res.status(200).json({ message: 'Loan request data updated successfully.',
+          savedData: savedData });
         }
       });
     })
@@ -756,7 +762,13 @@ app.post('/equityRequest/:userId', upload.fields([
         if (error) {
           res.status(500).json({ error: 'Failed to update equity request data.' });
         } else {
-          res.status(200).json({ message: 'Equity request data updated successfully.' });
+
+          const newKey = dataRef.key;
+
+    // Retrieve the saved data using the key
+          const savedData = fundingRequest[newKey];
+          res.status(200).json({ message: 'Equity request data updated successfully.' ,
+      savedData: savedData});
         }
       });
     })
