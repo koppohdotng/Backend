@@ -763,6 +763,52 @@ app.post('/equityRequest/:userId', upload.fields([
     });
 });
 
+app.put('/updateFundingRequest/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+
+  // Extract updated information from the request body
+  const {
+    date,
+    problem,
+    solution,
+    stage,
+    currency,
+    fundingAmount,
+    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+    financials,
+  } = req.body;
+
+  // Create an updated funding request object with the provided fields
+  const updatedFundingRequest = {
+    ...(date && { date }),
+    ...(problem && { problem }),
+    ...(solution && { solution }),
+    ...(stage && { stage }),
+    ...(currency && { currency }),
+    ...(fundingAmount && { fundingAmount }),
+    useOfFunds: {
+      ...(product && { product }),
+      ...(saleAndMarketing && { saleAndMarketing }),
+      ...(researchAndDevelopment && { researchAndDevelopment }),
+      ...(capitalExpenditure && { capitalExpenditure }),
+      ...(operation && { operation }),
+      ...(other && { other }),
+    },
+    ...(financials && { financials }),
+  };
+
+  // Update the funding request data
+  dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).update(updatedFundingRequest, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update funding request data.' });
+    } else {
+      res.status(200).json({ message: 'Funding request data updated successfully.' });
+    }
+  });
+});
+
+
 app.post('/successPayment/:userId', (req, res) => {
   const userId = req.params.userId;
   const { paymentType, date, amount, paymentMethod } = req.body;
