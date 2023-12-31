@@ -648,8 +648,8 @@ app.post('/loanRequest/:userId', upload.fields([
           // Retrieve the saved data using the key
                 const savedData = fundingRequest[newKey];
 
-          res.status(200).json({ message: 'Loan request data updated successfully.',
-          savedData: savedData });
+          res.status(200).json({ message: 'Loan request data updated successfully.'},
+          {savedData: savedData});
         }
       });
     })
@@ -769,8 +769,8 @@ app.post('/equityRequest/:userId', upload.fields([
 
     // Retrieve the saved data using the key
           const savedData = fundingRequest[newKey];
-          res.status(200).json({ message: 'Equity request data updated successfully.' ,
-      savedData: savedData});
+          res.status(200).json({ message: 'Equity request data updated successfully.' },
+          {savedData: savedData});
         }
       });
     })
