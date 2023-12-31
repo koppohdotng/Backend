@@ -629,7 +629,7 @@ app.post('/loanRequest/:userId', upload.fields([
           
         },
        
-        fundingType:"debt" ,
+        fundingType:"Debt" ,
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
@@ -750,7 +750,7 @@ app.post('/equityRequest/:userId', upload.fields([
         financials,
         
        
-        fundingType: "equity" ,
+        fundingType: "Equity" ,
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
