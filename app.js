@@ -556,6 +556,7 @@ app.post('/loanRequest/:userId', upload.fields([
     stage,
     currency,
     fundingAmount,
+    reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
@@ -677,6 +678,7 @@ app.post('/equityRequest/:userId', upload.fields([
     investmentStage,
     currency,
     fundingAmount,
+    reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
@@ -777,7 +779,12 @@ app.post('/equityRequest/:userId', upload.fields([
     });
 });
 
-app.put('/updateFundingRequest/:userId/:fundingRequestId', (req, res) => {
+app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
+  { name: 'businessPlanFile', maxCount: 1 },
+  { name: 'bankStatementFile', maxCount: 1 },
+  { name: 'cashFlowAnalysisFile', maxCount: 1 },
+  { name: 'financialFile', maxCount: 1 },
+]), (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
 
@@ -793,33 +800,87 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', (req, res) => {
     financials,
   } = req.body;
 
-  // Create an updated funding request object with the provided fields
-  const updatedFundingRequest = {
-    ...(date && { date }),
-    ...(problem && { problem }),
-    ...(solution && { solution }),
-    ...(stage && { stage }),
-    ...(currency && { currency }),
-    ...(fundingAmount && { fundingAmount }),
-    useOfFunds: {
-      ...(product && { product }),
-      ...(saleAndMarketing && { saleAndMarketing }),
-      ...(researchAndDevelopment && { researchAndDevelopment }),
-      ...(capitalExpenditure && { capitalExpenditure }),
-      ...(operation && { operation }),
-      ...(other && { other }),
-    },
-    ...(financials && { financials }),
-  };
+  // Handle file updates
+  const files = req.files;
+  const uploadPromises = [];
+  const fileUrls = {};
 
-  // Update the funding request data
-  dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).update(updatedFundingRequest, (error) => {
-    if (error) {
-      res.status(500).json({ error: 'Failed to update funding request data.' });
-    } else {
-      res.status(200).json({ message: 'Funding request data updated successfully.' });
-    }
-  });
+  if (files) {
+    Object.keys(files).forEach((key) => {
+      const file = files[key][0];
+      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const bucket = admin.storage().bucket();
+      const fileRef = bucket.file(fileName);
+
+      const stream = fileRef.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      const uploadPromise = new Promise((resolve, reject) => {
+        stream.on('finish', () => {
+          fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+            .then(downloadUrls => {
+              fileUrls[key] = downloadUrls[0];
+              resolve();
+            })
+            .catch(error => {
+              console.error(`Error generating download URL for ${key} file:`, error);
+              reject(`Failed to generate ${key} file URL.`);
+            });
+        });
+
+        stream.on('error', (err) => {
+          console.error(`Error uploading ${key} file:`, err);
+          reject(`Failed to upload ${key} file.`);
+        });
+
+        stream.end(file.buffer);
+      });
+
+      uploadPromises.push(uploadPromise);
+    });
+  }
+
+  // Wait for all file uploads to complete
+  Promise.all(uploadPromises)
+    .then(() => {
+      // Create an updated funding request object with the provided fields and file URLs
+      const updatedFundingRequest = {
+        ...(date && { date }),
+        ...(problem && { problem }),
+        ...(solution && { solution }),
+        ...(stage && { stage }),
+        ...(currency && { currency }),
+        ...(fundingAmount && { fundingAmount }),
+        useOfFunds: {
+          ...(product && { product }),
+          ...(saleAndMarketing && { saleAndMarketing }),
+          ...(researchAndDevelopment && { researchAndDevelopment }),
+          ...(capitalExpenditure && { capitalExpenditure }),
+          ...(operation && { operation }),
+          ...(other && { other }),
+        },
+        ...(financials && { financials }),
+        businessPlanFileUrl: fileUrls.businessPlanFile || '',
+        bankStatementFileUrl: fileUrls.bankStatementFile || '',
+        cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
+        financialFileUrl: fileUrls.financialFile || '',
+      };
+
+      // Update the funding request data
+      dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).update(updatedFundingRequest, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update funding request data.' });
+        } else {
+          res.status(200).json({ message: 'Funding request data updated successfully.' });
+        }
+      });
+    })
+    .catch(error => {
+      res.status(500).json({ error });
+    });
 });
 
 

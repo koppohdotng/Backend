@@ -1,46 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Socket.IO Chat</title>
-  <style>
-    /* Add your styles here */
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Online Store</title>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .product {
+            flex: 1 1 24%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        button {
+            margin-top: 10px;
+            background-color: #02bff5;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        #cart {
+            list-style-type: none;
+            padding: 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
-  <div id="chatContainer">
-    <!-- Display chat messages here -->
-  </div>
-  <input type="text" id="messageInput" placeholder="Type your message">
-  <button onclick="sendMessage()">Send</button>
+    <h1>Welcome to Your Online Store</h1>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <div class="product-container">
+        <div class="product" id="product1">
+            <h2>Product 1</h2>
+            <p>Description of Product 1.</p>
+            <p>Price: $10.00</p>
+            <button onclick="addToCart('Product 1', 10.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+        </div>
 
-  <script>
-    const socket = io('https://koppoh-41a7d984a436.herokuapp.com/'); // Replace with your server URL
+        <div class="product" id="product2">
+            <h2>Product 2</h2>
+            <p>Description of Product 2.</p>
+            <p>Price: $20.00</p>
+            <button onclick="addToCart('Product 2', 20.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+        </div>
 
-    function sendMessage() {
-      const userId = "wsqLwGE4IEZlSCXC9FQIndOr3vG3"; // Replace with the actual user ID
-      const fundingRequestId = "-NkqA2yqm494SfZK4sKw"; // Replace with the actual funding request ID
-      const newChat = document.getElementById('messageInput').value;
-      const sourceChat = "user"; // Replace with the actual source (e.g., "user" or "admin")
+        <div class="product" id="product3">
+            <h2>Product 3</h2>
+            <p>Description of Product 3.</p>
+            <p>Price: $30.00</p>
+            <button onclick="addToCart('Product 3', 30.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+        </div>
 
-      // Emit a new chat message to the server
-      socket.emit('newChat', { userId, fundingRequestId, newChat, sourceChat });
-    }
+        <div class="product" id="product4">
+            <h2>Product 4</h2>
+            <p>Description of Product 4.</p>
+            <p>Price: $40.00</p>
+            <button onclick="addToCart('Product 4', 40.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+        </div>
+        <div class="product" id="product3">
+          <h2>Product 3</h2>
+          <p>Description of Product 3.</p>
+          <p>Price: $30.00</p>
+          <button onclick="addToCart('Product 3', 30.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+      </div>
 
-    // Listen for new chat messages from the server
-    socket.on('newChat', ({ fundingRequestId, chatId, message, source, timestamp }) => {
-      // Handle the new chat message, update your UI
-      const chatContainer = document.getElementById('chatContainer');
-      const newMessage = document.createElement('div');
-      newMessage.innerHTML = `<strong>${source}:</strong> ${message}`;
-      chatContainer.appendChild(newMessage);
-    });
+      <div class="product" id="product4">
+          <h2>Product 4</h2>
+          <p>Description of Product 4.</p>
+          <p>Price: $40.00</p>
+          <button onclick="addToCart('Product 4', 40.00)"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+      </div>
+    </div>
 
-    // Join the room based on fundingRequestId
-    socket.emit('joinRoom', "-NkqA2yqm494SfZK4sKw"); // Replace with the actual funding request ID
-  </script>
+    <h2>Shopping Cart</h2>
+    <ul id="cart"></ul>
+
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <h2>Provide Your Details</h2>
+            <form onsubmit="submitOrderForm(event)">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+                
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" required>
+                
+                <label for="address">Address:</label>
+                <textarea id="address" required></textarea>
+                
+                <button type="submit">Submit Order</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let cartItems = [];
+
+        function addToCart(product, price) {
+            cartItems.push({ product, price });
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartElement = document.getElementById('cart');
+            cartElement.innerHTML = '';
+
+            cartItems.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.product} - $${item.price.toFixed(2)}`;
+                cartElement.appendChild(li);
+            });
+        }
+
+        function openModal() {
+            const modal = document.getElementById('orderModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('orderModal');
+            modal.style.display = 'none';
+        }
+
+        function submitOrderForm(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+
+            // Perform further processing or send the details to the server
+
+            alert(`Order Placed!\n\nEmail: ${email}\nPhone: ${phone}\nAddress: ${address}`);
+            
+            // Close the modal and reset the form
+            closeModal();
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('address').value = '';
+
+            // Clear the cart
+            cartItems = [];
+            updateCart();
+        }
+    </script>
 </body>
 </html>
