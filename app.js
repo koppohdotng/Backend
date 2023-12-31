@@ -628,7 +628,7 @@ app.post('/loanRequest/:userId', upload.fields([
           
         },
        
-        fundingType:"loan" ,
+        fundingType:"debt" ,
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
