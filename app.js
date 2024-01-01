@@ -643,19 +643,18 @@ app.post('/loanRequest/:userId', upload.fields([
         if (error) {
           res.status(500).json({ error: 'Failed to update loan request data.', error});
         } else {
-          const newKey = dataRef.push().key; // Get the key from the push operation
+          const newKey = newRef.key;
 
-          // Retrieve the saved data using the key
-          const savedData = fundingRequest[newKey];
-
-          console.log(savedData);
-
-
-                res.status(200).json({
-                  message: 'Loan request data updated successfully.',
-                  savedData: savedData
-                });
-                
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+      
+            console.log(savedData);
+            res.status(200).json({
+              message: 'Loan request data updated successfully.',
+              savedData: savedData
+            });
+          });
                 
         }
       });
@@ -770,16 +769,18 @@ app.post('/equityRequest/:userId', upload.fields([
           res.status(500).json({ error: 'Failed to update equity request data.' });
         } else {
 
-          const newKey = dataRef.push().key;
+          const newKey = newRef.key;
 
-    // Retrieve the saved data using the key
-          const savedData = fundingRequest[newKey];
-
-          console.log(savedData);
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+      
+            console.log(savedData);
             res.status(200).json({
-              //message: 'Equity request data updated successfully.',
+              message: 'Equity request data updated successfully.',
               savedData: savedData
             });
+          });
           
         }
       });
