@@ -643,11 +643,10 @@ app.post('/loanRequest/:userId', upload.fields([
         if (error) {
           res.status(500).json({ error: 'Failed to update loan request data.', error});
         } else {
-          const newKey = dataRef.key;
+          const newKey = dataRef.push().key; // Get the key from the push operation
 
           // Retrieve the saved data using the key
-                const savedData = fundingRequest[newKey];
-
+          const savedData = fundingRequest[newKey];
                 res.status(200).json({
                   message: 'Loan request data updated successfully.',
                   savedData: savedData
