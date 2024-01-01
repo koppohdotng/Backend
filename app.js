@@ -767,14 +767,14 @@ app.post('/equityRequest/:userId', upload.fields([
           res.status(500).json({ error: 'Failed to update equity request data.' });
         } else {
 
-          const newKey = dataRef.key;
+          const newKey = dataRef.push().key;
 
     // Retrieve the saved data using the key
           const savedData = fundingRequest[newKey];
-          res.status(200).json({
-            //message: 'Equity request data updated successfully.',
-            savedData: savedData
-          });
+            res.status(200).json({
+              //message: 'Equity request data updated successfully.',
+              savedData: savedData
+            });
           
         }
       });
