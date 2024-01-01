@@ -645,16 +645,16 @@ app.post('/loanRequest/:userId', upload.fields([
         } else {
           const newKey = newRef.key;
 
-          // Retrieve the saved data using the correct key
-          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-            const savedData = snapshot.val();
-      
-            console.log(savedData);
-            res.status(200).json({
-              message: 'Loan request data updated successfully.',
-              savedData: savedData
-            });
-          });
+    // Retrieve the saved data using the correct key
+    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+      const savedData = snapshot.val();
+
+      console.log(savedData);
+      res.status(200).json({
+        message: 'Loan request data updated successfully.',
+        savedData: savedData
+      });
+    });
                 
         }
       });
@@ -771,16 +771,16 @@ app.post('/equityRequest/:userId', upload.fields([
 
           const newKey = newRef.key;
 
-          // Retrieve the saved data using the correct key
-          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-            const savedData = snapshot.val();
-      
-            console.log(savedData);
-            res.status(200).json({
-              message: 'Equity request data updated successfully.',
-              savedData: savedData
-            });
-          });
+    // Retrieve the saved data using the correct key
+    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+      const savedData = snapshot.val();
+
+      console.log(savedData);
+      res.status(200).json({
+        message: 'Equity request data updated successfully.',
+        savedData: savedData
+      });
+    });
           
         }
       });
