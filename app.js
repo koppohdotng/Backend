@@ -618,6 +618,7 @@ app.post('/loanRequest/:userId', upload.fields([
         stage,
         currency,
         fundingAmount,
+        reviewstage,
         useOfFunds: {
           product,
           saleAndMarketing,
@@ -625,7 +626,7 @@ app.post('/loanRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
-          reviewstage
+          
           
         },
        
@@ -653,6 +654,8 @@ app.post('/loanRequest/:userId', upload.fields([
       res.status(200).json({
         message: 'Loan request data updated successfully.',
         savedData: savedData
+        ,
+        fundingRequestId: newKey 
       });
     });
                 
@@ -742,6 +745,7 @@ app.post('/equityRequest/:userId', upload.fields([
         investmentStage,
         currency,
         fundingAmount,
+        reviewstage,
         useOfFunds: {
           product,
           saleAndMarketing,
@@ -749,7 +753,6 @@ app.post('/equityRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other,
-          reviewstage
         },
         financials,
         
@@ -778,7 +781,8 @@ app.post('/equityRequest/:userId', upload.fields([
       console.log(savedData);
       res.status(200).json({
         message: 'Equity request data updated successfully.',
-        savedData: savedData
+        savedData: savedData,
+        fundingRequestId: newKey 
       });
     });
           
