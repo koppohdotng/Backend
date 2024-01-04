@@ -649,13 +649,12 @@ app.post('/loanRequest/:userId', upload.fields([
     // Retrieve the saved data using the correct key
     dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
       const savedData = snapshot.val();
-
+      savedData.fundingRequestId = newKey;
       console.log(savedData);
       res.status(200).json({
         message: 'Loan request data updated successfully.',
         savedData: savedData
-        ,
-        fundingRequestId: newKey 
+       
       });
     });
                 
@@ -777,12 +776,13 @@ app.post('/equityRequest/:userId', upload.fields([
     // Retrieve the saved data using the correct key
     dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
       const savedData = snapshot.val();
+       
+      savedData.fundingRequestId = newKey;
 
       console.log(savedData);
       res.status(200).json({
         message: 'Equity request data updated successfully.',
-        savedData: savedData,
-        fundingRequestId: newKey 
+        savedData: savedData
       });
     });
           
