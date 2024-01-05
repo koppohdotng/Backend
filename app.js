@@ -806,7 +806,7 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
 ]), (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
-
+ 
   // Extract updated information from the request body
   const {
     date,
@@ -815,6 +815,8 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
     stage,
     currency,
     fundingAmount,
+    businessModel,
+    reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
@@ -886,6 +888,12 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
         cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
         financialFileUrl: fileUrls.financialFile || '',
+        pitchdeckUrl: fileUrls.pitchdeck || '',
+        valuationUrl: fileUrls.valuation || '',
+        captableUrl: fileUrls.captable || '',
+        financialmodelUrl: fileUrls.financialmodel || '',
+        founderagreementUrl: fileUrls.founderagreement || '',
+        taxclearanceUrl: fileUrls.taxclearance || '',
       };
 
       // Update the funding request data
