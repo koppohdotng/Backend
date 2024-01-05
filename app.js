@@ -557,6 +557,7 @@ app.post('/loanRequest/:userId', upload.fields([
     currency,
     fundingAmount,
     reviewstage,
+    businessModel,                                                                                                                                                                                                                                                                                                                                                  
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
@@ -619,6 +620,7 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
+        businessModel,
         useOfFunds: {
           product,
           saleAndMarketing,
@@ -684,6 +686,7 @@ app.post('/equityRequest/:userId', upload.fields([
     investmentStage,
     currency,
     fundingAmount,
+    businessModel,
     reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
@@ -745,6 +748,7 @@ app.post('/equityRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
+        businessModel,
         useOfFunds: {
           product,
           saleAndMarketing,
