@@ -803,6 +803,12 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   { name: 'bankStatementFile', maxCount: 1 },
   { name: 'cashFlowAnalysisFile', maxCount: 1 },
   { name: 'financialFile', maxCount: 1 },
+  { name: 'pitchdeck', maxCount: 1 },
+  { name: 'valuation', maxCount: 1 },
+  { name: 'captable', maxCount: 1 },
+  { name: 'financialmodel', maxCount: 1 },
+  { name: 'founderagreement', maxCount: 1 },
+  { name: 'taxclearance', maxCount: 1 },
 ]), (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
