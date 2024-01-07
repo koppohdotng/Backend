@@ -885,6 +885,8 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
         ...(stage && { stage }),
         ...(currency && { currency }),
         ...(fundingAmount && { fundingAmount }),
+        ...(businessModel && { businessModel }), 
+        ...(reviewstage && { reviewstage }),
         useOfFunds: {
           ...(product && { product }),
           ...(saleAndMarketing && { saleAndMarketing }),
