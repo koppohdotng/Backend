@@ -644,7 +644,7 @@ app.post('/loanRequest/:userId', upload.fields([
       const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         console.log("odebe 3")
         if (error) {
-          console.log(error)
+          console.log("obede 5"+error)
           res.status(500).json({ error: 'Failed to update loan request data.'});
         } else {
           const newKey = newRef.key;
@@ -665,6 +665,7 @@ app.post('/loanRequest/:userId', upload.fields([
       });
     })
     .catch(error => {
+      console.log(error)
       res.status(500).json({ error });
     });
 });
@@ -773,6 +774,7 @@ app.post('/equityRequest/:userId', upload.fields([
       // Update the equity request data
       const newRef =  dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         if (error) {
+          console.log(error)
           res.status(500).json({ error: 'Failed to update equity request data.'});
         } else {
 
@@ -795,6 +797,7 @@ app.post('/equityRequest/:userId', upload.fields([
       });
     })
     .catch(error => {
+      console.log(error)
       res.status(500).json({ error });
     });
 });
