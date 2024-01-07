@@ -639,7 +639,7 @@ app.post('/loanRequest/:userId', upload.fields([
         cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
         financialFileUrl: fileUrls.financialFile || '',
       };
-         
+      console.log("odebe 4")
       // Update the loan request data
       const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
         console.log("odebe 3")
