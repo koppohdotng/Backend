@@ -73,7 +73,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/a', (req, res) => {
-  res.send('Hello, Express!');
+  res.send('Welcome to Koppoh, Express yourself!');
    
  
 // client.sendEmail({
