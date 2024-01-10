@@ -67,7 +67,7 @@ app.use(bodyParser.json());
 
 // Define a route
 app.get('/', (req, res) => {
-  res.send('Hello, Express!');
+  res.send('Welcome to Koppoh');
    
 
 });
