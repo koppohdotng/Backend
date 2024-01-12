@@ -136,6 +136,9 @@ router.post('/resendVerification', async (req, res) => {
     // Check if the user exists in Firebase Authentication
     const userRecord = await admin.auth().getUserByEmail(email);
 
+    function generateRandomNumber() {
+      return Math.floor(Math.random() * 900000) + 100000;
+    }
     // Generate a new random 6-digit number
     const newRandomNumber = generateRandomNumber();
 
