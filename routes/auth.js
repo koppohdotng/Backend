@@ -129,6 +129,49 @@ console.log(randomNumber);
 
 });
 
+router.post('/resendVerification', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the user exists in Firebase Authentication
+    const userRecord = await admin.auth().getUserByEmail(email);
+
+    // Generate a new random 6-digit number
+    const newRandomNumber = generateRandomNumber();
+
+    // Update the user's verification number in the database
+    const db = admin.database();
+    const usersRef = db.ref('users');
+
+    const userData = {
+      verifyNumber: newRandomNumber,
+    };
+
+    await usersRef.child(userRecord.uid).update(userData);
+
+    // Send a verification email with the new random number
+    await client.sendEmailWithTemplate({
+      From: 'info@koppoh.com',
+      To: email,
+      TemplateId: '33232370',
+      TemplateModel: {
+        verifyNumber: newRandomNumber,
+      },
+    });
+
+    res.status(200).json({ message: 'Verification email resent successfully' });
+  } catch (error) {
+    console.error('Error resending verification email:', error);
+    if (error.code === 'auth/user-not-found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
+
+
+
 router.post('/change-password', (req, res) => {
   const { email, currentPassword, newPassword } = req.body;
 
