@@ -802,6 +802,82 @@ app.post('/equityRequest/:userId', upload.fields([
     });
 });
 
+app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+  const { sender, message, timestamp } = req.body;
+
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId || !sender || !message || !timestamp) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Create a chat message object
+  const chatMessage = {
+    sender,
+    message,
+    timestamp,
+  };
+
+  // Update the chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const newChatRef = chatRef.push(chatMessage, (error) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'Failed to store chat message.' });
+    } else {
+      const newKey = newChatRef.key;
+
+      // Retrieve the saved chat message using the correct key
+      chatRef.child(newKey).once('value', (snapshot) => {
+        const savedChatMessage = snapshot.val();
+
+        savedChatMessage.chatMessageId = newKey;
+
+        console.log(savedChatMessage);
+        return res.status(200).json({
+          message: 'Chat message stored successfully.',
+          savedChatMessage: savedChatMessage,
+        });
+      });
+    }
+  });
+});
+
+app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Retrieve all chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  chatRef.once('value', (snapshot) => {
+    const chatMessages = snapshot.val();
+
+    if (!chatMessages) {
+      return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
+    }
+
+    // Convert chat messages object to an array
+    const chatArray = Object.keys(chatMessages).map((key) => {
+      const chatMessage = chatMessages[key];
+      chatMessage.chatMessageId = key;
+      return chatMessage;
+    });
+
+    console.log(chatArray);
+    return res.status(200).json({
+      message: 'Chat messages retrieved successfully.',
+      chatMessages: chatArray,
+    });
+  });
+});
+
+
 app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   { name: 'businessPlanFile', maxCount: 1 },
   { name: 'bankStatementFile', maxCount: 1 },
