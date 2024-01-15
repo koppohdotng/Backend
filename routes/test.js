@@ -1,23 +1,50 @@
-const authenticateUser = (req, res, next) => {
-  const userId = req.headers.userid;
+app.get('/teaser-pdf', async (req, res) => {
+  
+  const { userId,  url } = req.query;
+      
+  
 
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!userId || !url) {
+    return res.status(400).json({ error: 'Missing required parameters' });
   }
 
-  // Check if the user exists or perform any additional checks based on your requirements
-  // You might want to store user data in a Firestore collection or another database
+  try {
+    const browser = await puppeteer.launch({
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+      ],
+    });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
-  req.user = { uid: userId };
-  next();
-};
+    const pdfBuffer = await page.pdf();
+    await browser.close();
 
-// Logout endpoint
-app.post('/logout', authenticateUser, (req, res) => {
-  // Perform any additional cleanup or session management if needed
-  const { uid } = req.user;
-  // You may want to update your database or perform any necessary actions on logout
+    const fileName = `${userId}.pdf`;
 
-  res.json({ message: `Logout successful for user ${uid}` });
+    // Upload the PDF directly from memory to Firebase Storage
+    const bucket = storagex.bucket();
+    const file = bucket.file(`pdfs/${fileName}`);
+    await file.save(pdfBuffer, {
+      metadata: { contentType: 'application/pdf' },
+    });
+
+    // Get the signed URL for the uploaded PDF
+    const [signedUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2491', // Replace with an appropriate expiration date
+    });
+
+    // Update the PDF URL in the Realtime Database
+    const ref = db.ref(`/users/${userId}/teaser`);
+    await ref.child('pdfUrl').set(signedUrl);
+
+    res.status(200).json({ success: true, pdfUrl: signedUrl });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error'},error);
+    res.status(503).json({ error: 'Internal server error1'},error);
+  }
 });
 
