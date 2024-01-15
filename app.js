@@ -1448,7 +1448,7 @@ app.get('/teaser-pdf', async (req, res) => {
 
     // Update the PDF URL in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
-    await ref.child('pdfUrl').set(signedUrl);
+    await ref.child('pdfUrl').push(signedUrl);
 
     res.status(200).json({ success: true, pdfUrl: signedUrl });
   } catch (error) {
