@@ -1487,6 +1487,19 @@ app.post('/requestTemplate/:userId', (req, res) => {
     phone,
     message,
   };
+   
+  client.sendEmailWithTemplate({
+    From: 'info@koppoh.com',
+    To: email,
+    TemplateId: '34496413',
+    TemplateModel: {
+      email,
+    phone,
+    message,
+    },
+  })
+
+
 
   // Push the new request template to the user's requests array
   dataRef.child(`${userId}/requests`).push(newRequest, (error) => {

@@ -69,9 +69,6 @@ console.log(randomNumber);
                 firstTime,
                 Date: currentDate.toISOString(),
                 verifyNumber: randomNumber
-
-
-
               };
   
               // Store user data in Firebase Realtime Database (or Firsestore)
