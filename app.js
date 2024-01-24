@@ -694,6 +694,7 @@ app.post('/equityRequest/:userId', upload.fields([
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
+  const otherValue = other !== undefined ? other : '';
 
   // Handle file uploads
   const files = req.files;
@@ -758,7 +759,7 @@ app.post('/equityRequest/:userId', upload.fields([
           researchAndDevelopment,
           capitalExpenditure,
           operation,
-          other,
+          other: otherValue,
         },
         financials,
         
