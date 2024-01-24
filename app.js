@@ -562,6 +562,7 @@ app.post('/loanRequest/:userId', upload.fields([
     financials,
   } = req.body;
 
+  const otherValue = other !== undefined ? other : '';
   // Handle file uploads
   const files = req.files;
   const uploadPromises = [];
