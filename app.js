@@ -628,7 +628,7 @@ app.post('/loanRequest/:userId', upload.fields([
           researchAndDevelopment,
           capitalExpenditure,
           operation,
-          other,
+          other: otherValue,
           
           
         },
