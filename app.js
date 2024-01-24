@@ -1495,7 +1495,7 @@ app.post('/requestTemplate/:userId', (req, res) => {
     To: email,
     TemplateId: '34496413',
     TemplateModel: {
-      email,
+      email : "info@koppoh.com",
     phone,
     message,
     },
