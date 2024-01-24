@@ -1492,7 +1492,7 @@ app.post('/requestTemplate/:userId', (req, res) => {
    
   client.sendEmailWithTemplate({
     From: 'info@koppoh.com',
-    To: email,
+    To: "info@koppoh.com",
     TemplateId: '34496413',
     TemplateModel: {
       email : "info@koppoh.com",
