@@ -1514,7 +1514,7 @@ app.post('/requestTemplate/:userId', (req, res) => {
   });
 });
 
-app.post('/sourceEmail', (req, res) => {
+app.post('/addEmail', (req, res) => {
   
   const { email } = req.body;
 
