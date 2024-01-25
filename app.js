@@ -1514,6 +1514,28 @@ app.post('/requestTemplate/:userId', (req, res) => {
   });
 });
 
+app.post('/sourceEmail', (req, res) => {
+  
+  const { email } = req.body;
+
+  var emailsRef = admin.database().ref("emails");
+
+  // Create a new request template object
+  const newEmail = {
+    email,
+   
+  };
+   
+  // Push the new request template to the user's requests array
+  emailsRef.push(newRequest, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to add a new email.' });
+    } else {
+      res.status(200).json({ message: 'New email added successfully.' });
+    }
+  });
+});
+
 
 
 app.get('/getAllChats/:userId', (req, res) => {
