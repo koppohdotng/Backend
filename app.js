@@ -1527,7 +1527,7 @@ app.post('/sourceEmail', (req, res) => {
   };
    
   // Push the new request template to the user's requests array
-  emailsRef.push(newRequest, (error) => {
+  emailsRef.push(newEmail, (error) => {
     if (error) {
       res.status(500).json({ error: 'Failed to add a new email.' });
     } else {
