@@ -3,12 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-
-  "type": "module",
-    "scripts": {
+  "scripts": {
     "start": "node app.js",
     "heroku-postbuild": "bash postbuild.bash"
-  },  
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
