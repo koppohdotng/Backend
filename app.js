@@ -13,6 +13,7 @@ var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
 
 const Sentry = require('@sentry/node');
+const { init } = require('@sentry/tracing');
 
 
 Sentry.init({
