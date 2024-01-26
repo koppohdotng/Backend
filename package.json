@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
+  
   "scripts": {
-    "start": "node app.cjs",
+    "start": "node app.js",
     "heroku-postbuild": "bash postbuild.bash"
   },
   "keywords": [],
