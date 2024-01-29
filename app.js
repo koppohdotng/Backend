@@ -1624,6 +1624,38 @@ app.get('/getAllChats/:userId', (req, res) => {
 
 
 
+app.get('/usersByDate', async (req, res) => {
+  try {
+    const startTime = req.query.startTime; // Set the start time in your preferred format
+    const endTime = req.query.endTime;     // Set the end time in your preferred format
+
+    // Reference to the "users" node in the Realtime Database
+    const usersRef = db.ref('users');
+
+    // Query users based on timestamp field
+    usersRef.orderByChild('timestamp')
+      .startAt(startTime)
+      .endAt(endTime)
+      .once('value')
+      .then(snapshot => {
+        const users = [];
+
+        snapshot.forEach(childSnapshot => {
+          users.push(childSnapshot.val());
+        });
+
+        res.json(users);
+      })
+      .catch(error => {
+        console.error('Error retrieving users:', error);
+        res.status(500).send('Internal Server Error');
+      });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 const port = process.env.PORT || 3000;
