@@ -1563,20 +1563,16 @@ app.post('/requestTemplate/:userId', (req, res) => {
   });
 });
 
-app.post('/addEmail', (req, res) => {
-  
+app.post('/addEmail', (req, res) => {  
   const { email } = req.body;
-
   var emailsRef = admin.database().ref("emails");
-
   // Create a new request template object
   const newEmail = {
     email,
-   
   };
-   
   // Push the new request template to the user's requests array
-  emailsRef.push(newEmail, (error) => {
+  emailsRef.push(newEmail, (error) => { 
+  
     if (error) {
       res.status(500).json({ error: 'Failed to add a new email.' });
     } else {
