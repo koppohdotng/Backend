@@ -1345,7 +1345,7 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
   const newReceipt = {
     // Datereceipt: date,
     type,
-    receiptURL: '', 
+  //  receiptURL: '', 
     businessName,
     companyVision,
     registrationStatus,
