@@ -1338,12 +1338,12 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
   }
 
   // Generate a unique filename for the receipt (e.g., using a timestamp)
-  const timestamp = Date.now();
-  const receiptName = `${timestamp}_${req.file.originalname}`;
+  // const timestamp = Date.now();
+  // const receiptName = `${timestamp}_${req.file.originalname}`;
 
   // Create a new receipt object
   const newReceipt = {
-    Datereceipt: date,
+    // Datereceipt: date,
     type,
     receiptURL: '', 
     businessName,
@@ -1362,50 +1362,51 @@ app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
     
     // Initialize the receiptURL field
   };
+  receiptsRef.child(userId).update(newReceipt, (error) => {
+    if (error) {
+      return res.status(500).json({ error: 'Error adding receipt to the database.' });
+    }
+
+    return res.status(200).json({ message: 'Receipt added successfully.' });
+  });
 
   // If a receipt is provided, store it in Firebase Storage and add its download URL to the receipt object
-  if (req.file) {
-    const bucket = admin.storage().bucket();
+  // if (req.file) {
+  //   const bucket = admin.storage().bucket();
 
-    const receiptBuffer = req.file.buffer;
+  //   const receiptBuffer = req.file.buffer;
 
-    const file = bucket.file(receiptName); // Use the generated filename
+  //   const file = bucket.file(receiptName); // Use the generated filename
 
-    const blobStream = file.createWriteStream({
-      metadata: {
-        contentType: req.file.mimetype,
-      },
-    });
+  //   const blobStream = file.createWriteStream({
+  //     metadata: {
+  //       contentType: req.file.mimetype,
+  //     },
+  //   });
 
-    blobStream.on('error', (error) => {
-      return res.status(500).json({ error: 'Error uploading the receipt.' });
-    });
+  //   blobStream.on('error', (error) => {
+  //     return res.status(500).json({ error: 'Error uploading the receipt.' });
+  //   });
 
-    blobStream.on('finish', () => {
-      // Get the download URL for the uploaded receipt
-      file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
-        if (error) {
-          return res.status(500).json({ error: 'Error getting download URL.' });
-        }
+  //   blobStream.on('finish', () => {
+  //     // Get the download URL for the uploaded receipt
+  //     file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
+  //       if (error) {
+  //         return res.status(500).json({ error: 'Error getting download URL.' });
+  //       }
 
-        newReceipt.receiptURL = downloadUrl;
+  //       newReceipt.receiptURL = downloadUrl;
 
-        // Add the new receipt to the database under the specified user ID
-        receiptsRef.child(userId).update(newReceipt, (error) => {
-          if (error) {
-            return res.status(500).json({ error: 'Error adding receipt to the database.' });
-          }
+  //       // Add the new receipt to the database under the specified user ID
+        
+  //     });
+  //   });
 
-          return res.status(200).json({ message: 'Receipt added successfully.' });
-        });
-      });
-    });
-
-    blobStream.end(receiptBuffer);
-  } else {
-    // If no receipt is provided, return an error
-    return res.status(400).json({ error: 'Receipt file is required.' });
-  }
+  //   blobStream.end(receiptBuffer);
+  // } else {
+  //   // If no receipt is provided, return an error
+  //   return res.status(400).json({ error: 'Receipt file is required.' });
+  // }
 });
 
 const storagex = admin.storage();
