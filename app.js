@@ -1313,7 +1313,7 @@ const receiptsRef = db.ref('users'); // Reference to the 'receipts' node in your
 
 // Initialize Multer for handling file uploads
 
-app.post('/api/uploadReceipt/:userId', upload.single('receipt'), (req, res) => {
+app.post('/api/uploadReceipt/:userId', (req, res) => {
   const userId = req.params.userId;
   const { date, 
     type, 
