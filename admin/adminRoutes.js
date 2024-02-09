@@ -24,8 +24,12 @@ router.post('/admin/login', async (req, res) => {
   
         // Check superAdmin value
         const superAdminValue = adminData.val().superAdmin;
-           console.log("wewe")
+  
         if (superAdminValue === 'koppoh') {
+
+          function generateRandomNumber() {
+            return Math.floor(Math.random() * 900000) + 100000;
+          }
           // Generate a random value
           const randomNow = generateRandomNow();
   

@@ -75,4 +75,4 @@ http POST http://localhost:3000/adminRoutes/login email=info@koppoh.com
 
 curl -X POST -d 'email=info@koppoh.com' http://localhost:3000/adminRoutes/admin/login
  
- curl -X POST -H "Content-Type: application/json" -d '{"email": "info@koppoh.com"}' http://localhost:3000/adminRoutes/admin/login
+curl -X POST -H "Content-Type: application/json" -d '{"email": "info@koppoh.com"}' http://localhost:3000/adminRoutes/admin/login
