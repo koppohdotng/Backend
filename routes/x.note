@@ -69,3 +69,10 @@ curl -X GET "https://koppoh-41a7d984a436.herokuapp.com/generate-pdf?userId=wsqLw
 
 
 curl -X POST -H "Content-Type: application/json" -d '{"userId": "lCTJP0SfZAP8I5FtVXwIxGr8UCn1", "verifyNumber": "889458"}' https://koppoh-41a7d984a436.herokuapp.com/auth/verify
+
+
+http POST http://localhost:3000/adminRoutes/login email=info@koppoh.com
+
+curl -X POST -d 'email=info@koppoh.com' http://localhost:3000/adminRoutes/admin/login
+ 
+ curl -X POST -H "Content-Type: application/json" -d '{"email": "info@koppoh.com"}' http://localhost:3000/adminRoutes/admin/login
