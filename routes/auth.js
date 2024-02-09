@@ -488,7 +488,7 @@ router.get('/login', (req, res) => {
   });
   
   
-module.exports = router;
+
 router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
   
@@ -530,3 +530,4 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
     }
 
   });
+  module.exports = router;
