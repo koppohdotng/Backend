@@ -5,7 +5,7 @@ const app = express();
 const cors = require('cors');
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
-const admin = require('./admin/admin');
+const adminRoutes = require('./admin/adminRoutes');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
@@ -326,7 +326,7 @@ app.post('/google-signin', async (req, res) => {
 
 app.use('/auth', authRoutes);
 
-app.use('/admin', admin);
+app.use('/admin', adminRoutes);
 
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
