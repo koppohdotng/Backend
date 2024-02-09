@@ -326,7 +326,7 @@ app.post('/google-signin', async (req, res) => {
 
 app.use('/auth', authRoutes);
 
-app.use('/admin', adminRoutes);
+app.use('/adminRoutes', adminRoutes);
 
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
