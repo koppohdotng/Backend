@@ -34,7 +34,7 @@ router.post('/admin/login', async (req, res) => {
           const randomNow = generateRandomNumber();
   
           // Save the random value under superAdmin
-          await adminRef.push({ randomNow: randomNow });
+          await adminRef.update({ randomNow: randomNow });
   
           res.status(200).json({ message: 'Login successful. Random value generated for superAdmin.' });
         } else {
