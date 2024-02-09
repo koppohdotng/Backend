@@ -43,9 +43,9 @@ router.post('/admin/login', async (req, res) => {
           client.sendEmailWithTemplate({
             From: 'info@koppoh.com',
             To: email,
-            TemplateId: 'Koppoh admin',
+            TemplateId: '33232370',
             TemplateModel: {
-              firstName,
+              firstName : 'Koppoh',
               verifyNumber: randomNow,
             },
           })
