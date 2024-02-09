@@ -109,7 +109,7 @@ console.log(randomNumber);
         To: email,
         TemplateId: '33232370',
         TemplateModel: {
-          firstName,
+          firstName : 'Koppoh Admin',
           verifyNumber: randomNumber,
         },
       })
