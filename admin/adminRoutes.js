@@ -31,7 +31,7 @@ router.post('/admin/login', async (req, res) => {
             return Math.floor(Math.random() * 900000) + 100000;
           }
           // Generate a random value
-          const randomNow = generateRandomNow();
+          const randomNow = generateRandomNumber();
   
           // Save the random value under superAdmin
           await adminRef.update({ superAdmin: randomNow });
