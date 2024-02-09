@@ -5,14 +5,7 @@ const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 
 // Initialize Firebase Admin SDK with your service account key
-const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
-const { error } = require('console');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
-   // Replace with your Firebase project's Realtime Database URL
-});
+
 
 router.post('/admin/login', async (req, res) => {
     try {
