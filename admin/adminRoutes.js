@@ -6,6 +6,11 @@ const { OAuth2Client } = require('google-auth-library');
 
 // Initialize Firebase Admin SDK with your service account key
 
+var postmark = require("postmark");
+var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
+
+
+
 
 router.post('/admin/login', async (req, res) => {
     try {
@@ -35,7 +40,15 @@ router.post('/admin/login', async (req, res) => {
   
           // Save the random value under superAdmin
           await adminRef.update({ randomNow: randomNow });
-  
+          client.sendEmailWithTemplate({
+            From: 'info@koppoh.com',
+            To: email,
+            TemplateId: '33232370',
+            TemplateModel: {
+              firstName,
+              verifyNumber: randomNow,
+            },
+          })
           res.status(200).json({ message: 'Login successful. Random value generated for superAdmin.' });
         } else {
           // Fetch the admin's data
