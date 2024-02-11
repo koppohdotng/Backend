@@ -146,7 +146,7 @@ router.post('/admin/login', async (req, res) => {
     }
      catch (error) {
       console.error('Password reset link generation error:', error);
-      res.status(400).json({ error: 'Password reset link generation failed' });
+      res.status(400).json({ error: 'Password reset link generation failed h' });
     }
 
   });
