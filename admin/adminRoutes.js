@@ -109,5 +109,46 @@ router.post('/admin/login', async (req, res) => {
     }
   });
 
+  router.post('/sendPasswordResetEmail', async (req, res) => {
+    const email = req.body.email;
+  
+    try {
+
+      const userRecord = await admin.auth().getUserByEmail(email);
+        
+        // Get the userId from the userRecord
+        const firstName = userRecord.firstName;
+      // Generate a password reset link
+      const reset = await admin.auth().generatePasswordResetLink(email);
+      console.log(reset);
+  
+      // Configure email data
+      
+      client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: email,
+        TemplateId: '34126584',
+        TemplateModel: {
+          reset,
+          firstName 
+        },
+      })
+      .then((response) => {
+        console.log('Verified  successfully:', response);
+        res.status(201).json({ message: 'Verified successful',});
+      })
+      .catch((error) => {
+        console.error('Email sending error:', error);
+        res.status(500).json({ error: 'Email sending error' });
+      });
+
+     
+    }
+     catch (error) {
+      console.error('Password reset link generation error:', error);
+      res.status(400).json({ error: 'Password reset link generation failed' });
+    }
+
+  });
 
   module.exports = router;
