@@ -64,4 +64,47 @@ router.post('/admin/login', async (req, res) => {
     }
   });
 
+  router.post('/confirm-number', async (req, res) => {
+    try {
+      const { email, number } = req.body;
+  
+      // Authenticate user with Firebase Authentication
+      const user = await admin.auth().getUserByEmail(email);
+  
+      // Check if the user has a stored randomNow value
+      const uid = user.uid;
+      const userRef = admin.database().ref(`/admins/${uid}`);
+      const userData = await userRef.once('value');
+  
+      if (userData.exists() && userData.val().randomNow === Number(number)) {
+        // Number matches, confirmation successful
+        res.status(200).json({ message: 'Confirmation successful. Number matches.' ,userData: userData.val()});
+      } else {
+        // Number does not match or user not found
+        res.status(403).json({ error: 'Confirmation failed. Incorrect number or user not found.' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  router.get('/users', async (req, res) => {
+    try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+  
+      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).once('value');
+      const users = snapshot.val();
+  
+      const paginatedUsers = Object.values(users).slice(0, pageSize * page);
+  
+      res.json(paginatedUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
   module.exports = router;
