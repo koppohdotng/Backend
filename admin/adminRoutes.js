@@ -89,6 +89,9 @@ router.post('/admin/login', async (req, res) => {
     }
   });
   
+  const db = admin.database();
+  const usersRef = db.ref('users');
+
   router.get('/users', async (req, res) => {
     try {
       const pageSize = 10;
