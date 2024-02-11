@@ -92,7 +92,7 @@ router.post('/admin/login', async (req, res) => {
   const db = admin.database();
   const usersRef = db.ref('users');
 
-  router.get('/users', async (req, res) => {
+  router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
       let page = req.query.page ? parseInt(req.query.page) : 1;
