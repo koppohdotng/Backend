@@ -79,3 +79,5 @@ curl -X POST -H "Content-Type: application/json" -d '{"email": "info@koppoh.com"
 
 
 http://localhost:3000/adminRoutes/users?page=1
+
+curl http://localhost:3000/adminRoutes/users?page=1

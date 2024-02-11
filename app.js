@@ -1660,6 +1660,22 @@ app.get('/usersByDate', async (req, res) => {
   }
 });
 
+app.get('/userss', async (req, res) => {
+  try {
+    const pageSize = 20;
+    let page = req.query.page ? parseInt(req.query.page) : 1;
+
+    const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).once('value');
+    const users = snapshot.val();
+
+    const paginatedUsers = Object.values(users).slice(0, pageSize * page);
+
+    res.json(paginatedUsers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 const port = process.env.PORT || 3000;
