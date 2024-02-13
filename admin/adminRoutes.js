@@ -94,7 +94,7 @@ router.post('/admin/login', async (req, res) => {
 
   router.get('/userpagination', async (req, res) => {
     try {
-      const pageSize = 10;
+      const pageSize = 15;
       let page = req.query.page ? parseInt(req.query.page) : 1;
   
       const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).once('value');
@@ -146,7 +146,7 @@ router.post('/admin/login', async (req, res) => {
     }
      catch (error) {
       console.error('Password reset link generation error:', error);
-      res.status(400).json({ error: 'Password reset link generation failed h' });
+      res.status(400).json({ error: 'Password reset link generation failed'});
     }
 
   });
