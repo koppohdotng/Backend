@@ -1662,7 +1662,7 @@ app.get('/usersByDate', async (req, res) => {
 
 app.get('/userss', async (req, res) => {
   try {
-    const pageSize = 20;
+    const pageSize = 15;
     let page = req.query.page ? parseInt(req.query.page) : 1;
 
     const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).once('value');
@@ -1671,6 +1671,21 @@ app.get('/userss', async (req, res) => {
     const paginatedUsers = Object.values(users).slice(0, pageSize * page);
 
     res.json(paginatedUsers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/users/pages', async (req, res) => {
+  try {
+    const pageSize = 15;
+
+    const snapshot = await usersRef.once('value');
+    const totalUsers = snapshot.numChildren();
+    const totalPages = Math.ceil(totalUsers / pageSize);
+
+    res.json({ totalPages });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
