@@ -94,7 +94,7 @@ router.post('/admin/login', async (req, res) => {
 
   router.get('/userpagination', async (req, res) => {
     try {
-      const pageSize = 15;
+      const pageSize = 10;
       let page = req.query.page ? parseInt(req.query.page) : 1;
   
       const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).once('value');
