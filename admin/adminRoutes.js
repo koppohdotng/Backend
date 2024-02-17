@@ -151,7 +151,7 @@ router.post('/admin/login', async (req, res) => {
 
   });
 
-  app.get('/users/pages', async (req, res) => {
+  router.get('/users/pages', async (req, res) => {
     try {
       const pageSize = 10;
       const currentPage = req.query.page || 1; // Assuming you're using query parameter 'page'
