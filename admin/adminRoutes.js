@@ -151,4 +151,27 @@ router.post('/admin/login', async (req, res) => {
 
   });
 
+  app.get('/users/pages', async (req, res) => {
+    try {
+      const pageSize = 10;
+      const currentPage = req.query.page || 1; // Assuming you're using query parameter 'page'
+  
+      const snapshot = await usersRef.once('value');
+      const totalUsers = snapshot.numChildren();
+      const totalPages = Math.ceil(totalUsers / pageSize);
+  
+      const startIdx = (currentPage - 1) * pageSize;
+      const endIdx = currentPage * pageSize;
+      
+      const usersSnapshot = await usersRef.orderByChild('createdAt').limitToFirst(endIdx).startAt(startIdx).once('value');
+      const usersOnCurrentPage = usersSnapshot.numChildren();
+  
+      res.json({"number of pages": totalPages, "number of users": totalUsers});
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+
   module.exports = router;
