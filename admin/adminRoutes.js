@@ -201,7 +201,7 @@ router.post('/admin/login', async (req, res) => {
       
         calculatedValue = totalx * 100;
 
-        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName, Date
+        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName,
         };
       });
   
