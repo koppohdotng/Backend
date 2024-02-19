@@ -132,9 +132,7 @@ router.post('/admin/login', async (req, res) => {
 
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName
-
-        } = user;
+        const { firstName, lastName, role, country, LinkedIn, phoneNumber } = user;
         
         // Calculate some value based on the properties
         if (firstName == undefined || firstName == '') {
@@ -195,14 +193,16 @@ router.post('/admin/login', async (req, res) => {
           }
         var total = we + wee + weee + fe + weeee + weeeew;
       
-        
+        console.log("nag" +total)
            
         totalx = total/6;
       
-        calculatedValue = totalx * 100;
+        totaly = totalx * 100;
 
-        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName
-        };
+
+      
+        // Return only the desired properties and the calculated value
+        return { firstName, lastName, role, country, LinkedIn, phoneNumber };
       });
   
       res.json(formattedUsers);
