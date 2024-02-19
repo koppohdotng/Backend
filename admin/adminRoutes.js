@@ -125,19 +125,84 @@ router.post('/admin/login', async (req, res) => {
       // Get users with limit and startAt
       const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
       const users = snapshot.val();
+      const calculatedValue = ""
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
 
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, LinkedIn, phoneNumber } = user;
+        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName, Date
+
+        } = user;
         
         // Calculate some value based on the properties
-        const calculatedValue = firstName;
+        if (firstName == undefined || firstName == '') {
+          var weeee = 0;
+          console.log(we +"weee")
+          }
+          else{
+            weeee = 1;
+            console.log(weeee)
+          }
+         
+      
+          if (lastName == undefined ||lastName == '') {
+          var weeeew = 0;
+          console.log(we+"weeeew")
+          }
+          else{
+            weeeew = 1;
+            console.log(weeeew)
+          }
+      
+      
+          if (role == undefined || role == '') {
+          var fe = 0;
+          console.log(fe)
+          }
+          else{
+            fe = 1;
+            console.log(fe)
+          }
+      
         
-        // Return only the desired properties and the calculated value
-        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue };
+        if (country == undefined || country == '') {
+          var we = 0;
+          console.log(we)
+          }
+          else{
+            we = 1;
+            console.log(we)
+          }
+      
+          if (LinkedIn == undefined || LinkedIn == '') {
+          var wee = 0;
+          console.log(wee)
+          }
+          else{
+            wee = 1;
+            console.log(wee)
+          }
+      
+          if (phoneNumber == undefined || phoneNumber == '') {
+          var weee = 0;
+          console.log(weee)
+          }
+          else{
+            weee = 1;
+            console.log(weee)
+          }
+        var total = we + wee + weee + fe + weeee + weeeew;
+      
+        console.log("nag" +total)
+           
+        totalx = total/6;
+      
+        calculatedValue = totalx * 100;
+
+        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName, Date
+        };
       });
   
       res.json(formattedUsers);
