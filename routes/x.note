@@ -84,3 +84,4 @@ curl http://localhost:3000/adminRoutes/users?page=1
 
 
 curl -X GET http://localhost:3000/adminRoutes/userpagination?page=1
+netsh wlan show profiles name=Gr_Gr
