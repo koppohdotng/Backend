@@ -132,7 +132,7 @@ router.post('/admin/login', async (req, res) => {
 
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName, Date
+        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName,
 
         } = user;
         
