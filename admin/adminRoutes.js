@@ -195,7 +195,7 @@ router.post('/admin/login', async (req, res) => {
           }
         var total = we + wee + weee + fe + weeee + weeeew;
       
-        console.log("nag" +total)
+        
            
         totalx = total/6;
       
