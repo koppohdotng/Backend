@@ -134,7 +134,7 @@ router.post('/admin/login', async (req, res) => {
         const { firstName, lastName, role, country, LinkedIn, phoneNumber } = user;
         
         // Calculate some value based on the properties
-        const calculatedValue = "";
+        const calculatedValue = firstName;
         
         // Return only the desired properties and the calculated value
         return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue };
