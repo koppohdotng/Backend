@@ -92,6 +92,28 @@ router.post('/admin/login', async (req, res) => {
   const db = admin.database();
   const usersRef = db.ref('users');
 
+  // router.get('/userpagination', async (req, res) => {
+  //   try {
+  //     const pageSize = 10;
+  //     let page = req.query.page ? parseInt(req.query.page) : 1;
+  
+  //     // Calculate the start index for pagination
+  //     const startIndex = pageSize * (page - 1);
+  
+  //     // Get users with limit and startAt
+  //     const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
+  //     const users = snapshot.val();
+  
+  //     // Extract users within the desired range
+  //     const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+  
+  //     res.json(paginatedUsers);
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json({ error: 'Internal Server Error' });
+  //   }
+  // });
+
   router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
@@ -106,8 +128,19 @@ router.post('/admin/login', async (req, res) => {
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, LinkedIn, phoneNumber } = user;
+        
+        // Calculate some value based on the properties
+        const calculatedValue = "";
+        
+        // Return only the desired properties and the calculated value
+        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue };
+      });
   
-      res.json(paginatedUsers);
+      res.json(formattedUsers);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
