@@ -132,7 +132,7 @@ router.post('/admin/login', async (req, res) => {
 
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName,
+        const { firstName, lastName, role, country, LinkedIn, phoneNumber,businessName
 
         } = user;
         
@@ -201,7 +201,7 @@ router.post('/admin/login', async (req, res) => {
       
         calculatedValue = totalx * 100;
 
-        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName,
+        return { firstName, lastName, role, country, LinkedIn, phoneNumber, calculatedValue, businessName
         };
       });
   
