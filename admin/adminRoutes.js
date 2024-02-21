@@ -113,6 +113,44 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
+ 
+
+  router.get('/usersByDateRange', async (req, res) => {
+    try {
+      // Parse start and end dates from the request query parameters
+      const startDate = new Date(req.query.startDate);
+      const endDate = new Date(req.query.endDate);
+  
+      // Ensure endDate is set to the end of the day
+      endDate.setHours(23, 59, 59, 999);
+  
+      // Get users within the specified date range
+      const snapshot = await usersRef.orderByChild('registrationDate').startAt(startDate.getTime()).endAt(endDate.getTime()).once('value');
+      const users = snapshot.val();
+  
+      if (!users) {
+        // No users found in the specified date range
+        return res.json([]);
+      }
+  
+      // Extract users within the desired range
+      const formattedUsers = Object.values(users);
+  
+      // Filter and calculate values for each user
+      const resultUsers = formattedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
+  
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
+      });
+  
+      res.json(resultUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+
   router.get('/incompleteUsersPagination', async (req, res) => {
     try {
       const pageSize = 10;
