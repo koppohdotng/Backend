@@ -113,42 +113,53 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
- 
-
-  router.get('/usersInDateRange', async (req, res) => {
+  router.get('/usersByDateRange', async (req, res) => {
     try {
+      // Validate and parse date range parameters
+      const { startDate, endDate } = req.query;
+      const parsedStartDate = new Date(startDate);
+      const parsedEndDate = new Date(endDate);
+  
+      if (!parsedStartDate || !parsedEndDate || parsedStartDate > parsedEndDate) {
+        return res.status(400).json({ error: 'Invalid date range parameters' });
+      }
+  
+      // Set pagination defaults
       const pageSize = 10;
       let page = req.query.page ? parseInt(req.query.page) : 1;
-      const startDate = new Date('2024-01-01');
-      const endDate = new Date('2024-02-21');
   
-      // Calculate the start index for pagination
-      const startIndex = pageSize * (page - 1);
+      // Calculate start and end timestamps for date range query
+      const startTimestamp = parsedStartDate.getTime();
+      const endTimestamp = parsedEndDate.getTime() + 24 * 60 * 60 * 1000; // Add 1 day to include endDate
   
-      // Query users based on registration date
-      const snapshot = await usersRef.orderByChild('registrationDate')
-        .startAt(startDate.getTime())
-        .endAt(endDate.getTime())
-        .once('value');
+      // Build the query with date range filter
+      const query = usersRef.orderByChild('createdAt').startAt(startTimestamp).endBefore(endTimestamp);
+  
+      // Apply pagination
+      const snapshot = await query.limitToLast(pageSize * page).once('value');
       const users = snapshot.val();
   
-      // Extract users within the desired range
-      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
-  
-      // Filter and format user data
+      // Extract and format users within range
+      const paginatedUsers = users ? Object.values(users).slice(-pageSize) : [];
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, linkedIn, phoneNumber, registrationDate } = user;
-  
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, registrationDate };
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
       });
   
-      // Remove null entries from the array
-      res.json(formattedUsers);
+      // Send response with pagination information
+      res.json({
+        users: formattedUsers,
+        totalCount: snapshot.numChildren(), // Approximate total count based on last page
+        currentPage: page,
+        perPage: pageSize,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
+
   
 
   router.get('/incompleteUsersPagination', async (req, res) => {
