@@ -118,6 +118,7 @@ router.post('/admin/login', async (req, res) => {
     try {
       const pageSize = 10;
       let page = req.query.page ? parseInt(req.query.page) : 1;
+      const profileCompleteness = req.query.profile || null;
   
       // Calculate the start index for pagination
       const startIndex = pageSize * (page - 1);
@@ -144,9 +145,13 @@ router.post('/admin/login', async (req, res) => {
         const total = we + wee + weee + fe + weeee + weeeew;
         const tolax = (total / 6) * 100;
   
-        // Return user details along with the calculated value
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
-      });
+        // Check the profile completeness status
+        if (profileCompleteness === null || (profileCompleteness === 'complete' && tolax === 100) || (profileCompleteness === 'incomplete' && tolax < 100)) {
+          // Return user details along with the calculated value only if it matches the profile completeness status
+          return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
+        }
+        return null;
+      }).filter(Boolean); // Remove null entries from the array
   
       res.json(formattedUsers);
     } catch (error) {
@@ -154,6 +159,7 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
   
 
   router.post('/sendPasswordResetEmail', async (req, res) => {
