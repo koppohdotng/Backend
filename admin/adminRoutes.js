@@ -115,35 +115,35 @@ router.post('/admin/login', async (req, res) => {
   // });
  
 
-  router.get('/usersByDateRange', async (req, res) => {
+  router.get('/usersInDateRange', async (req, res) => {
     try {
-      // Parse start and end dates from the request query parameters
-      const startDate = new Date(req.query.startDate);
-      const endDate = new Date(req.query.endDate);
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-02-21');
   
-      // Ensure endDate is set to the end of the day
-      endDate.setHours(23, 59, 59, 999);
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
   
-      // Get users within the specified date range
-      const snapshot = await usersRef.orderByChild('registrationDate').startAt(startDate.getTime()).endAt(endDate.getTime()).once('value');
+      // Query users based on registration date
+      const snapshot = await usersRef.orderByChild('registrationDate')
+        .startAt(startDate.getTime())
+        .endAt(endDate.getTime())
+        .once('value');
       const users = snapshot.val();
   
-      if (!users) {
-        // No users found in the specified date range
-        return res.json([]);
-      }
-  
       // Extract users within the desired range
-      const formattedUsers = Object.values(users);
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
   
-      // Filter and calculate values for each user
-      const resultUsers = formattedUsers.map(user => {
-        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
+      // Filter and format user data
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, registrationDate } = user;
   
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, registrationDate };
       });
   
-      res.json(resultUsers);
+      // Remove null entries from the array
+      res.json(formattedUsers);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
