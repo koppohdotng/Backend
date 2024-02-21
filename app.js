@@ -335,12 +335,24 @@ app.put('/api/update-user/:uid', (req, res) => {
   // Check if the provided data is available for update
   const updatedUserData = {};
 
-  if (firstName) updatedUserData.firstName = firstName;
-  if (lastName) updatedUserData.lastName = lastName;
-  if (country) updatedUserData.country = country;
-  if (phoneNumber) updatedUserData.phoneNumber = phoneNumber;
-  if (role) updatedUserData.role = role;
-  if (linkedIn) updatedUserData.linkedIn = linkedIn;
+  if (firstName) {
+    updatedUserData.firstName = firstName;
+  }
+  if (lastName) {
+    updatedUserData.lastName = lastName;
+  }
+  if (country) {
+    updatedUserData.country = country;
+  }
+  if (phoneNumber) {
+    updatedUserData.phoneNumber = phoneNumber;
+  }
+  if (role) {
+    updatedUserData.role = role;
+  }
+  if (linkedIn) {
+    updatedUserData.linkedIn = linkedIn;
+  }
 
   // Update the user's data in the Firebase Realtime Database
   const db = admin.database();
@@ -350,13 +362,29 @@ app.put('/api/update-user/:uid', (req, res) => {
     .child(userId)
     .update(updatedUserData)
     .then(() => {
-      res.status(200).json({ message: 'User information updated successfully' });
+      // Calculate profile completeness
+      let count = 0;
+
+      if (updatedUserData.firstName) count++;
+      if (updatedUserData.lastName) count++;
+      if (updatedUserData.country) count++;
+      if (updatedUserData.phoneNumber) count++;
+      if (updatedUserData.role) count++;
+      if (updatedUserData.linkedIn) count++;
+
+      const profileCompleteness = (count / 6) * 100;
+
+      // Update profile completeness in the database
+      usersRef.child(userId).update({ profileCompleteness : profileCompleteness});
+
+      res.status(200).json({ message: 'User information updated successfully', profileCompleteness });
     })
     .catch((error) => {
       console.error('Update user error:', error);
       res.status(500).json({ error: 'Failed to update user information' });
     });
 });
+
 
 
 
