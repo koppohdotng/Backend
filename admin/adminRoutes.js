@@ -114,43 +114,6 @@ router.post('/admin/login', async (req, res) => {
   //   }
   // });
 
-  router.get('/updateProfileCompleteness', async (req, res) => {
-    try {
-      // Get all users
-      const snapshot = await usersRef.once('value');
-      const users = snapshot.val();
-  
-      // Update profileCompleteness for each user
-      const updatedUsers = Object.keys(users).map(async (uid) => {
-        const user = users[uid];
-  
-        const { country, linkedIn, phoneNumber, role, firstName, lastName } = user;
-  
-        // Calculate some value based on the properties
-        const we = country ? 1 : 0;
-        const wee = linkedIn ? 1 : 0;
-        const weee = phoneNumber ? 1 : 0;
-        const fe = role ? 1 : 0;
-        const weeee = firstName ? 1 : 0;
-        const weeeew = lastName ? 1 : 0;
-  
-        const total = we + wee + weee + fe + weeee + weeeew;
-        const profileCompleteness = (total / 6) * 100;
-  
-        // Update profileCompleteness for the user
-        await usersRef.child(uid).update({ profileCompleteness: profileCompleteness });
-  
-        return { ...user, profileCompleteness }; // Include tolax value in the response
-      });
-  
-      const updatedUsersData = await Promise.all(updatedUsers);
-  
-      res.json(updatedUsersData);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
   
 
   router.get('/userpagination', async (req, res) => {
@@ -171,26 +134,14 @@ router.post('/admin/login', async (req, res) => {
 
     // Filter and calculate values for each user
     const formattedUsers = paginatedUsers.map(user => {
-      const { firstName, lastName, role, country, linkedIn, phoneNumber } = user;
+      const { firstName, lastName, role, country, linkedIn, profileCompleteness } = user;
 
-      // Calculate some value based on the properties
-      const we = country ? 1 : 0;
-      const wee = linkedIn ? 1 : 0;
-      const weee = phoneNumber ? 1 : 0;
-      const fe = role ? 1 : 0;
-      const weeee = firstName ? 1 : 0;
-      const weeeew = lastName ? 1 : 0;
-
-      const total = we + wee + weee + fe + weeee + weeeew;
-      const tolax = (total / 6) * 100;
+      
 
       // Check the profile completeness status
-      if (profileCompleteness === null || (profileCompleteness === 'complete' && tolax === 100) || (profileCompleteness === 'incomplete' && tolax < 100)) {
-        // Return user details along with the calculated value only if it matches the profile completeness status
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
-      }
-      return null;
-    }).filter(Boolean); // Remove null entries from the array
+       return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness};
+    
+    }); // Remove null entries from the array
 
     res.json(formattedUsers);
   } catch (error) {
