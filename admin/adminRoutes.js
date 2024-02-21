@@ -113,7 +113,37 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
-
+  router.get('/incompleteUsersPagination', async (req, res) => {
+    try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+  
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
+  
+      // Get users with profileCompleteness less than 100
+      const snapshot = await usersRef.orderByChild('profileCompleteness').endBefore(100).once('value');
+      const users = snapshot.val();
+  
+      // Extract users within the desired range
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+  
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
+  
+        // Check the profile completeness status
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
+      });
+  
+      // Remove null entries from the array
+      res.json(formattedUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
   router.get('/completeUsersPagination', async (req, res) => {
     try {
       const pageSize = 10;
