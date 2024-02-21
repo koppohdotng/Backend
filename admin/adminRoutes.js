@@ -125,84 +125,27 @@ router.post('/admin/login', async (req, res) => {
       // Get users with limit and startAt
       const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
       const users = snapshot.val();
-      const calculatedValue = ""
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
-
+  
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, LinkedIn, phoneNumber } = user;
-        
+        const { firstName, lastName, role, country, linkedIn, phoneNumber } = user;
+  
         // Calculate some value based on the properties
-        if (firstName == undefined || firstName == '') {
-          var weeee = 0;
-          console.log(we +"weee")
-          }
-          else{
-            weeee = 1;
-            console.log(weeee)
-          }
-         
-      
-          if (lastName == undefined ||lastName == '') {
-          var weeeew = 0;
-          console.log(we+"weeeew")
-          }
-          else{
-            weeeew = 1;
-            console.log(weeeew)
-          }
-      
-      
-          if (role == undefined || role == '') {
-          var fe = 0;
-          console.log(fe)
-          }
-          else{
-            fe = 1;
-            console.log(fe)
-          }
-      
-        
-        if (country == undefined || country == '') {
-          var we = 0;
-          console.log(we)
-          }
-          else{
-            we = 1;
-            console.log(we)
-          }
-      
-          if (LinkedIn == undefined || LinkedIn == '') {
-          var wee = 0;
-          console.log(wee)
-          }
-          else{
-            wee = 1;
-            console.log(wee)
-          }
-      
-          if (phoneNumber == undefined || phoneNumber == '') {
-          var weee = 0;
-          console.log(weee)
-          }
-          else{
-            weee = 1;
-            console.log(weee)
-          }
-        var total = we + wee + weee + fe + weeee + weeeew;
-      
-        console.log("nag" +total)
-           
-        totalx = total/6;
-      
-        totaly = totalx * 100;
-
-
-      
-        // Return only the desired properties and the calculated value
-        return { firstName, lastName, role, country, LinkedIn, phoneNumber };
+        const we = country ? 1 : 0;
+        const wee = linkedIn ? 1 : 0;
+        const weee = phoneNumber ? 1 : 0;
+        const fe = role ? 1 : 0;
+        const weeee = firstName ? 1 : 0;
+        const weeeew = lastName ? 1 : 0;
+  
+        const total = we + wee + weee + fe + weeee + weeeew;
+        const tolax = (total / 6) * 100;
+  
+        // Return user details along with the calculated value
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
       });
   
       res.json(formattedUsers);
@@ -211,7 +154,7 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-
+  
 
   router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
