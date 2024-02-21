@@ -113,7 +113,51 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
-
+  router.get('/completeUsers', async (req, res) => {
+    try {
+      const pageSize = 10;
+      const page = req.query.page ? parseInt(req.query.page) : 1;
+  
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
+  
+      // Get users with limit and startAt
+      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page + 1).startAt().once('value');
+      const users = snapshot.val();
+  
+      // Extract users within the desired range
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+  
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber } = user;
+  
+        // Calculate some value based on the properties
+        const we = country ? 1 : 0;
+        const wee = linkedIn ? 1 : 0;
+        const weee = phoneNumber ? 1 : 0;
+        const fe = role ? 1 : 0;
+        const weeee = firstName ? 1 : 0;
+        const weeeew = lastName ? 1 : 0;
+  
+        const total = we + wee + weee + fe + weeee + weeeew;
+        const tolax = (total / 6) * 100;
+  
+        // Check if tolax is equal to 100
+        if (tolax === 100) {
+          return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
+        }
+        return null;
+      }).filter(Boolean); // Remove null entries from the array
+  
+      res.json(formattedUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  
   router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
