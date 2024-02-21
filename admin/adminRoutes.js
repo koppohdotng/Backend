@@ -135,12 +135,12 @@ router.post('/admin/login', async (req, res) => {
         const weeeew = lastName ? 1 : 0;
   
         const total = we + wee + weee + fe + weeee + weeeew;
-        const tolax = (total / 6) * 100;
+        const profileCompleteness = (total / 6) * 100;
   
         // Update profileCompleteness for the user
-        await usersRef.child(uid).update({ profileCompleteness: tolax });
+        await usersRef.child(uid).update({ profileCompleteness: profileCompleteness });
   
-        return { ...user, tolax }; // Include tolax value in the response
+        return { ...user, profileCompletenesstolax }; // Include tolax value in the response
       });
   
       const updatedUsersData = await Promise.all(updatedUsers);
