@@ -146,8 +146,10 @@ router.post('/admin/login', async (req, res) => {
         const tolax = (total / 6) * 100;
   
         // Check the profile completeness status
-        if (profileCompleteness === null || (profileCompleteness === 'complete' && tolax === 100) || (profileCompleteness === 'incomplete' && tolax < 100)) {
-          // Return user details along with the calculated value only if it matches the profile completeness status
+        const isComplete = tolax === 100;
+  
+        // Return user details along with the calculated value only if it matches the profile completeness status
+        if (profileCompleteness === null || (isComplete && profileCompleteness === 'complete') || (!isComplete && profileCompleteness === 'incomplete')) {
           return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
         }
         return null;
@@ -159,6 +161,7 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
   
   
 
