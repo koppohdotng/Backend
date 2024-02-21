@@ -114,45 +114,6 @@ router.post('/admin/login', async (req, res) => {
   //   }
   // });
 
-  router.get('/updateProfileCompleteness', async (req, res) => {
-    try {
-      // Get all users
-      const snapshot = await usersRef.once('value');
-      const users = snapshot.val();
-  
-      // Update profileCompleteness for each user
-      const updatedUsers = Object.keys(users).map(async (uid) => {
-        const user = users[uid];
-  
-        const { country, linkedIn, phoneNumber, role, firstName, lastName } = user;
-  
-        // Calculate some value based on the properties
-        const we = country ? 1 : 0;
-        const wee = linkedIn ? 1 : 0;
-        const weee = phoneNumber ? 1 : 0;
-        const fe = role ? 1 : 0;
-        const weeee = firstName ? 1 : 0;
-        const weeeew = lastName ? 1 : 0;
-  
-        const total = we + wee + weee + fe + weeee + weeeew;
-        const tolax = (total / 6) * 100;
-  
-        // Update profileCompleteness for the user
-        await usersRef.child(uid).update({ profileCompleteness: tolax });
-  
-        return { ...user, tolax }; // Include tolax value in the response
-      });
-  
-      const updatedUsersData = await Promise.all(updatedUsers);
-  
-      res.json(updatedUsersData);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
-  
-
   router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
@@ -188,7 +149,7 @@ router.post('/admin/login', async (req, res) => {
         const isComplete = tolax === 100;
   
         // Return user details along with the calculated value only if it matches the profile completeness status
-        if ((profileCompleteness === null && isComplete) || (isComplete && profileCompleteness === 'complete')) {
+        if (profileCompleteness === null || (isComplete && profileCompleteness === 'complete') || (!isComplete && profileCompleteness === 'incomplete')) {
           return { firstName, lastName, role, country, linkedIn, phoneNumber, tolax };
         }
         return null;
@@ -200,7 +161,6 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  ;
   
   
   
