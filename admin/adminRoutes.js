@@ -117,14 +117,14 @@ router.post('/admin/login', async (req, res) => {
   router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
-      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const page = req.query.page ? parseInt(req.query.page) : 1;
       const profileCompleteness = req.query.profile || null;
   
       // Calculate the start index for pagination
       const startIndex = pageSize * (page - 1);
   
       // Get users with limit and startAt
-      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
+      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page + 1).startAt().once('value');
       const users = snapshot.val();
   
       // Extract users within the desired range
