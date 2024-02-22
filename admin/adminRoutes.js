@@ -113,53 +113,34 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
-  router.get('/usersByDateRange', async (req, res) => {
+
+  
+  router.get('/api/users', async (req, res) => {
     try {
-      // Validate and parse date range parameters
-      const { startDate, endDate } = req.query;
-      const parsedStartDate = new Date(startDate);
-      const parsedEndDate = new Date(endDate);
-  
-      if (!parsedStartDate || !parsedEndDate || parsedStartDate > parsedEndDate) {
-        return res.status(400).json({ error: 'Invalid date range parameters' });
-      }
-  
-      // Set pagination defaults
-      const pageSize = 10;
-      let page = req.query.page ? parseInt(req.query.page) : 1;
-  
-      // Calculate start and end timestamps for date range query
-      const startTimestamp = parsedStartDate.getTime();
-      const endTimestamp = parsedEndDate.getTime() + 24 * 60 * 60 * 1000; // Add 1 day to include endDate
-  
-      // Build the query with date range filter
-      const query = usersRef.orderByChild('createdAt').startAt(startTimestamp).endBefore(endTimestamp);
-  
-      // Apply pagination
-      const snapshot = await query.limitToLast(pageSize * page).once('value');
+      const snapshot = await admin.database().ref('users').once('value');
       const users = snapshot.val();
   
-      // Extract and format users within range
-      const paginatedUsers = users ? Object.values(users).slice(-pageSize) : [];
-      const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
-      });
+      const updates = {};
   
-      // Send response with pagination information
-      res.json({
-        users: formattedUsers,
-        totalCount: snapshot.numChildren(), // Approximate total count based on last page
-        currentPage: page,
-        perPage: pageSize,
-      });
+      for (const userId in users) {
+        if (users.hasOwnProperty(userId) && users[userId].signupdate) {
+          const signupdate = users[userId].signupdate;
+          const timestampInSeconds = Math.floor(signupdate / 1000); // Convert to seconds
+  
+          // Store the timestamp under each user
+          updates[`users/${userId}/timestampInSeconds`] = timestampInSeconds;
+        }
+      }
+  
+      // Update the database with the converted timestamps
+      await admin.database().ref().update(updates);
+  
+      res.json({ success: true });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
-
   
 
   router.get('/incompleteUsersPagination', async (req, res) => {
