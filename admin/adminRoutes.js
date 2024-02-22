@@ -115,30 +115,31 @@ router.post('/admin/login', async (req, res) => {
   // });
 
   
-  router.get('/api/users', async (req, res) => {
+  router.get('/update-signup-date', async (req, res) => {
     try {
-      const snapshot = await admin.database().ref('users').once('value');
-      const users = snapshot.val();
+      const usersSnapshot = await admin.database().ref('users').once('value');
+      const users = usersSnapshot.val();
   
-      const updates = {};
+      // Iterate through each user
+      Object.keys(users).forEach(async (userId) => {
+        const user = users[userId];
   
-      for (const userId in users) {
-        if (users.hasOwnProperty(userId) && users[userId].signupdate) {
-          const signupdate = users[userId].signupdate;
-          const timestampInSeconds = Math.floor(signupdate / 1000); // Convert to seconds
+        // Assuming 'date' is the key where the Date value is stored in each user
+        const dateString = user.date;
   
-          // Store the timestamp under each user with the key "startDate"
-          updates[`users/${userId}/startDate`] = timestampInSeconds;
+        if (dateString) {
+          // Parse date string and convert it to seconds
+          const dateInSeconds = Math.floor(new Date(dateString).getTime() / 1000);
+  
+          // Update 'signupdate' field under the user
+          await admin.database().ref(`users/${userId}/signupdate`).set(dateInSeconds);
         }
-      }
+      });
   
-      // Update the database with the converted timestamps
-      await admin.database().ref().update(updates);
-  
-      res.json({ success: true });
+      res.status(200).send('Signupdate updated successfully.');
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).send('Internal Server Error');
     }
   });
   
