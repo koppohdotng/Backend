@@ -115,29 +115,33 @@ router.post('/admin/login', async (req, res) => {
   // });
 
   
-  router.get('/update-signup-date', async (req, res) => {
+  router.app.get('/get-users-by-date-range', async (req, res) => {
     try {
-      const usersSnapshot = await admin.database().ref('users').once('value');
+      const { startDate, endDate, page, pageSize } = req.query;
+  
+      // Parse start and end dates
+      const startDateInSeconds = Math.floor(new Date(startDate).getTime() / 1000);
+      const endDateInSeconds = Math.floor(new Date(endDate).getTime() / 1000);
+  
+      // Calculate pagination values
+      const currentPage = parseInt(page, 10) || 1;
+      const itemsPerPage = parseInt(pageSize, 10) || 10;
+      const startAt = (currentPage - 1) * itemsPerPage;
+  
+      // Fetch users within the specified date range with pagination
+      const usersSnapshot = await admin
+        .database()
+        .ref('users')
+        .orderByChild('signupdate')
+        .startAt(startDateInSeconds)
+        .endAt(endDateInSeconds)
+        .limitToFirst(itemsPerPage)
+        .startAt(startAt)
+        .once('value');
+  
       const users = usersSnapshot.val();
   
-      // Iterate through each user
-      Object.keys(users).forEach(async (userId) => {
-        const user = users[userId];
-  
-        // Assuming 'date' is the key where the Date value is stored in each user
-        const dateString = user.Date;
-        console.log(dateString)
-  
-        if (dateString) {
-          // Parse date string and convert it to seconds
-          const dateInSeconds = Math.floor(new Date(dateString).getTime() / 1000);
-  
-          // Update 'signupdate' field under the user
-          await admin.database().ref(`users/${userId}/signupdate`).set(dateInSeconds);
-        }
-      });
-  
-      res.status(200).send('Signupdate updated successfully.');
+      res.status(200).json(users);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
