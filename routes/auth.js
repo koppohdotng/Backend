@@ -59,6 +59,9 @@ console.log(randomNumber);
               const emailVerification = false;
               const firstTime = true;
               const currentDate = new Date();
+                    currentDate = currentDate.toISOString()
+
+                    const dateInSeconds = Math.floor(new Date(currentDate).getTime() / 1000)
               
               const userData = {
                 firstName,
@@ -68,6 +71,7 @@ console.log(randomNumber);
                 emailVerification,
                 firstTime,
                 Date: currentDate.toISOString(),
+                signupdate : dateInSeconds,
                 verifyNumber: randomNumber
               };
   
