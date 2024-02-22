@@ -127,8 +127,8 @@ router.post('/admin/login', async (req, res) => {
           const signupdate = users[userId].signupdate;
           const timestampInSeconds = Math.floor(signupdate / 1000); // Convert to seconds
   
-          // Store the timestamp under each user
-          updates[`users/${userId}/timestampInSeconds`] = timestampInSeconds;
+          // Store the timestamp under each user with the key "startDate"
+          updates[`users/${userId}/startDate`] = timestampInSeconds;
         }
       }
   
