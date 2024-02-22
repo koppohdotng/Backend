@@ -114,6 +114,41 @@ router.post('/admin/login', async (req, res) => {
   //   }
   // });
   
+  router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
+    try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
+      const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
+    
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
+    
+      // Get users within the signupdate range
+      const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
+      const users = snapshot.val();
+    
+      // Filter users with profileCompleteness less than 100
+      const incompleteUsers = Object.values(users).filter(user => user.profileCompleteness < 100);
+    
+      // Extract users within the desired range
+      const paginatedUsers = incompleteUsers.slice(startIndex, startIndex + pageSize);
+    
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, profileCompleteness } = user;
+    
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, profileCompleteness };
+      });
+    
+      res.json(formattedUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+    
   router.get('/completeUsersPaginationBySignupdate', async (req, res) => {
     try {
       const pageSize = 10;
