@@ -113,40 +113,39 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
-
-  
-  router.get('/get-users-by-date-range', async (req, res) => {
+  router.get('/userpaginationbysignupdate', async (req, res) => {
     try {
-      const { startDate, endDate, page, pageSize } = req.query;
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
+      const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
   
-      // Parse start and end dates
-      const startDateInSeconds = Math.floor(new Date(startDate).getTime() / 1000);
-      const endDateInSeconds = Math.floor(new Date(endDate).getTime() / 1000);
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
   
-      // Calculate pagination values
-      const currentPage = parseInt(page, 10) || 1;
-      const itemsPerPage = parseInt(pageSize, 10) || 10;
-      const startAt = (currentPage - 1) * itemsPerPage;
+      // Get users with limit and startAt based on signupdate
+      const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).limitToLast(pageSize * page).once('value');
+      const users = snapshot.val();
   
-      // Fetch users within the specified date range with pagination
-      const usersSnapshot = await admin
-        .database()
-        .ref('users')
-        .orderByChild('signupdate')
-        .startAt(startDateInSeconds)
-        .endAt(endDateInSeconds)
-        .limitToFirst(itemsPerPage)
-        .startAt(startAt)
-        .once('value');
+      // Extract users within the desired range
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
   
-      const users = usersSnapshot.val();
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate } = user;
   
-      res.status(200).json(users);
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate };
+      });
+  
+      res.json(formattedUsers);
     } catch (error) {
       console.error(error);
-      res.status(500).send('Internal Server Error');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
+  
+
   
 
   router.get('/incompleteUsersPagination', async (req, res) => {
