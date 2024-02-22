@@ -115,7 +115,7 @@ router.post('/admin/login', async (req, res) => {
   // });
 
   
-  router.app.get('/get-users-by-date-range', async (req, res) => {
+  router.get('/get-users-by-date-range', async (req, res) => {
     try {
       const { startDate, endDate, page, pageSize } = req.query;
   
