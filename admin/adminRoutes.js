@@ -147,8 +147,7 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
-    
+     
   router.get('/completeUsersPaginationBySignupdate', async (req, res) => {
     try {
       const pageSize = 10;
@@ -181,9 +180,7 @@ router.post('/admin/login', async (req, res) => {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
-  
-
+  }); 
 
   router.get('/userpaginationbysignupdate', async (req, res) => {
     try {
@@ -215,10 +212,7 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
-  
-
-  
+   
 
   router.get('/incompleteUsersPagination', async (req, res) => {
     try {
