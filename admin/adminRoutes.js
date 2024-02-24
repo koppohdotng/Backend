@@ -140,7 +140,7 @@ router.post('/admin/login', async (req, res) => {
         
         return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
       });
-
+      const totalUsers = filteredUsers.length;
       // Extract users within the desired range
       const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
     
@@ -151,15 +151,17 @@ router.post('/admin/login', async (req, res) => {
         return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age };
       });
     
-      res.json(formattedUsers);
+      res.json({
+        filteredUsers: formattedUsers,
+        totalUsers: totalUsers
+
+        
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-
- 
-
   
   router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
     try {
@@ -187,8 +189,13 @@ router.post('/admin/login', async (req, res) => {
     
         return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, profileCompleteness };
       });
+      const totalIncompleteUsers = incompleteUsers.length;
     
-      res.json(formattedUsers);
+      res.json({
+        totalUsers: totalIncompleteUsers ,
+
+        filteredUsers: formattedUsers
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -207,7 +214,7 @@ router.post('/admin/login', async (req, res) => {
     
       // Get users with profileCompleteness equal to 100 and within the signupdate range
       const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
-      const users = snapshot.val();
+      const users = snapshot.val() || {};;
     
       // Filter users with profileCompleteness equal to 100
       const completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100);
@@ -221,8 +228,13 @@ router.post('/admin/login', async (req, res) => {
     
         return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, profileCompleteness };
       });
+      const totalCompleteUsers = completeUsers.length;
     
-      res.json(formattedUsers);
+      res.json({
+        totalUsers: totalCompleteUsers,
+
+        filteredUsers: formattedUsers
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -241,7 +253,7 @@ router.post('/admin/login', async (req, res) => {
   
       // Get users with limit and startAt based on signupdate
       const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).limitToLast(pageSize * page).once('value');
-      const users = snapshot.val();
+      const users = snapshot.val() || {}; // handle null snapshot value
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
@@ -249,16 +261,19 @@ router.post('/admin/login', async (req, res) => {
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
         const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate } = user;
-  
         return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate };
       });
   
-      res.json(formattedUsers);
+      // Calculate total number of users within the specified date range
+      const totalUsers = Object.keys(users).length;
+  
+      res.json({ filteredUsers: formattedUsers, totalUsers: totalUsers });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
    
 
   router.get('/incompleteUsersPagination', async (req, res) => {
@@ -271,7 +286,7 @@ router.post('/admin/login', async (req, res) => {
   
       // Get users with profileCompleteness less than 100
       const snapshot = await usersRef.orderByChild('profileCompleteness').endBefore(100).once('value');
-      const users = snapshot.val();
+      const users = snapshot.val() || {}; // handle null snapshot value
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
@@ -279,18 +294,19 @@ router.post('/admin/login', async (req, res) => {
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
         const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
-  
-        // Check the profile completeness status
         return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
       });
   
-      // Remove null entries from the array
-      res.json(formattedUsers);
+      // Calculate total number of incomplete users
+      const totalIncompleteUsers = Object.values(users).filter(user => user.profileCompleteness < 100).length;
+  
+      res.json({  filteredUsers: formattedUsers,totalUsers: totalIncompleteUsers });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
   
   router.get('/completeUsersPagination', async (req, res) => {
     try {
@@ -302,7 +318,7 @@ router.post('/admin/login', async (req, res) => {
   
       // Get users with profileCompleteness equal to 100
       const snapshot = await usersRef.orderByChild('profileCompleteness').equalTo(100).once('value');
-      const users = snapshot.val();
+      const users = snapshot.val() || {}; // handle null snapshot value
   
       // Extract users within the desired range
       const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
@@ -310,53 +326,53 @@ router.post('/admin/login', async (req, res) => {
       // Filter and calculate values for each user
       const formattedUsers = paginatedUsers.map(user => {
         const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
-  
-        // Check the profile completeness status
         return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
       });
   
-      // Remove null entries from the array
-      res.json(formattedUsers);
+      // Calculate total number of complete users
+      const totalCompleteUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
+  
+      res.json({  filteredUsers: formattedUsers, totalUsers: totalCompleteUsers });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
   
+  
 
   router.get('/userpagination', async (req, res) => {
-  try {
-    const pageSize = 10;
-    let page = req.query.page ? parseInt(req.query.page) : 1;
-    const profileCompleteness = req.query.profile || null;
-
-    // Calculate the start index for pagination
-    const startIndex = pageSize * (page - 1);
-
-    // Get users with limit and startAt
-    const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
-    const users = snapshot.val();
-
-    // Extract users within the desired range
-    const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
-
-    // Filter and calculate values for each user
-    const formattedUsers = paginatedUsers.map(user => {
-      const { firstName, lastName, role, country, linkedIn,phoneNumber, profileCompleteness } = user;
-
-      
-
-      // Check the profile completeness status
-       return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness};
-    
-    }); // Remove null entries from the array
-
-    res.json(formattedUsers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const profileCompleteness = req.query.profile || null;
+  
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
+  
+      // Get users with limit and startAt
+      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
+      const users = snapshot.val() || {}; // handle null snapshot value
+  
+      // Extract users within the desired range
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+  
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+        const { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness } = user;
+        return { firstName, lastName, role, country, linkedIn, phoneNumber, profileCompleteness };
+      });
+  
+      // Calculate total number of users
+      const totalUsers = Object.values(users).length;
+  
+      res.json({filteredUsers: formattedUsers, totalUsers: totalUsers });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
 
   
 
