@@ -116,52 +116,54 @@ router.post('/admin/login', async (req, res) => {
   
   router.get('/filteredUsers', async (req, res) => {
     try {
-      const pageSize = 10;
-      let page = req.query.page ? parseInt(req.query.page) : 1;
-      const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
-      const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
-      const registrationStatus = req.query.registrationStatus || null;
-      const maxProfileCompleteness = req.query.profileCompleteness !== undefined ? req.query.profileCompleteness : null;
-    
-      // Calculate the start index for pagination
-      const startIndex = pageSize * (page - 1);
-    
-      // Get users within the specified time range
-      const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
-      const users = snapshot.val();
-    
-      // Filter users with the specified registrationStatus and profileCompleteness
-      const filteredUsers = Object.values(users).filter(user => {
-        const withinTimeRange = user.signupdate >= startTimestamp && user.signupdate <= endTimestamp;
-        const matchRegistrationStatus = registrationStatus ? user.registrationStatus === registrationStatus : true;
-        const matchProfileCompleteness = maxProfileCompleteness !== null
-          ? (maxProfileCompleteness === 100 ? user.profileCompleteness === 100 : user.profileCompleteness < 100)
-          : true;
-        
-        return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
-      });
-      const totalUsers = filteredUsers.length;
-      // Extract users within the desired range
-      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
-    
-      // Filter and calculate values for each user
-      const formattedUsers = paginatedUsers.map(user => {
-        const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age } = user;
-    
-        return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age };
-      });
-    
-      res.json({
-        filteredUsers: formattedUsers,
-        totalUsers: totalUsers
+        const pageSize = 10;
+        let page = req.query.page ? parseInt(req.query.page) : 1;
+        const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
+        const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
+        const registrationStatus = req.query.registrationStatus || null;
+        const maxProfileCompleteness = req.query.profileCompleteness !== undefined ? req.query.profileCompleteness : null;
 
-        
-      });
+        // Convert "completed" to 100 and "uncompleted" to anything less
+        const profileCompletenessValue = maxProfileCompleteness === "completed" ? 100 : (maxProfileCompleteness === "uncompleted" ? 99 : null);
+
+        // Calculate the start index for pagination
+        const startIndex = pageSize * (page - 1);
+
+        // Get users within the specified time range
+        const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
+        const users = snapshot.val();
+
+        // Filter users with the specified registrationStatus and profileCompleteness
+        const filteredUsers = Object.values(users).filter(user => {
+            const withinTimeRange = user.signupdate >= startTimestamp && user.signupdate <= endTimestamp;
+            const matchRegistrationStatus = registrationStatus ? user.registrationStatus === registrationStatus : true;
+            const matchProfileCompleteness = profileCompletenessValue !== null
+                ? (profileCompletenessValue === 100 ? user.profileCompleteness === 100 : user.profileCompleteness < 100)
+                : true;
+
+            return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
+        });
+        const totalUsers = filteredUsers.length;
+        // Extract users within the desired range
+        const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
+
+        // Filter and calculate values for each user
+        const formattedUsers = paginatedUsers.map(user => {
+            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age } = user;
+
+            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age };
+        });
+
+        res.json({
+            filteredUsers: formattedUsers,
+            totalUsers: totalUsers
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
+
   
   router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
     try {
