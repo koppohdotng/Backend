@@ -163,6 +163,25 @@ router.post('/admin/login', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+router.post('/add-onboarding-date', async (req, res) => {
+  try {
+    // Fetch all admins
+    const snapshot = await adminsRef.once('value');
+
+    // Iterate through each admin
+    snapshot.forEach(adminSnapshot => {
+      const adminKey = adminSnapshot.key;
+      
+      // Update the onboarding date
+      adminsRef.child(adminKey).update({ dateOfOnboarding: '1/7/2023' });
+    });
+
+    res.status(200).json({ message: 'Onboarding date added to all admins successfully' });
+  } catch (error) {
+    console.error('Error adding onboarding date to admins:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
   
   router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
