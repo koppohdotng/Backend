@@ -136,7 +136,8 @@ router.post('/admin/login', async (req, res) => {
   router.post('/createAdmins', async (req, res) => {
     try {
       const {
-        username,
+      firstName,
+      lastName,
         email,
         role,
         dateOfOnboarding,
@@ -155,7 +156,7 @@ router.post('/admin/login', async (req, res) => {
       } = req.body;
   
       // Validate required fields
-      if (!username || !email || !role || !dateOfOnboarding || !Accesspermission || !Adminprofilepermission || !Analyticspermission
+      if (!firstName || !lastName || !email || !role || !dateOfOnboarding || !Accesspermission || !Adminprofilepermission || !Analyticspermission
         || !Applicationpermission
         || !Logpermission
         || !adminProfileCheckbox
@@ -173,7 +174,8 @@ router.post('/admin/login', async (req, res) => {
   
       // Create a new admin object
       const newAdmin = {
-        username,
+        firstName,
+      lastName,
         email,
         role,
         dateOfOnboarding,
