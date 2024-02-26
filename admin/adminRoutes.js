@@ -131,6 +131,86 @@ router.post('/admin/login', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+
+  router.post('/createAdmins', async (req, res) => {
+    try {
+      const {
+        username,
+        email,
+        role,
+        dateOfOnboarding,
+        Accesspermission,
+        Adminprofilepermission,
+        Analyticspermission,
+        Applicationpermission,
+        Logpermission,
+        adminProfileCheckbox,
+        feedbackCheckbox,
+        manageApplicationCheckbox,
+        managePermissionCheckbox,
+        managerUserCheckbox,
+        viewAnalyticsCheckbox,
+        viewLogsCheckbox,
+      } = req.body;
+  
+      // Validate required fields
+      if (!username || !email || !role || !dateOfOnboarding || !Accesspermission || !Adminprofilepermission || !Analyticspermission
+        || !Applicationpermission
+        || !Logpermission
+        || !adminProfileCheckbox
+        || !feedbackCheckbox
+        || !manageApplicationCheckbox
+        || !managePermissionCheckbox
+        || !managerUserCheckbox
+        || !viewAnalyticsCheckbox
+        || !viewLogsCheckbox) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+  
+      // Set a default password
+      const defaultPassword = '12345678';
+  
+      // Create a new admin object
+      const newAdmin = {
+        username,
+        email,
+        role,
+        dateOfOnboarding,
+        password: defaultPassword,
+        Accesspermission,
+        Adminprofilepermission,
+        Analyticspermission,
+        Applicationpermission,
+        Logpermission,
+        adminProfileCheckbox,
+        feedbackCheckbox,
+        manageApplicationCheckbox,
+        managePermissionCheckbox,
+        managerUserCheckbox,
+        viewAnalyticsCheckbox,
+        viewLogsCheckbox,
+      };
+  
+      // Push the new admin to the database
+      const newAdminRef = await admin.database().ref('/admins').push(newAdmin);
+
+      client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: email,
+        TemplateId: '35031463',
+        TemplateModel: {
+          username : username,
+          defaultPassword: defaultPassword,
+          email:email,
+        },
+      })
+  
+      res.json({ message: 'Admin added successfully', adminId: newAdminRef.key });
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
   
 
   router.get('/filteredUsers', async (req, res) => {
