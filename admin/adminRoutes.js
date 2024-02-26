@@ -123,6 +123,7 @@ router.post('/admin/login', async (req, res) => {
       const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
         username: adminData.username,
         dateOfOnboarding: adminData.dateOfOnboarding,
+        role: adminData.role
       }));
   
       res.json(adminDetails);
