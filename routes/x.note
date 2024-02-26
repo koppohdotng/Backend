@@ -33,7 +33,9 @@ curl -X GET http://localhost:3000/api/user/1x2bwZFRDrM8PFj3zxo4gbv5gtM2
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
-client.sendEmailWithTemplate({
+client.sendEmailWithTemplate(/users?page=1
+
+{
       //   From: 'info@koppoh.com',
       //   To: email,
       //   TemplateId: '33232370',
@@ -80,8 +82,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"email": "info@koppoh.com"
 
 http://localhost:3000/adminRoutes/users?page=1
 
-curl http://localhost:3000/adminRoutes/users?page=1
-
-
+curl http://localhost:3000/adminRoutes
 curl -X GET http://localhost:3000/adminRoutes/userpagination?page=1
 netsh wlan show profiles name=Gr_Gr

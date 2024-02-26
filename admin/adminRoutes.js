@@ -163,7 +163,7 @@ router.post('/admin/login', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-router.post('/add-onboarding-date', async (req, res) => {
+router.get('/add-onboarding-date', async (req, res) => {
   try {
     // Fetch all admins
     const snapshot = await adminsRef.once('value');
