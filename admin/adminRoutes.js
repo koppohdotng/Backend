@@ -245,6 +245,13 @@ router.post('/admin/login', async (req, res) => {
 
             return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
         });
+
+        if (filteredUsers.length === 0) {
+            return res.json({
+                message: 'No users found with the specified filters'
+            });
+        }
+
         const totalUsers = filteredUsers.length;
         // Extract users within the desired range
         const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
@@ -265,6 +272,7 @@ router.post('/admin/login', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
   
   router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
     try {
