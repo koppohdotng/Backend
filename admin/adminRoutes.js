@@ -269,7 +269,7 @@ router.post('/admin/login', async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Intern al Server Error' });
     }
 });
 
