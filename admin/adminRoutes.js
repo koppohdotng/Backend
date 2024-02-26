@@ -113,7 +113,26 @@ router.post('/admin/login', async (req, res) => {
   //     res.status(500).json({ error: 'Internal Server Error' });
   //   }
   // });
+
+  router.get('/admins', async (req, res) => {
+    try {
+      const snapshot = await admin.database().ref('/admins').once('value');
+      const admins = snapshot.val();
   
+      // Extract usernames and dateOfOnboarding
+      const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
+        username: adminData.username,
+        dateOfOnboarding: adminData.dateOfOnboarding,
+      }));
+  
+      res.json(adminDetails);
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+
   router.get('/filteredUsers', async (req, res) => {
     try {
         const pageSize = 10;
