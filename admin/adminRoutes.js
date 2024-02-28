@@ -216,7 +216,7 @@ if (missingFields.length > 0) {
         To: email,
         TemplateId: '35031463',
         TemplateModel: {
-          username : username,
+          username : firstName,
           defaultPassword: defaultPassword,
           email:email,
         },
