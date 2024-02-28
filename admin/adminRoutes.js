@@ -157,20 +157,31 @@ router.post('/admin/login', async (req, res) => {
       } = req.body;
   
       // Validate required fields
-      if (!firstName || !lastName || !email || !role || !dateOfOnboarding || !Accesspermission || !Adminprofilepermission || !Analyticspermission
-        || !Applicationpermission
-        || !Logpermission
-        || !adminProfileCheckbox
-        || !feedbackCheckbox
-        || !manageApplicationCheckbox
-        || !managePermissionCheckbox
-        || !managerUserCheckbox
-        || !viewAnalyticsCheckbox
-        || !viewLogsCheckbox
-        || !phoneNumber) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
-  
+      const missingFields = [];
+
+if (!firstName) missingFields.push('firstName');
+if (!lastName) missingFields.push('lastName');
+if (!email) missingFields.push('email');
+if (!role) missingFields.push('role');
+if (!dateOfOnboarding) missingFields.push('dateOfOnboarding');
+if (!Accesspermission) missingFields.push('Accesspermission');
+if (!Adminprofilepermission) missingFields.push('Adminprofilepermission');
+if (!Analyticspermission) missingFields.push('Analyticspermission');
+if (!Applicationpermission) missingFields.push('Applicationpermission');
+if (!Logpermission) missingFields.push('Logpermission');
+if (!adminProfileCheckbox) missingFields.push('adminProfileCheckbox');
+if (!feedbackCheckbox) missingFields.push('feedbackCheckbox');
+if (!manageApplicationCheckbox) missingFields.push('manageApplicationCheckbox');
+if (!managePermissionCheckbox) missingFields.push('managePermissionCheckbox');
+if (!managerUserCheckbox) missingFields.push('managerUserCheckbox');
+if (!viewAnalyticsCheckbox) missingFields.push('viewAnalyticsCheckbox');
+if (!viewLogsCheckbox) missingFields.push('viewLogsCheckbox');
+if (!phoneNumber) missingFields.push('phoneNumber');
+
+if (missingFields.length > 0) {
+    return res.status(400).json({ error: 'Missing required fields', missingFields });
+}
+
       // Set a default password
       const defaultPassword = '12345678';
   
