@@ -9,6 +9,120 @@ const { OAuth2Client } = require('google-auth-library');
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
+router.post('/deactivateAdmin/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch the admin from the database using the userId
+    const adminSnapshot = await admin.database().ref(`/admins/${userId}`).once('value');
+    const adminData = adminSnapshot.val();
+
+    if (!adminData) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    // Create a new object with updated values
+    const updatedAdminData = {
+      password: '12345678',
+      Accesspermission: false,
+      Adminprofilepermission: false,
+      Analyticspermission: false,
+      Applicationpermission: false,
+      Logpermission: false,
+      adminProfileCheckbox: false,
+      feedbackCheckbox: false,
+      manageApplicationCheckbox: false,
+      managePermissionCheckbox: false,
+      managerUserCheckbox: false,
+      viewAnalyticsCheckbox: false,
+      viewLogsCheckbox: false,
+      deactivate: true, // New field added and set to true
+    };
+
+    // Update the admin in the database with the new object
+    await admin.database().ref(`/admins/${userId}`).update(updatedAdminData);
+
+    res.json({ message: 'Admin deactivated successfully', adminId: userId });
+  } catch (error) {
+    console.error('Error deactivating admin:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+router.post('/loginAdmin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Fetch the admin from the database using the email
+    const adminSnapshot = await admin.database().ref('/admins').orderByChild('email').equalTo(email).once('value');
+    const adminData = adminSnapshot.val();
+
+    if (!adminData) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    // Extract the first (and only) admin from the result
+    const adminId = Object.keys(adminData)[0];
+    const admin = adminData[adminId];
+
+    // Check if the account is deactivated
+    if ( !admin.deactivate || admin.deactivate === true) {
+      return res.status(403).json({ error: 'Account is currently deactivated' });
+    }
+
+    // Check if the passwordChange field is set to true
+  else{
+
+    if (admin.passwordChange === true) {
+      return res.status(200).json({ message: 'Login success. Please change your password.' });
+    }
+
+    else{
+      // Check the password
+    if (password === admin.password) {
+      // If the password is correct, you can perform additional login logic here
+      return res.status(200).json({ message: 'Login success' });
+    }
+    }
+
+  }
+  } catch (error) {
+    console.error('Error logging in admin:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.post('/changePassword', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    // Fetch the admin from the database using the email
+    const adminSnapshot = await admin.database().ref('/admins').orderByChild('email').equalTo(email).once('value');
+    const adminData = adminSnapshot.val();
+
+    if (!adminData) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    // Extract the first (and only) admin from the result
+    const adminId = Object.keys(adminData)[0];
+    const admin = adminData[adminId];
+
+    // Check if the provided current password matches the stored password
+    if (currentPassword !== admin.password) {
+      return res.status(401).json({ error: 'Incorrect current password' });
+    }
+
+    // Update the password in the database
+    await admin.database().ref(`/admins/${adminId}`).update({ password: newPassword, passwordChange: false });
+
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
