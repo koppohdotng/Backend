@@ -268,6 +268,7 @@ router.post('/admin/login', async (req, res) => {
         managerUserCheckbox,
         viewAnalyticsCheckbox,
         viewLogsCheckbox,
+        roleDescription
       } = req.body;
   
       // Validate required fields
@@ -291,6 +292,7 @@ if (!managerUserCheckbox) missingFields.push('managerUserCheckbox');
 if (!viewAnalyticsCheckbox) missingFields.push('viewAnalyticsCheckbox');
 if (!viewLogsCheckbox) missingFields.push('viewLogsCheckbox');
 if (!phoneNumber) missingFields.push('phoneNumber');
+if (!roleDescription) missingFields.push('roleDescription');
 
 if (missingFields.length > 0) {
     return res.status(400).json({ error: 'Missing required fields', missingFields });
@@ -319,7 +321,8 @@ if (missingFields.length > 0) {
         managerUserCheckbox,
         viewAnalyticsCheckbox,
         viewLogsCheckbox,
-        phoneNumber
+        phoneNumber,
+        roleDescription
       };
   
       // Push the new admin to the database
