@@ -429,9 +429,9 @@ if (missingFields.length > 0) {
 
         // Filter and calculate values for each user
         const formattedUsers = paginatedUsers.map(user => {
-            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age } = user;
+            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid } = user;
 
-            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age };
+            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid };
         });
 
         res.json({
