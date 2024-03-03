@@ -721,6 +721,22 @@ if (missingFields.length > 0) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+
+  app.get('/api/user/:userId', (req, res) => {
+    const userId = req.params.userId;
+  
+    // Query the database to retrieve user information using the userId
+    const userRef = admin.database().ref(`/users/${userId}`);
+  
+    userRef.once('value', (snapshot) => {
+      const user = snapshot.val();
+      if (user) {
+        res.status(200).json({ message: 'Authentication successful', user });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    });
+  });
   
 
   module.exports = router;
