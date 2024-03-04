@@ -275,9 +275,9 @@ router.post('/changePassword', async (req, res) => {
   
       // Extract usernames and dateOfOnboarding
       const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
-        username: adminData.username,
-        dateOfOnboarding: adminData.dateOfOnboarding,
-        role: adminData.role
+        
+        adminData: adminData
+        
       }));
   
       res.json(adminDetails);
