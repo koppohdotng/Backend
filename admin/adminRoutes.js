@@ -722,7 +722,7 @@ if (missingFields.length > 0) {
     }
   });
 
-  app.get('/api/user/:userId', (req, res) => {
+  router.get('/api/user/:userId', (req, res) => {
     const userId = req.params.userId;
   
     // Query the database to retrieve user information using the userId
