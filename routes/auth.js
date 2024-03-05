@@ -69,7 +69,7 @@ console.log(randomNumber);
                 email,
                 uid: userRecord.uid,
                 emailVerification,
-                firstTime,
+                
                 Date: currentDate.toISOString(),
                 signupdate : dateInSeconds,
                 verifyNumber: randomNumber
