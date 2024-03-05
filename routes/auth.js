@@ -58,7 +58,7 @@ console.log(randomNumber);
               // User signed up successfully
               const emailVerification = false;
               const firstTime = true;
-              const currentDate = new Date();
+              let currentDate = new Date();
                     currentDate = currentDate.toISOString()
 
                     const dateInSeconds = Math.floor(new Date(currentDate).getTime() / 1000)
