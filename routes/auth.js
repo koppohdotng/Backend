@@ -27,7 +27,7 @@ admin.initializeApp({
 
 // Define a route for user signup
 router.post('/signup', (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, refFrom } = req.body;
   // Function to generate a random 6-digit number
 function generateRandomNumber() {
   return Math.floor(Math.random() * 900000) + 100000;
