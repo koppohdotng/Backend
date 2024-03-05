@@ -59,9 +59,9 @@ console.log(randomNumber);
               const emailVerification = false;
               const firstTime = true;
               let currentDate = new Date();
-                    currentDate = currentDate.toISOString()
+                    
 
-                    const dateInSeconds = Math.floor(new Date(currentDate).getTime() / 1000)
+                    const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000)
               
               const userData = {
                 firstName,
