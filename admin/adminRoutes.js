@@ -385,6 +385,36 @@ if (missingFields.length > 0) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+
+  router.put('/updateFundingRequestReviewStage/:userID/:fundingRequestID', async (req, res) => {
+    try {
+        const userID = req.params.userID;
+        const fundingRequestID = req.params.fundingRequestID;
+        const newReviewStage = req.body.newReviewStage; // Assuming the new review stage is sent in the request body
+
+        // Get the specified user
+        const userSnapshot = await usersRef.child(userID).once('value');
+        const user = userSnapshot.val();
+
+        // Check if the user and funding request exist
+        if (!user || !user.fundingRequest || !user.fundingRequest[fundingRequestID]) {
+            return res.status(404).json({
+                message: 'User or funding request not found'
+            });
+        }
+
+        // Update the review stage for the specified funding request
+        usersRef.child(`${userID}/fundingRequest/${fundingRequestID}/reviewstage`).set(newReviewStage);
+
+        res.json({
+            message: 'Funding request review stage updated successfully'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
   
 
   router.get('/filteredFundingRequests', async (req, res) => {
