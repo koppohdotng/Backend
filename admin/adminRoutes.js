@@ -23,7 +23,7 @@ router.post('/deactivateAdmin/:userId', async (req, res) => {
 
     // Create a new object with updated values 
     const updatedAdminData = {
-      password: '12345678',
+      
       Accesspermission: false,
       Adminprofilepermission: false,
       Analyticspermission: false,
