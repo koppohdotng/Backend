@@ -702,7 +702,7 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel,
+        businessModel , 
         useOfFunds: {
           product,
           saleAndMarketing,
