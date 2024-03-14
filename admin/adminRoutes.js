@@ -417,59 +417,63 @@ if (missingFields.length > 0) {
 
   
 
-  router.get('/filteredFundingRequests', async (req, res) => {
-    try {
-        const pageSize = 10;
-        let page = req.query.page ? parseInt(req.query.page) : 1;
-        const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
-        const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
-        const fundingType = req.query.fundingType || null;
-        const reviewStage = req.query.reviewStage || null;
+router.get('/filteredFundingRequests', async (req, res) => {
+  try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
+      const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
+      const fundingType = req.query.fundingType || null;
+      const reviewStage = req.query.reviewStage || null;
 
-        // Calculate the start index for pagination
-        const startIndex = pageSize * (page - 1);
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
 
-        // Get all users
-        const snapshot = await usersRef.once('value');
-        const users = snapshot.val();
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
 
-        // Extract all funding requests from users
-        const allFundingRequests = Object.values(users).flatMap(user => {
-            if (user.fundingRequest) {
-                return Object.values(user.fundingRequest);
-            } else {
-                return [];
-            }
-        });
+      // Extract all funding requests from users
+      const allFundingRequests = Object.values(users).flatMap(user => {
+          if (user.fundingRequest) {
+              return Object.values(user.fundingRequest);
+          } else {
+              return [];
+          }
+      });
 
-        // Filter funding requests with the specified criteria
-        const filteredFundingRequests = allFundingRequests.filter(request => {
-            const withinTimeRange = request.date >= startTimestamp && request.date <= endTimestamp;
-            const matchFundingType = fundingType ? request.fundingType === fundingType : true;
-            const matchReviewStage = reviewStage ? request.reviewstage === reviewStage : true;
+      // Apply filtering if provided
+      let filteredFundingRequests = allFundingRequests;
+      if (req.query.startDate || req.query.endDate || req.query.fundingType || req.query.reviewStage) {
+          filteredFundingRequests = allFundingRequests.filter(request => {
+              const withinTimeRange = (!req.query.startDate || !req.query.endDate) || (request.date >= startTimestamp && request.date <= endTimestamp);
+              const matchFundingType = !req.query.fundingType || request.fundingType === fundingType;
+              const matchReviewStage = !req.query.reviewStage || request.reviewstage === reviewStage;
 
-            return withinTimeRange && matchFundingType && matchReviewStage;
-        });
+              return withinTimeRange && matchFundingType && matchReviewStage;
+          });
+      }
 
-        if (filteredFundingRequests.length === 0) {
-            return res.json({
-                message: 'No funding requests found with the specified filters'
-            });
-        }
+      if (filteredFundingRequests.length === 0) {
+          return res.json({
+              message: 'No funding requests found with the specified filters'
+          });
+      }
 
-        const totalFundingRequests = filteredFundingRequests.length;
-        // Extract funding requests within the desired range
-        const paginatedFundingRequests = filteredFundingRequests.slice(startIndex, startIndex + pageSize);
+      const totalFundingRequests = filteredFundingRequests.length;
+      // Extract funding requests within the desired range
+      const paginatedFundingRequests = filteredFundingRequests.slice(startIndex, startIndex + pageSize);
 
-        res.json({
-            filteredFundingRequests: paginatedFundingRequests,
-            totalFundingRequests: totalFundingRequests
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+      res.json({
+          filteredFundingRequests: paginatedFundingRequests,
+          totalFundingRequests: totalFundingRequests
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
 
 
 
