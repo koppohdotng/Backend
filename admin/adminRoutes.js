@@ -809,7 +809,7 @@ if (missingFields.length > 0) {
   });
 
   router.get('/api/user/:userId', (req, res) => {
-    const userId = req.params.userId;
+    const userId = req.params.userId;  
   
     // Query the database to retrieve user information using the userId
     const userRef = admin.database().ref(`/users/${userId}`);
