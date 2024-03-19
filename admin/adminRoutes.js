@@ -448,8 +448,8 @@ router.get('/filteredFundingRequests', async (req, res) => {
           filteredFundingRequests = allFundingRequests.filter(request => {
               const requestTimestamp = new Date(request.date).getTime() / 1000;
               const withinTimeRange = (!req.query.startDate || !req.query.endDate) || (requestTimestamp >= startTimestamp && requestTimestamp <= endTimestamp);
-              const matchFundingType = !req.query.fundingType || request.fundingType === fundingType;
-              const matchReviewStage = !req.query.reviewStage || request.reviewstage === reviewStage;
+              const matchFundingType = !req.query.fundingType || request.fundingType == fundingType;
+              const matchReviewStage = !req.query.reviewStage || request.reviewstage == reviewStage;
 
               return withinTimeRange && matchFundingType && matchReviewStage;
           });
