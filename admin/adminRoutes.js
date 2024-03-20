@@ -433,27 +433,28 @@ router.get('/filteredFundingRequests', async (req, res) => {
       const snapshot = await usersRef.once('value');
       const users = snapshot.val();
 
-      // Extract all funding requests from users
-      const allFundingRequests = Object.values(users).flatMap(user => {
+      // Initialize array to store filtered funding requests with additional data
+      let filteredFundingRequests = [];
+
+      // Extract all funding requests from users and add businessName and fundingRequestId
+      Object.values(users).forEach(user => {
           if (user.fundingRequest) {
-              return Object.values(user.fundingRequest);
-          } else {
-              return [];
+              Object.entries(user.fundingRequest).forEach(([fundingRequestId, request]) => {
+                  const requestTimestamp = new Date(request.date).getTime() / 1000;
+                  const withinTimeRange = (!req.query.startDate || !req.query.endDate) || (requestTimestamp >= startTimestamp && requestTimestamp <= endTimestamp);
+                  const matchFundingType = !req.query.fundingType || request.fundingType == fundingType;
+                  const matchReviewStage = !req.query.reviewStage || request.reviewstage == reviewStage;
+
+                  if (withinTimeRange && matchFundingType && matchReviewStage) {
+                      filteredFundingRequests.push({
+                          businessName: user.businessName,
+                          fundingRequestId: fundingRequestId,
+                          ...request
+                      });
+                  }
+              });
           }
       });
-
-      // Apply filtering if provided
-      let filteredFundingRequests = allFundingRequests;
-      if (req.query.startDate || req.query.endDate || req.query.fundingType || req.query.reviewStage) {
-          filteredFundingRequests = allFundingRequests.filter(request => {
-              const requestTimestamp = new Date(request.date).getTime() / 1000;
-              const withinTimeRange = (!req.query.startDate || !req.query.endDate) || (requestTimestamp >= startTimestamp && requestTimestamp <= endTimestamp);
-              const matchFundingType = !req.query.fundingType || request.fundingType == fundingType;
-              const matchReviewStage = !req.query.reviewStage || request.reviewstage == reviewStage;
-
-              return withinTimeRange && matchFundingType && matchReviewStage;
-          });
-      }
 
       if (filteredFundingRequests.length === 0) {
           return res.json({
@@ -474,6 +475,7 @@ router.get('/filteredFundingRequests', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
