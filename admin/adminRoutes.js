@@ -493,7 +493,49 @@ if (missingFields.length > 0) {
     }
 });
 
-  
+router.get('/filteredReviewstage', async (req, res) => {
+  try {
+      const reviewStage = req.query.reviewStage || null;
+
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize array to store filtered funding requests with additional data
+      let filteredFundingRequests = [];
+
+      // Extract all funding requests from users and add userEmail and userId
+      Object.entries(users).forEach(([userId, user]) => {
+          if (user.fundingRequest) {
+              Object.entries(user.fundingRequest).forEach(([fundingRequestId, request]) => {
+                  const matchReviewStage = !req.query.reviewStage || request.reviewstage == reviewStage;
+
+                  if (matchReviewStage) {
+                      filteredFundingRequests.push({
+                          userEmail: user.email,
+                          userId: userId,
+                        
+                      });
+                  }
+              });
+          }
+      });
+
+      if (filteredFundingRequests.length === 0) {
+          return res.json({
+              message: 'No funding requests found with the specified filters'
+          });
+      }
+
+      res.json({
+          filteredFundingRequests: filteredFundingRequests
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 router.get('/filteredFundingRequests', async (req, res) => {
   try {
@@ -794,6 +836,8 @@ router.get('/filteredFundingRequests', async (req, res) => {
   
   
 
+  
+
   router.get('/userpagination', async (req, res) => {
     try {
       const pageSize = 10;
@@ -908,6 +952,76 @@ router.get('/filteredFundingRequests', async (req, res) => {
       }
     });
   });
+
+  router.get('/filterCompleteness', async (req, res) => {
+    try {
+        const maxProfileCompleteness = req.query.profileCompleteness !== undefined ? req.query.profileCompleteness : null;
+
+        // Convert "completed" to 100 and "uncompleted" to anything less
+        const profileCompletenessValue = maxProfileCompleteness === "completed" ? 100 : (maxProfileCompleteness === "uncompleted" ? 99 : null);
+
+        // Get all users
+        const snapshot = await usersRef.once('value');
+        const users = snapshot.val();
+
+        // Filter users based on maxProfileCompleteness
+        const filteredUsers = Object.values(users).filter(user => {
+            const matchProfileCompleteness = profileCompletenessValue !== null
+                ? (profileCompletenessValue === 100 ? user.profileCompleteness === 100 : user.profileCompleteness < 100)
+                : true;
+
+            return matchProfileCompleteness;
+        });
+
+        if (filteredUsers.length === 0) {
+            return res.json({
+                message: 'No users found with the specified filters'
+            });
+        }
+
+        // Extract and format required fields for each user, returning only email and userId
+        const formattedUsers = filteredUsers.map(user => {
+            const { email, userId } = user;
+            return { email, userId };
+        });
+
+        res.json({
+            filteredUsers: formattedUsers,
+            totalUsers: filteredUsers.length
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
   
+
+  router.post('/sendEmails', async (req, res) => {
+    const { emails, subject, message } = req.body;
+
+    try {
+        // Iterate through each email address
+        for (const email of emails) {
+            // Send email using Postmark template
+            const sendEmailResponse = await client.sendEmailWithTemplate({
+                From: 'info@koppoh.com',
+                To: email,
+                TemplateId: '35347327',
+                TemplateModel: {
+                    subject: subject,
+                    message: message
+                }
+            });
+
+            console.log('Email sent to', email, 'with ID:', sendEmailResponse.MessageID);
+        }
+
+        res.status(201).json({ message: 'Emails sent successfully' });
+    } catch (error) {
+        console.error('Error sending emails:', error);
+        res.status(500).json({ error: 'Error sending emails' });
+    }
+});
 
   module.exports = router;
