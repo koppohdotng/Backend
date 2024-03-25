@@ -365,7 +365,7 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
     }
   });
 
-  router.post('/createAdmins', async (req, res) => {
+router.post('/createAdmins', async (req, res) => {
     try {
       const {
       firstName,
@@ -597,8 +597,47 @@ router.get('/filteredFundingRequests', async (req, res) => {
 });
 
 
+router.post('/sendNotification', async (req, res) => {
+  try {
+    const { userIds, title, message, type } = req.body;
 
+    if (!userIds || !title || !message || !type) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
 
+    // Check if userIds is an array, if not convert to array
+    const userIdArray = Array.isArray(userIds) ? userIds : [userIds];
+
+    // Iterate through userIds and update the notifications
+    const promises = userIdArray.map(async userId => {
+      const userRef = await usersRef.child(userId).once('value');
+      const userData = userRef.val();
+
+      if (!userData) {
+        return { userId: userId, success: false, message: 'User not found' };
+      }
+
+      // Create or update notification for the user
+      const notificationRef = usersRef.child(userId).child('notifications').push();
+      await notificationRef.set({
+        title: title,
+        message: message,
+        type: type,
+        notificationStatus: true
+      });
+
+      return { userId: userId, success: true, message: 'Notification sent successfully' };
+    });
+
+    // Wait for all promises to resolve
+    const results = await Promise.all(promises);
+
+    res.json({ results: results });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
   router.get('/filteredUsers', async (req, res) => {
     try {
@@ -1023,5 +1062,7 @@ router.get('/filteredFundingRequests', async (req, res) => {
         res.status(500).json({ error: 'Error sending emails' });
     }
 });
+
+
 
   module.exports = router;
