@@ -567,6 +567,8 @@ router.get('/filteredFundingRequests', async (req, res) => {
 
                   if (withinTimeRange && matchFundingType && matchReviewStage) {
                       filteredFundingRequests.push({
+                          firstName: user.firstName,
+                          lastName:  user.lastName,
                           businessName: user.businessName,
                           fundingRequestId: fundingRequestId,
                           ...request
