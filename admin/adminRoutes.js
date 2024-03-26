@@ -1065,7 +1065,7 @@ router.post('/sendNotification', async (req, res) => {
     }
 });
 
-app.get('/getAllChats/:userId', (req, res) => {
+router.get('/getAllChats/:userId', (req, res) => {
   const userId = req.params.userId;
 
   // Ensure userId is provided
