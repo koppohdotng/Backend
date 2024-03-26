@@ -1065,6 +1065,45 @@ router.post('/sendNotification', async (req, res) => {
     }
 });
 
+app.get('/getAllChats/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  // Ensure userId is provided
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId parameter.' });
+  }
+
+  // Retrieve all funding requests under the specified user
+  const fundingRequestsRef = dataRef.child(`${userId}/fundingRequest`);
+  fundingRequestsRef.once('value', (fundingRequestsSnapshot) => {
+    const allChats = [];
+
+    // Iterate through each funding request
+    fundingRequestsSnapshot.forEach((fundingRequestSnapshot) => {
+      const fundingRequestId = fundingRequestSnapshot.key;
+      const chatRef = fundingRequestSnapshot.child('chat');
+
+      // Iterate through each chat message under the funding request
+      chatRef.forEach((chatMessageSnapshot) => {
+        const chatMessageId = chatMessageSnapshot.key;
+        const chatMessage = chatMessageSnapshot.val();
+
+        // Include additional information
+        chatMessage.fundingRequestId = fundingRequestId;
+        chatMessage.chatMessageId = chatMessageId;
+
+        // Add the chat message to the array
+        allChats.push(chatMessage);
+      });
+    });
+
+    return res.status(200).json({
+      message: 'All chat messages retrieved successfully.',
+      allChats: allChats,
+    });
+  });
+});
+
 
 
   module.exports = router;
