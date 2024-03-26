@@ -1022,8 +1022,8 @@ router.post('/sendNotification', async (req, res) => {
 
         // Extract and format required fields for each user, returning only email and userId
         const formattedUsers = filteredUsers.map(user => {
-            const { email, userId } = user;
-            return { email, userId };
+            const { email, uid } = user;
+            return { email, uid };
         });
 
         res.json({
