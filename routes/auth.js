@@ -13,49 +13,6 @@ var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
 
-const usersRef = admin.database().ref('users');
-
-// API endpoint for searching users
-app.get('/searchUsers', async (req, res) => {
-  try {
-    const searchText = req.query.text || '';
-
-    // Get all users
-    const snapshot = await usersRef.once('value');
-    const users = snapshot.val();
-
-    // Initialize array to store matched users
-    let matchedUsers = [];
-
-    // Search for users matching the searchText in firstName or lastName
-    Object.values(users).forEach(user => {
-      if (user.firstName.toLowerCase().includes(searchText.toLowerCase()) || 
-          user.lastName.toLowerCase().includes(searchText.toLowerCase())) {
-        matchedUsers.push({
-          uid: user.uid,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email
-        });
-      }
-    });
-
-    if (matchedUsers.length === 0) {
-      return res.json({
-        message: 'No users found matching the search text'
-      });
-    }
-
-    res.json({
-      matchedUsers: matchedUsers
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
 
 
 // Initialize Firebase Admin SDK with your service account key

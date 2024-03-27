@@ -164,83 +164,83 @@ router.post('/changePassword', async (req, res) => {
   }
 });
 
-// router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
-//   try {
-//       const fundingRequestId = req.params.fundingRequestId;
+router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
+  try {
+      const fundingRequestId = req.params.fundingRequestId;
 
-//       // Get all users
-//       const snapshot = await usersRef.once('value');
-//       const users = snapshot.val();
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
 
-//       let fundingRequestData = null;
+      let fundingRequestData = null;
 
-//       // Iterate over users to find the funding request with the specified ID
-//       Object.values(users).forEach(user => {
-//           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
-//               fundingRequestData = {
-//                   userId: user.uid,
-//                   businessName: user.businessName,
-//                   fundingRequest: user.fundingRequest[fundingRequestId]
-//               };
-//           }
-//       });
+      // Iterate over users to find the funding request with the specified ID
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
+              fundingRequestData = {
+                  userId: user.uid,
+                  businessName: user.businessName,
+                  fundingRequest: user.fundingRequest[fundingRequestId]
+              };
+          }
+      });
 
-//       if (!fundingRequestData) {
-//           return res.status(404).json({
-//               message: 'Funding request not found'
-//           });
-//       }
+      if (!fundingRequestData) {
+          return res.status(404).json({
+              message: 'Funding request not found'
+          });
+      }
 
-//       res.json(fundingRequestData);
-//   } catch (error) {
-//       console.error(error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+      res.json(fundingRequestData);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
-// router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
-//   try {
-//       const fundingRequestId = req.params.fundingRequestId;
-//       const reviewStage = req.body.reviewStage;
+router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
+  try {
+      const fundingRequestId = req.params.fundingRequestId;
+      const reviewStage = req.body.reviewStage;
 
-//       if (!reviewStage) {
-//           return res.status(400).json({
-//               message: 'Review stage is required'
-//           });
-//       }
+      if (!reviewStage) {
+          return res.status(400).json({
+              message: 'Review stage is required'
+          });
+      }
 
-//       // Get all users
-//       const snapshot = await usersRef.once('value');
-//       const users = snapshot.val();
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
 
-//       let fundingRequestUpdated = false;
+      let fundingRequestUpdated = false;
 
-//       // Iterate over users to find the funding request with the specified ID
-//       Object.values(users).forEach(user => {
-//           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
-//               // Update the review stage
-//               user.fundingRequest[fundingRequestId].reviewstage = reviewStage;
-//               fundingRequestUpdated = true;
-//           }
-//       });
+      // Iterate over users to find the funding request with the specified ID
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
+              // Update the review stage
+              user.fundingRequest[fundingRequestId].reviewstage = reviewStage;
+              fundingRequestUpdated = true;
+          }
+      });
 
-//       if (!fundingRequestUpdated) {
-//           return res.status(404).json({
-//               message: 'Funding request not found'
-//           });
-//       }
+      if (!fundingRequestUpdated) {
+          return res.status(404).json({
+              message: 'Funding request not found'
+          });
+      }
 
-//       // Update the database
-//       await usersRef.set(users);
+      // Update the database
+      await usersRef.set(users);
 
-//       res.json({
-//           message: 'Review stage updated successfully'
-//       });
-//   } catch (error) {
-//       console.error(error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+      res.json({
+          message: 'Review stage updated successfully'
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // router.post('/admin/login', async (req, res) => {
 //     try {
@@ -1058,148 +1058,120 @@ router.post('/sendNotification', async (req, res) => {
     }
 });
 
-// router.get('/getAllChats/:userId', (req, res) => {
-//   const userId = req.params.userId;
+router.get('/getAllChats/:userId', (req, res) => {
+  const userId = req.params.userId;
 
-//   // Ensure userId is provided
-//   if (!userId) {
-//     return res.status(400).json({ error: 'Missing userId parameter.' });
-//   }
+  // Ensure userId is provided
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId parameter.' });
+  }
 
-//   // Retrieve all funding requests under the specified user
-//   const fundingRequestsRef = dataRef.child(`${userId}/fundingRequest`);
-//   fundingRequestsRef.once('value', (fundingRequestsSnapshot) => {
-//     const allChats = [];
+  // Retrieve all funding requests under the specified user
+  const fundingRequestsRef = dataRef.child(`${userId}/fundingRequest`);
+  fundingRequestsRef.once('value', (fundingRequestsSnapshot) => {
+    const allChats = [];
 
-//     // Iterate through each funding request
-//     fundingRequestsSnapshot.forEach((fundingRequestSnapshot) => {
-//       const fundingRequestId = fundingRequestSnapshot.key;
-//       const chatRef = fundingRequestSnapshot.child('chat');
+    // Iterate through each funding request
+    fundingRequestsSnapshot.forEach((fundingRequestSnapshot) => {
+      const fundingRequestId = fundingRequestSnapshot.key;
+      const chatRef = fundingRequestSnapshot.child('chat');
 
-//       // Iterate through each chat message under the funding request
-//       chatRef.forEach((chatMessageSnapshot) => {
-//         const chatMessageId = chatMessageSnapshot.key;
-//         const chatMessage = chatMessageSnapshot.val();
+      // Iterate through each chat message under the funding request
+      chatRef.forEach((chatMessageSnapshot) => {
+        const chatMessageId = chatMessageSnapshot.key;
+        const chatMessage = chatMessageSnapshot.val();
 
-//         // Include additional information
-//         chatMessage.fundingRequestId = fundingRequestId;
-//         chatMessage.chatMessageId = chatMessageId;
+        // Include additional information
+        chatMessage.fundingRequestId = fundingRequestId;
+        chatMessage.chatMessageId = chatMessageId;
 
-//         // Add the chat message to the array
-//         allChats.push(chatMessage);
-//       });
-//     });
+        // Add the chat message to the array
+        allChats.push(chatMessage);
+      });
+    });
 
-//     return res.status(200).json({
-//       message: 'All chat messages retrieved successfully.',
-//       allChats: allChats,
-//     });
-//   });
-// });
-
-
-// router.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
-//   const userId = req.params.userId;
-//   const fundingRequestId = req.params.fundingRequestId;
-//   const { sender, message, timestamp } = req.body;
-
-//   // Ensure required fields are provided
-//   if (!userId || !fundingRequestId || !sender || !message || !timestamp) {
-//     return res.status(400).json({ error: 'Missing required fields.' });
-//   }
-
-//   // Create a chat message object
-//   const chatMessage = {
-//     sender,
-//     message,
-//     timestamp,
-//   };
-
-//   // Update the chat messages under the specified funding request
-//   const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
-//   const newChatRef = chatRef.push(chatMessage, (error) => {
-//     if (error) {
-//       console.log(error);
-//       return res.status(500).json({ error: 'Failed to store chat message.' });
-//     } else {
-//       const newKey = newChatRef.key;
-
-//       // Retrieve the saved chat message using the correct key
-//       chatRef.child(newKey).once('value', (snapshot) => {
-//         const savedChatMessage = snapshot.val();
-
-//         savedChatMessage.chatMessageId = newKey;
-
-//         console.log(savedChatMessage);
-//         return res.status(200).json({
-//           message: 'Chat message stored successfully.',
-//           savedChatMessage: savedChatMessage,
-//         });
-//       });
-//     }
-//   });
-// });
-
-// router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
-//   const userId = req.params.userId;
-//   const fundingRequestId = req.params.fundingRequestId;
-
-//   // Ensure required fields are provided
-//   if (!userId || !fundingRequestId) {
-//     return res.status(400).json({ error: 'Missing required fields.' });
-//   }
-
-//   // Retrieve all chat messages under the specified funding request
-//   const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
-//   chatRef.once('value', (snapshot) => {
-//     const chatMessages = snapshot.val();
-
-//     if (!chatMessages) {
-//       return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
-//     }
-
-//     // Convert chat messages object to an array
-//     const chatArray = Object.keys(chatMessages).map((key) => {
-//       const chatMessage = chatMessages[key];
-//       chatMessage.chatMessageId = key;
-//       return chatMessage;
-//     });
-
-//     console.log(chatArray);
-//     return res.status(200).json({
-//       message: 'Chat messages retrieved successfully.',
-//       chatMessages: chatArray,
-//     });
-//   });
-// });
-
-// router.get('/getNotifications/:userId', async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-
-//     if (!userId) {
-//       return res.status(400).json({ error: 'Missing userId parameter' });
-//     }
-
-//     // Retrieve notifications for the user
-//     const userRef = await usersRef.child(userId).once('value');
-//     const userData = userRef.val();
-
-//     if (!userData) {
-//       return res.status(404).json({ error: 'User not found' });
-//     }
-
-//     const notifications = userData.notifications || {};
-
-//     res.json({ notifications: notifications });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+    return res.status(200).json({
+      message: 'All chat messages retrieved successfully.',
+      allChats: allChats,
+    });
+  });
+});
 
 
+app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+  const { sender, message, timestamp } = req.body;
 
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId || !sender || !message || !timestamp) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Create a chat message object
+  const chatMessage = {
+    sender,
+    message,
+    timestamp,
+  };
+
+  // Update the chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const newChatRef = chatRef.push(chatMessage, (error) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'Failed to store chat message.' });
+    } else {
+      const newKey = newChatRef.key;
+
+      // Retrieve the saved chat message using the correct key
+      chatRef.child(newKey).once('value', (snapshot) => {
+        const savedChatMessage = snapshot.val();
+
+        savedChatMessage.chatMessageId = newKey;
+
+        console.log(savedChatMessage);
+        return res.status(200).json({
+          message: 'Chat message stored successfully.',
+          savedChatMessage: savedChatMessage,
+        });
+      });
+    }
+  });
+});
+
+app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Retrieve all chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  chatRef.once('value', (snapshot) => {
+    const chatMessages = snapshot.val();
+
+    if (!chatMessages) {
+      return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
+    }
+
+    // Convert chat messages object to an array
+    const chatArray = Object.keys(chatMessages).map((key) => {
+      const chatMessage = chatMessages[key];
+      chatMessage.chatMessageId = key;
+      return chatMessage;
+    });
+
+    console.log(chatArray);
+    return res.status(200).json({
+      message: 'Chat messages retrieved successfully.',
+      chatMessages: chatArray,
+    });
+  });
+});
 
 
 
