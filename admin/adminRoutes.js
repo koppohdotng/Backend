@@ -322,27 +322,27 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
   const db = admin.database();
   const usersRef = db.ref('users');
 
-  // router.get('/userpagination', async (req, res) => {
-  //   try {
-  //     const pageSize = 10;
-  //     let page = req.query.page ? parseInt(req.query.page) : 1;
+  router.get('/userpagination', async (req, res) => {
+    try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
   
-  //     // Calculate the start index for pagination
-  //     const startIndex = pageSize * (page - 1);
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
   
-  //     // Get users with limit and startAt
-  //     const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
-  //     const users = snapshot.val();
+      // Get users with limit and startAt
+      const snapshot = await usersRef.orderByChild('Date').limitToLast(pageSize * page).startAt().once('value');
+      const users = snapshot.val();
   
-  //     // Extract users within the desired range
-  //     const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
+      // Extract users within the desired range
+      const paginatedUsers = Object.values(users).slice(startIndex, startIndex + pageSize);
   
-  //     res.json(paginatedUsers);
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).json({ error: 'Internal Server Error' });
-  //   }
-  // });
+      res.json(paginatedUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
   router.get('/admins', async (req, res) => {
     try {
