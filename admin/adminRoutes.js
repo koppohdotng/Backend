@@ -1173,6 +1173,34 @@ app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   });
 });
 
+router.get('/getNotifications/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
+    }
+
+    // Retrieve notifications for the user
+    const userRef = await usersRef.child(userId).once('value');
+    const userData = userRef.val();
+
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const notifications = userData.notifications || {};
+
+    res.json({ notifications: notifications });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
 
 
   module.exports = router;
