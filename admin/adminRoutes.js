@@ -1105,5 +1105,48 @@ router.get('/getAllChats/:userId', (req, res) => {
 });
 
 
+app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+  const { sender, message, timestamp } = req.body;
+
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId || !sender || !message || !timestamp) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Create a chat message object
+  const chatMessage = {
+    sender,
+    message,
+    timestamp,
+  };
+
+  // Update the chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const newChatRef = chatRef.push(chatMessage, (error) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'Failed to store chat message.' });
+    } else {
+      const newKey = newChatRef.key;
+
+      // Retrieve the saved chat message using the correct key
+      chatRef.child(newKey).once('value', (snapshot) => {
+        const savedChatMessage = snapshot.val();
+
+        savedChatMessage.chatMessageId = newKey;
+
+        console.log(savedChatMessage);
+        return res.status(200).json({
+          message: 'Chat message stored successfully.',
+          savedChatMessage: savedChatMessage,
+        });
+      });
+    }
+  });
+});
+
+
 
   module.exports = router;
