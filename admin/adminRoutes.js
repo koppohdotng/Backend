@@ -242,8 +242,6 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
   }
 });
 
-
-
 // router.post('/admin/login', async (req, res) => {
 //     try {
 //       const { email } = req.body;
@@ -875,9 +873,6 @@ router.post('/sendNotification', async (req, res) => {
     }
   });
   
-  
-
-  
 
   router.get('/userpagination', async (req, res) => {
     try {
@@ -910,8 +905,6 @@ router.post('/sendNotification', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
-
   
 
   router.post('/sendPasswordResetEmail', async (req, res) => {
