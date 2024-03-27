@@ -1155,11 +1155,13 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
     const chatMessages = snapshot.val();
 
     if (!chatMessages) {
+      console.log("debe")
       return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
     }
 
     // Convert chat messages object to an array
     const chatArray = Object.keys(chatMessages).map((key) => {
+      console.log("debedebe")
       const chatMessage = chatMessages[key];
       chatMessage.chatMessageId = key;
       return chatMessage;
