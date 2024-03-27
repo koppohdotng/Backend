@@ -1139,7 +1139,7 @@ router.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
     }
   });
 });
-
+const dataRef = db.ref('users');
 router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
