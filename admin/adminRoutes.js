@@ -1147,6 +1147,39 @@ app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   });
 });
 
+app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+
+  // Ensure required fields are provided
+  if (!userId || !fundingRequestId) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  // Retrieve all chat messages under the specified funding request
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  chatRef.once('value', (snapshot) => {
+    const chatMessages = snapshot.val();
+
+    if (!chatMessages) {
+      return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
+    }
+
+    // Convert chat messages object to an array
+    const chatArray = Object.keys(chatMessages).map((key) => {
+      const chatMessage = chatMessages[key];
+      chatMessage.chatMessageId = key;
+      return chatMessage;
+    });
+
+    console.log(chatArray);
+    return res.status(200).json({
+      message: 'Chat messages retrieved successfully.',
+      chatMessages: chatArray,
+    });
+  });
+});
+
 
 
   module.exports = router;
