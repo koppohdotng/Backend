@@ -1098,7 +1098,7 @@ router.get('/getAllChats/:userId', (req, res) => {
 });
 
 
-app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
+router.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
   const { sender, message, timestamp } = req.body;
@@ -1140,7 +1140,7 @@ app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   });
 });
 
-app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
+router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
 
