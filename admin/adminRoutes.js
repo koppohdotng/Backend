@@ -164,83 +164,83 @@ router.post('/changePassword', async (req, res) => {
   }
 });
 
-router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
-  try {
-      const fundingRequestId = req.params.fundingRequestId;
+// router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
+//   try {
+//       const fundingRequestId = req.params.fundingRequestId;
 
-      // Get all users
-      const snapshot = await usersRef.once('value');
-      const users = snapshot.val();
+//       // Get all users
+//       const snapshot = await usersRef.once('value');
+//       const users = snapshot.val();
 
-      let fundingRequestData = null;
+//       let fundingRequestData = null;
 
-      // Iterate over users to find the funding request with the specified ID
-      Object.values(users).forEach(user => {
-          if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
-              fundingRequestData = {
-                  userId: user.uid,
-                  businessName: user.businessName,
-                  fundingRequest: user.fundingRequest[fundingRequestId]
-              };
-          }
-      });
+//       // Iterate over users to find the funding request with the specified ID
+//       Object.values(users).forEach(user => {
+//           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
+//               fundingRequestData = {
+//                   userId: user.uid,
+//                   businessName: user.businessName,
+//                   fundingRequest: user.fundingRequest[fundingRequestId]
+//               };
+//           }
+//       });
 
-      if (!fundingRequestData) {
-          return res.status(404).json({
-              message: 'Funding request not found'
-          });
-      }
+//       if (!fundingRequestData) {
+//           return res.status(404).json({
+//               message: 'Funding request not found'
+//           });
+//       }
 
-      res.json(fundingRequestData);
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+//       res.json(fundingRequestData);
+//   } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
 
-router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
-  try {
-      const fundingRequestId = req.params.fundingRequestId;
-      const reviewStage = req.body.reviewStage;
+// router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
+//   try {
+//       const fundingRequestId = req.params.fundingRequestId;
+//       const reviewStage = req.body.reviewStage;
 
-      if (!reviewStage) {
-          return res.status(400).json({
-              message: 'Review stage is required'
-          });
-      }
+//       if (!reviewStage) {
+//           return res.status(400).json({
+//               message: 'Review stage is required'
+//           });
+//       }
 
-      // Get all users
-      const snapshot = await usersRef.once('value');
-      const users = snapshot.val();
+//       // Get all users
+//       const snapshot = await usersRef.once('value');
+//       const users = snapshot.val();
 
-      let fundingRequestUpdated = false;
+//       let fundingRequestUpdated = false;
 
-      // Iterate over users to find the funding request with the specified ID
-      Object.values(users).forEach(user => {
-          if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
-              // Update the review stage
-              user.fundingRequest[fundingRequestId].reviewstage = reviewStage;
-              fundingRequestUpdated = true;
-          }
-      });
+//       // Iterate over users to find the funding request with the specified ID
+//       Object.values(users).forEach(user => {
+//           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
+//               // Update the review stage
+//               user.fundingRequest[fundingRequestId].reviewstage = reviewStage;
+//               fundingRequestUpdated = true;
+//           }
+//       });
 
-      if (!fundingRequestUpdated) {
-          return res.status(404).json({
-              message: 'Funding request not found'
-          });
-      }
+//       if (!fundingRequestUpdated) {
+//           return res.status(404).json({
+//               message: 'Funding request not found'
+//           });
+//       }
 
-      // Update the database
-      await usersRef.set(users);
+//       // Update the database
+//       await usersRef.set(users);
 
-      res.json({
-          message: 'Review stage updated successfully'
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+//       res.json({
+//           message: 'Review stage updated successfully'
+//       });
+//   } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
 
 // router.post('/admin/login', async (req, res) => {
 //     try {
