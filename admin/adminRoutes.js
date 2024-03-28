@@ -1154,7 +1154,7 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   }
 
   // Retrieve all chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   chatRef.once('value', (snapshot) => {
     const chatMessages = snapshot.val();
 
