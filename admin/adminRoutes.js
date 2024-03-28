@@ -1148,7 +1148,7 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
 
   console.log(userId,fundingRequestId)
 
-  // Ensure required fields are provided
+  // Ensure required fields are provideds
   if (!userId || !fundingRequestId) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
