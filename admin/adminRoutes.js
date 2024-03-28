@@ -1146,6 +1146,8 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
 
+  console.log(userId,fundingRequestId)
+
   // Ensure required fields are provided
   if (!userId || !fundingRequestId) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -1157,7 +1159,7 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
     const chatMessages = snapshot.val();
 
     if (!chatMessages) {
-      console.log("debe")
+      console.log("debe1")
       return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
     }
 
