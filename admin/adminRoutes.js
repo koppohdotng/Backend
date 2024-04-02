@@ -1118,7 +1118,7 @@ router.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   };
 
   // Update the chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   const newChatRef = chatRef.push(chatMessage, (error) => {
     if (error) {
       console.log(error);
