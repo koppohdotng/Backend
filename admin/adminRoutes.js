@@ -178,7 +178,9 @@ router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
       Object.values(users).forEach(user => {
           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
               fundingRequestData = {
-                  userId: user.uid,
+                firstName: user.firstName,
+                lastName:  user.lastName,
+                logoUrl: user.logoUrl,
                   businessName: user.businessName,
                   fundingRequest: user.fundingRequest[fundingRequestId]
               };
