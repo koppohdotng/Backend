@@ -568,6 +568,7 @@ router.get('/filteredFundingRequests', async (req, res) => {
                       filteredFundingRequests.push({
                           firstName: user.firstName,
                           lastName:  user.lastName,
+                          logoUrl: user.logoUrl,
                           businessName: user.businessName,
                           fundingRequestId: fundingRequestId,
                           ...request
