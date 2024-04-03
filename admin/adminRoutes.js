@@ -467,7 +467,7 @@ if (missingFields.length > 0) {
         const userID = req.params.userID;
         const fundingRequestID = req.params.fundingRequestID;
         const newReviewStage = req.body.newReviewStage; // Assuming the new review stage is sent in the request body
-
+        console.log("debe")
         // Get the specified user
         const userSnapshot = await usersRef.child(userID).once('value');
         const user = userSnapshot.val();
@@ -477,6 +477,7 @@ if (missingFields.length > 0) {
             return res.status(404).json({
                 message: 'User or funding request not found'
             });
+            console.log("debedebe")
         }
 
         // Update the review stage for the specified funding request
