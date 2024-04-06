@@ -398,7 +398,6 @@ const db = admin.database();
 const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in your database
 
 // Initialize Multer for handling image uploads
-const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // API endpoint to add a new teammate
@@ -965,7 +964,6 @@ app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   });
 });
 
-
 app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   { name: 'businessPlanFile', maxCount: 1 },
   { name: 'bankStatementFile', maxCount: 1 },
@@ -1003,7 +1001,7 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   if (files) {
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
-      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const fileName = `${key}_${userId}_${Date.now()}${path.extname(file.originalname)}`; // Change the naming convention as needed
       const bucket = admin.storage().bucket();
       const fileRef = bucket.file(fileName);
 
@@ -1018,17 +1016,18 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
           fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
             .then(downloadUrls => {
               fileUrls[key] = downloadUrls[0];
+              console.log(`File ${fileName} uploaded successfully.`);
               resolve();
             })
             .catch(error => {
-              console.error(`Error generating download URL for ${key} file:`, error);
-              reject(`Failed to generate ${key} file URL.`);
+              console.error(`Error generating download URL for ${fileName}:`, error);
+              reject(`Failed to generate download URL for ${fileName}.`);
             });
         });
 
         stream.on('error', (err) => {
-          console.error(`Error uploading ${key} file:`, err);
-          reject(`Failed to upload ${key} file.`);
+          console.error(`Error uploading ${fileName}:`, err);
+          reject(`Failed to upload ${fileName}.`);
         });
 
         stream.end(file.buffer);
