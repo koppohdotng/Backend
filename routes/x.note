@@ -85,3 +85,9 @@ http://localhost:3000/adminRoutes/users?page=1
 curl http://localhost:3000/adminRoutes
 curl -X GET http://localhost:3000/adminRoutes/userpagination?page=1
 netsh wlan show profiles name=Gr_Gr
+
+const stagingConfig = {
+  credential: admin.credential.cert(stagingServiceAccount),
+  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com', // Update with your staging database URL
+  storageBucket: 'koppoh-362da.appspot.com' // Update with your staging storage bucket
+};

@@ -12,39 +12,24 @@ var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
-const stagingServiceAccount = require('../staging.json');
-
-const stagingConfig = {
-  credential: admin.credential.cert(stagingServiceAccount),
-  databaseURL: 'https://koppoh-362da.firebaseio.com', // Update with your staging database URL
-  storageBucket: 'koppoh-362da.appspot.com' // Update with your staging storage bucket
-};
-
-
 // Initialize Firebase Admin SDK with your service account key
-const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
+// const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
+// const { error } = require('console');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
+//   storageBucket: 'gs://koppoh-4e5fb.appspot.com',
+//    // Replace with your Firebase project's Realtime Database URL
+// });
+
+const serviceAccount = require('../staging.json'); // Adjust the path as needed
 const { error } = require('console');
-   const liveConfig    =  {
+admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
+  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
+  storageBucket: 'gs://koppoh-362da.appspot.com',
    // Replace with your Firebase project's Realtime Database URL
-};
-
-
-const stagingApp = admin.initializeApp(stagingConfig, 'staging');
-
-// Initialize Firebase Admin SDK for live environment
-const liveApp = admin.initializeApp(liveConfig, 'live');
-
-const environment = process.env.NODE_ENV || 'staging';
-
-function getFirebaseApp() {
-  return environment === 'live' ? liveApp : stagingApp;
-}
-
-// Now you can use the `getFirebaseApp()` function to get the appropriate Firebase app
-const firebaseApp = getFirebaseApp();
+});
 
 
 
