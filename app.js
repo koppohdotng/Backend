@@ -978,6 +978,8 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   { name: 'founderagreement', maxCount: 1 },
   { name: 'taxclearance', maxCount: 1 },
 ]), (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body
+  
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
  
@@ -997,6 +999,7 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
 
   // Handle file updates
   const files = req.files;
+  console.log('Uploaded Files:', files); // Log uploaded files
   const uploadPromises = [];
   const fileUrls = {};
 
