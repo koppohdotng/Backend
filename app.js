@@ -398,6 +398,7 @@ const db = admin.database();
 const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in your database
 
 // Initialize Multer for handling image uploads
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // API endpoint to add a new teammate
@@ -984,7 +985,6 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   const {
     date,
     problem,
-    
     solution,
     stage,
     currency,
@@ -1018,17 +1018,18 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
           fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
             .then(downloadUrls => {
               fileUrls[key] = downloadUrls[0];
+              console.log(`File ${fileName} uploaded successfully.`);
               resolve();
             })
             .catch(error => {
-              console.error(`Error generating download URL for ${key} file:`, error);
-              reject(`Failed to generate ${key} file URL.`);
+              console.error(`Error generating download URL for ${fileName}:`, error);
+              reject(`Failed to generate download URL for ${fileName}.`);
             });
         });
 
         stream.on('error', (err) => {
-          console.error(`Error uploading ${key} file:`, err);
-          reject(`Failed to upload ${key} file.`);
+          console.error(`Error uploading ${fileName}:`, err);
+          reject(`Failed to upload ${fileName}.`);
         });
 
         stream.end(file.buffer);
