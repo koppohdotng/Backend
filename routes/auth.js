@@ -490,7 +490,7 @@ router.get('/login', (req, res) => {
   // Example usage in an Express.js route
   router.post('/check-email', async (req, res) => {
     const { email } = req.body;
-  
+   console.log(email)
     const emailCheckResult = await checkEmailExistence(email);
   
     if (emailCheckResult.exists) {
