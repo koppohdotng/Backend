@@ -6,6 +6,7 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./admin/adminRoutes');
+const investorRoutes = require('./investorRoutes/investorRoutes');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
@@ -327,6 +328,10 @@ app.post('/google-signin', async (req, res) => {
 app.use('/auth', authRoutes);
 
 app.use('/adminRoutes', adminRoutes);
+
+app.use('/investorRoutes',investorRoutes);
+
+
 
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
