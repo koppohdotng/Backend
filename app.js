@@ -163,11 +163,6 @@ client.sendEmailWithTemplate({
 
 
 
-
-
-
-
-
 app.get('/api/user/:userId', (req, res) => {
   const userId = req.params.userId;
 
