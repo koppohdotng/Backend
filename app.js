@@ -15,10 +15,6 @@ var postmark = require("postmark");
 //const axios = require('axios');
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
-const path = require('path');
-
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
 
 
 const Sentry = require('@sentry/node');
