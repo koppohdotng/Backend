@@ -1186,6 +1186,140 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   });
 });
 
+router.get('/numberOfUsersprofileCompleteness', async (req, res) => {
+  try {
+      // Get all users from the database
+      const snapshot = await usersRef.once('value');
+      const allUsers = snapshot.val() || {};
+
+      // Calculate total number of users
+      const totalUsers = Object.keys(allUsers).length;
+
+      // Calculate number of users with profile completeness of 100%
+      const completeUsers = Object.values(allUsers).filter(user => user.profileCompleteness === 100).length;
+
+      // Calculate percentage of users with profile completeness of 100%
+      const completePercentage = (completeUsers / totalUsers) * 100;
+
+      // Calculate percentage of users with profile completeness less than 100%
+      const incompletePercentage = 100 - completePercentage;
+
+      res.json({
+          totalUsers: totalUsers,
+          completeUsers: completeUsers,
+          incompleteUsers: totalUsers - completeUsers,
+          completePercentage: completePercentage.toFixed(2),
+          incompletePercentage: incompletePercentage.toFixed(2)
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/reviewStageOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each review stage
+      const reviewStageOccurrences = {};
+
+      // Initialize a variable to store the total number of funding requests
+      let totalFundingRequests = 0;
+
+      // Iterate through each user and their funding requests
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest) {
+              totalFundingRequests += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const reviewStage = request.reviewstage;
+                  // Increment the occurrence count for the review stage
+                  if (reviewStage) {
+                      reviewStageOccurrences[reviewStage] = (reviewStageOccurrences[reviewStage] || 0) + 1;
+                  }
+              });
+          }
+      });
+
+      res.json({
+          reviewStageOccurrences,
+          totalFundingRequests
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/dealStatusOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each deal status
+      const dealStatusOccurrences = {
+          interested: 0,
+          notInterested: 0
+      };
+
+      // Initialize a variable to store the total number of deals
+      let totalDeals = 0;
+
+      // Iterate through each user and their funding requests
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest) {
+              totalDeals += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const dealStatus = request.interested ? 'interested' : 'notInterested';
+                  // Increment the occurrence count for the deal status
+                  dealStatusOccurrences[dealStatus]++;
+              });
+          }
+      });
+
+      res.json({
+          dealStatusOccurrences,
+          totalDeals
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/refFromOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each refFrom value
+      const refFromOccurrences = {};
+
+      // Iterate through each user and their refFrom values
+      Object.values(users).forEach(user => {
+          const refFrom = user.refFrom;
+
+          // Increment the occurrence count for the refFrom value
+          if (refFrom) {
+              refFromOccurrences[refFrom] = (refFromOccurrences[refFrom] || 0) + 1;
+          }
+      });
+
+      res.json({
+          refFromOccurrences
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
   module.exports = router;

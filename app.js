@@ -1733,6 +1733,35 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+app.put('/updateDealStatus/:fundingRequestId', async (req, res) => {
+  try {
+    const fundingRequestId = req.params.fundingRequestId;
+    const { dealStatus } = req.body;
+
+    // Check if the deal status is valid
+    if (dealStatus !== 'interested' && dealStatus !== 'notInterested') {
+      return res.status(400).json({ error: 'Invalid deal status' });
+    }
+
+    // Get the user ID associated with the funding request
+    const snapshot = await usersRef.orderByChild(`fundingRequest/${fundingRequestId}`).equalTo(true).once('value');
+    const userId = Object.keys(snapshot.val())[0];
+
+    // Check if the user and funding request exist
+    if (!userId) {
+      return res.status(404).json({ error: 'Funding request not found' });
+    }
+
+    // Update the deal status for the funding request
+    await usersRef.child(`${userId}/fundingRequest/${fundingRequestId}/interested`).set(dealStatus === 'interested');
+
+    res.json({ message: 'Deal status updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 // end
   
