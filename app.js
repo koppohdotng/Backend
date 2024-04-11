@@ -11,6 +11,9 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const { google } = require('googleapis');
+
+const key = require('./serviceAccountKey.json');
 var postmark = require("postmark");
 //const axios = require('axios');
 app.use(express.static(__dirname));
@@ -60,6 +63,7 @@ app.use(function onError(err, req, res, next) {
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
+
 
 
 
@@ -128,7 +132,9 @@ app.get('/', (req, res) => {
 
 app.get('/a', (req, res) => {
   res.send('Welcome to Koppoh, Express yourself!');
-   
+ 
+  
+
  
 // client.sendEmail({
 //   "From": "info@koppoh.com",
@@ -160,6 +166,34 @@ client.sendEmailWithTemplate({
 
 });
 
+
+router.post('/deactivateAdmin/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch the admin from the database using the userId
+    const adminSnapshot = await admin.database().ref(`/users/${userId}`).once('value');
+    const adminData = adminSnapshot.val();
+
+    if (!adminData) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    // Create a new object with updated values 
+    const updatedAdminData = {
+      
+      deactivate: true, // New field added and set to true
+    };
+
+    // Update the admin in the database with the new object
+    await admin.database().ref(`/users/${userId}`).update(updatedAdminData);
+
+    res.json({ message: 'user deactivated successfully', userId: userId });
+  } catch (error) {
+    console.error('Error deactivating admin:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
