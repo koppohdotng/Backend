@@ -167,34 +167,6 @@ client.sendEmailWithTemplate({
 });
 
 
-router.post('/deactivateAdmin/:userId', async (req, res) => {
-  try {
-    const userId = req.params.userId;
-
-    // Fetch the admin from the database using the userId
-    const adminSnapshot = await admin.database().ref(`/users/${userId}`).once('value');
-    const adminData = adminSnapshot.val();
-
-    if (!adminData) {
-      return res.status(404).json({ error: 'Admin not found' });
-    }
-
-    // Create a new object with updated values 
-    const updatedAdminData = {
-      
-      deactivate: true, // New field added and set to true
-    };
-
-    // Update the admin in the database with the new object
-    await admin.database().ref(`/users/${userId}`).update(updatedAdminData);
-
-    res.json({ message: 'user deactivated successfully', userId: userId });
-  } catch (error) {
-    console.error('Error deactivating admin:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
 
 
 app.get('/api/user/:userId', (req, res) => {
