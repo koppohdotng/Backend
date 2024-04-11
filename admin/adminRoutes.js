@@ -59,7 +59,7 @@ router.post('/deactivateUser/:userId', async (req, res) => {
     const adminData = adminSnapshot.val();
 
     if (!adminData) {
-      return res.status(404).json({ error: 'Admin not found' });
+      return res.status(404).json({ error: 'user not found' });
     }
 
     // Create a new object with updated values 
