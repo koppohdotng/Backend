@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Funding Request Form</title>
+<style>
+  /* CSS styles */
+
+  body{ background-color: red;}
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+  }
+  input[type="text"],
+  textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  input[type="file"] {
+    margin-top: 5px;
+  }
+  input[type="checkbox"] {
+    margin-top: 5px;
+    margin-bottom: 15px;
+  }
+  input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  input[type="submit"]:hover {
+    background-color: #45a049;
+  }
+</style>
+</head>
+<body>
+
+<form id="updateForm">
+  <label for="date">Date:</label>
+  <input type="text" id="date" name="date" value="2024-04-07">
+
+  <label for="problem">Problem:</label>
+  <textarea id="problem" name="problem">Sample Problem</textarea>
+
+  <label for="solution">Solution:</label>
+  <textarea id="solution" name="solution">Sample Solution</textarea>
+
+  <label for="stage">Stage:</label>
+  <input type="text" id="stage" name="stage" value="Sample Stage">
+
+  <label for="currency">Currency:</label>
+  <input type="text" id="currency" name="currency" value="USD">
+
+  <label for="fundingAmount">Funding Amount:</label>
+  <input type="text" id="fundingAmount" name="fundingAmount" value="100000">
+
+  <label for="businessModel">Business Model:</label>
+  <textarea id="businessModel" name="businessModel">Sample Business Model</textarea>
+
+  <label for="reviewstage">Review Stage:</label>
+  <input type="text" id="reviewstage" name="reviewstage" value="Sample Review Stage">
+
+  <label>Use of Funds:</label>
+  <input type="text" id="product" name="useOfFunds[product]" value="Product Development">
+  <input type="text" id="saleAndMarketing" name="useOfFunds[saleAndMarketing]" value="Sales and Marketing">
+  <input type="text" id="researchAndDevelopment" name="useOfFunds[researchAndDevelopment]" value="Research and Development">
+  <input type="text" id="capitalExpenditure" name="useOfFunds[capitalExpenditure]" value="Capital Expenditure">
+  <input type="text" id="operation" name="useOfFunds[operation]" value="Operation">
+  <input type="text" id="other" name="useOfFunds[other]" value="Other">
+
+  <label for="financials">Financials:</label>
+  <textarea id="financials" name="financials">Sample Financials</textarea>
+
+  <!-- File upload fields -->
+  <label for="businessPlanFile">Business Plan File:</label>
+  <input type="file" id="businessPlanFile" name="businessPlanFile">
+
+  <label for="bankStatementFile">Bank Statement File:</label>
+  <input type="file" id="bankStatementFile" name="bankStatementFile">
+
+  <label for="cashFlowAnalysisFile">Cash Flow Analysis File:</label>
+  <input type="file" id="cashFlowAnalysisFile" name="cashFlowAnalysisFile">
+
+  <label for="financialFile">Financial File:</label>
+  <input type="file" id="financialFile" name="financialFile">
+
+  <label for="pitchdeck">Pitch Deck File:</label>
+  <input type="file" id="pitchdeck" name="pitchdeck">
+
+  <label for="valuation">Valuation File:</label>
+  <input type="file" id="valuation" name="valuation">
+
+  <label for="captable">Cap Table File:</label>
+  <input type="file" id="captable" name="captable">
+
+  <label for="financialmodel">Financial Model File:</label>
+  <input type="file" id="financialmodel" name="financialmodel">
+
+  <label for="founderagreement">Founder Agreement File:</label>
+  <input type="file" id="founderagreement" name="founderagreement">
+
+  <label for="taxclearance">Tax Clearance File:</label>
+  <input type="file" id="taxclearance" name="taxclearance">
+
+  <input type="submit" value="Submit">
+</form>
+
+<script>
+  // JavaScript to handle form submission
+  document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+    const userId = '2af9j4S7cWZO8xLMQp3gu406FJY2'; // Replace with actual user ID
+    const fundingRequestId = '-NumvLW4EnPeo9u6jw9Z'; // Replace with actual funding request ID
+
+    fetch(`https://koppoh-41a7d984a436.herokuapp.com/updateFundingRequest/${userId}/${fundingRequestId}`, {
+      method: 'PUT',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      // Handle response data as needed
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      // Handle errors
+    });
+  });
+</script>
+
+</body>
+</html>
