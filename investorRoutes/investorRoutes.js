@@ -93,7 +93,7 @@ router.post('/signup', (req, res) => {
                             uid: userRecord.uid,
                             emailVerification,
                             firstTime,
-                            refFrom,
+                            
                             Date: currentDate.toISOString(),
                             signupdate: dateInSeconds,
                             verifyNumber: randomNumber,
