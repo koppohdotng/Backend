@@ -52,17 +52,13 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
   
   });
 
-router.post('/signup', (req, res) => {
+
+  router.post('/signup', (req, res) => {
     const { firstName, lastName, email, password, organisation } = req.body;
-    // Function to generate a random 6-digit number
-    function generateRandomNumber() {
-        return Math.floor(Math.random() * 900000) + 100000;
-    }
-    // Call the function to generate a random 6-digit number
-    var randomNumber = generateRandomNumber();
-    
-    // Output the result
-    console.log(randomNumber);
+
+    // Generate a unique verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+
     admin
         .auth()
         .getUserByEmail(email)
@@ -83,9 +79,9 @@ router.post('/signup', (req, res) => {
                         // User signed up successfully
                         const emailVerification = false;
                         const firstTime = true;
-                        let currentDate = new Date();
+                        const currentDate = new Date();
                         const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
-                        
+
                         const userData = {
                             firstName,
                             lastName,
@@ -93,24 +89,27 @@ router.post('/signup', (req, res) => {
                             uid: userRecord.uid,
                             emailVerification,
                             firstTime,
-                            
                             Date: currentDate.toISOString(),
                             signupdate: dateInSeconds,
-                            verifyNumber: randomNumber,
+                            verificationToken, // Add verification token to user data
                             organisation: organisation || null, // Make organisation optional
                         };
-                        
+
                         // Store user data in Firebase Realtime Database under "investors" node
                         const db = admin.database();
-                        const investorsRef = db.ref('investors'); // Change reference to "investors"
-                        
+                        const investorsRef = db.ref('investors');
+
                         try {
                             investorsRef.child(userRecord.uid).set(userData, (error) => {
                                 if (error) {
                                     // Handle database error
                                     console.error('Database error:', error);
-                                    res.status(500).json({ error: 'Database error' }, error);
+                                    res.status(500).json({ error: 'Database error' });
                                 } else {
+                                    // Send verification email with link
+                                    const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+                                    sendVerificationEmail(email, verificationLink);
+
                                     // Data stored successfully
                                     res.status(201).json({ message: 'Signup successful', user: userData });
                                 }
@@ -124,7 +123,7 @@ router.post('/signup', (req, res) => {
                     .catch((signupError) => {
                         // Handle signup errors
                         console.error('Signup error:', signupError);
-                        res.status(400).json({ error: 'Signup failed' }, signupError);
+                        res.status(400).json({ error: 'Signup failed' });
                     });
             } else {
                 // Handle other errors that may occur while checking the email
@@ -132,26 +131,60 @@ router.post('/signup', (req, res) => {
                 res.status(500).json({ error: 'Server error' });
             }
         });
-        
+});
+
+// Helper function to send verification email
+function sendVerificationEmail(email, verificationLink) {
     client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
         To: email,
-        TemplateId: '33232370',
+        TemplateId: '5356090',
         TemplateModel: {
-            firstName,
-            verifyNumber: randomNumber,
+            verificationLink,
         },
     })
-    // .then((response) => {
-    //     console.log('Email sent successfully:', response);
-    //     res.status(201).json({ message: 'Signup successful',});
-    // })
-    // .catch((error) => {
-    //     console.error('Email sending error:');
-    //     res.status(500).json({ error: 'Email sending error'});
-    //     return; // Add this line to stop the function execution
-    // })
+    .catch((error) => {
+        console.error('Email sending error:', error);
+    });
+}
+
+// Router endpoint to handle email verification
+router.get('/confirm-verification', (req, res) => {
+    const { email, token } = req.query;
+
+    // Get the user data from the Realtime Database
+    const db = admin.database();
+    const investorsRef = db.ref('investors');
+
+    investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
+        const userData = snapshot.val();
+        if (!userData) {
+            // If the email doesn't exist, return an error response
+            return res.status(404).json({ error: 'Email not found' });
+        }
+
+        // If the email exists, check if the verification token matches
+        const userId = Object.keys(userData)[0];
+        const storedToken = userData[userId].verificationToken;
+
+        if (token === storedToken) {
+            // Update email verification status
+            investorsRef.child(userId).update({ emailVerification: true });
+
+            res.status(200).json({ message: 'Email verification successful' });
+        } else {
+            res.status(400).json({ error: 'Invalid verification token' });
+        }
+    })
+    .catch((error) => {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ error: 'Server error' });
+    });
 });
+
+
+
+
 
 router.post('/check-email', async (req, res) => {
     const { email } = req.body;
@@ -213,34 +246,7 @@ function generateRandomNumber() {
 }
 
 
-router.post('/confirm-verification', (req, res) => {
-    const { email, verifyNumber } = req.body;
 
-    // Get the user data from the Realtime Database
-    const db = admin.database();
-    const investorsRef = db.ref('investors');
-    
-    investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
-        const userData = snapshot.val();
-        if (!userData) {
-            // If the email doesn't exist, return an error response
-            return res.status(404).json({ error: 'Email not found' });
-        }
-
-        // If the email exists, check if the verification number matches
-        const userId = Object.keys(userData)[0];
-        const storedVerifyNumber = userData[userId].verifyNumber;
-
-        if (verifyNumber === storedVerifyNumber) {
-            res.status(200).json({ message: 'Verification successful' });
-        } else {
-            res.status(400).json({ error: 'Verification code does not match' });
-        }
-    }, (error) => {
-        console.error('Error fetching user data:', error);
-        res.status(500).json({ error: 'Server error' });
-    });
-});
 
 router.get('/get-investor-data/:investorId', (req, res) => {
     const investorId = req.params.investorId;
