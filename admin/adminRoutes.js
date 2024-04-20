@@ -1348,6 +1348,78 @@ router.get('/refFromOccurrences', async (req, res) => {
   }
 });
 
+router.get('/analyticsData', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val() || {};
+
+      // Initialize variables to store data for each metric
+      let totalUsers = 0;
+      let completeUsers = 0;
+      let totalFundingRequests = 0;
+      let reviewStageOccurrences = {};
+      let dealStatusOccurrences = {
+          interested: 0,
+          notInterested: 0
+      };
+      let refFromOccurrences = {};
+
+      // Calculate total number of users and number of users with profile completeness of 100%
+      totalUsers = Object.keys(users).length;
+      completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
+
+      // Iterate through each user for review stage and deal status occurrences
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest) {
+              totalFundingRequests += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const reviewStage = request.reviewstage;
+                  const dealStatus = request.interested ? 'interested' : 'notInterested';
+                  // Increment the occurrence count for the review stage
+                  if (reviewStage) {
+                      reviewStageOccurrences[reviewStage] = (reviewStageOccurrences[reviewStage] || 0) + 1;
+                  }
+                  // Increment the occurrence count for the deal status
+                  dealStatusOccurrences[dealStatus]++;
+              });
+          }
+      });
+
+      // Iterate through each user for refFrom occurrences
+      Object.values(users).forEach(user => {
+          const refFrom = user.refFrom;
+          // Increment the occurrence count for the refFrom value
+          if (refFrom) {
+              refFromOccurrences[refFrom] = (refFromOccurrences[refFrom] || 0) + 1;
+          }
+      });
+
+      // Calculate incomplete users
+      const incompleteUsers = totalUsers - completeUsers;
+
+      // Calculate percentage of complete and incomplete users
+      const completePercentage = (completeUsers / totalUsers) * 100;
+      const incompletePercentage = 100 - completePercentage;
+
+      res.json({
+          totalUsers: totalUsers,
+          completeUsers: completeUsers,
+          incompleteUsers: incompleteUsers,
+          completePercentage: completePercentage.toFixed(2),
+          incompletePercentage: incompletePercentage.toFixed(2),
+          totalFundingRequests: totalFundingRequests,
+          reviewStageOccurrences: reviewStageOccurrences,
+          dealStatusOccurrences: dealStatusOccurrences,
+          refFromOccurrences: refFromOccurrences
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
   module.exports = router;
