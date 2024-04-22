@@ -59,7 +59,12 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
     const { firstName, lastName, email, password, organisation } = req.body;
 
     // Generate a unique verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    function generateRandomNumber() {
+        return Math.floor(Math.random() * 900000) + 100000;
+      }
+      // Call the function to generate a random 6-digit number
+    
+    const verificationToken = generateRandomNumber()
 
     admin
         .auth()
