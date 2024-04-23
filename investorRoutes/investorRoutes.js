@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
-const crypto = require('crypto');
+// const crypto = require('crypto');
 
 
 // Initialize Firebase Admin SDK with your service account key
@@ -64,8 +64,8 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
       }
       // Call the function to generate a random 6-digit number
     
-    const verificationToken = generateRandomNumber()
-
+    var verificationToken = generateRandomNumber()
+    console.log(verificationToken);
     admin
         .auth()
         .getUserByEmail(email)
