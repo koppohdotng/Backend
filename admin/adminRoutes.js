@@ -325,7 +325,7 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
 //     }
 //   });
 
-
+// hi sir
 
   router.post('/confirm-number', async (req, res) => {
     try {
@@ -379,22 +379,36 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
 
   router.get('/admins', async (req, res) => {
     try {
-      const snapshot = await admin.database().ref('/admins').once('value');
-      const admins = snapshot.val();
-  
-      // Extract usernames and dateOfOnboarding
-      const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
-        adminId: adminId,
-        adminData: adminData
-        
-      }));
-  
-      res.json(adminDetails);
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10; // Default page size is 10
+
+        // Calculate the starting index of items based on pagination parameters
+        const startIndex = (page - 1) * pageSize;
+
+        const snapshot = await admin.database().ref('/admins').once('value');
+        const admins = snapshot.val();
+
+        // Convert admins object to array of admin details
+        const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
+            adminId: adminId,
+            adminData: adminData
+        }));
+
+        // Apply pagination
+        const paginatedAdmins = adminDetails.slice(startIndex, startIndex + pageSize);
+
+        res.json({
+            admins: paginatedAdmins,
+            currentPage: page,
+            totalPages: Math.ceil(adminDetails.length / pageSize)
+        });
     } catch (error) {
-      console.error('Error fetching admins:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error fetching admins:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
+
 
 router.post('/createAdmins', async (req, res) => {
     try {
