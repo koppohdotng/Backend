@@ -34,110 +34,237 @@ admin.initializeApp({
 
 
 // Define a route for user signup
-router.post('/signup', (req, res) => {
-  const { firstName, lastName, email, password, refFrom } = req.body;
-  // Function to generate a random 6-digit number
-function generateRandomNumber() {
-  return Math.floor(Math.random() * 900000) + 100000;
-}
-// Call the function to generate a random 6-digit number
-var randomNumber = generateRandomNumber();
+// router.post('/signup', (req, res) => {
+//   const { firstName, lastName, email, password, refFrom } = req.body;
+//   // Function to generate a random 6-digit number
+// function generateRandomNumber() {
+//   return Math.floor(Math.random() * 900000) + 100000;
+// }
+// // Call the function to generate a random 6-digit number
+// var randomNumber = generateRandomNumber();
 
-// Output the result
-console.log(randomNumber);
-  admin
-      .auth()
-      .getUserByEmail(email)
-      .then(() => {
-        // If the email already exists, return an error response
-        res.status(400).json({ error: 'Email already exists' });
-      })
-      .catch((getUserError) => {
-        if (getUserError.code === 'auth/user-not-found') {
-            // const signupDate= new Date();
-          // If the email does not exist, create a new user in Firebase Authentication
-          admin
-            .auth()
-            .createUser({
-              email,
-              password,
-            })
-            .then((userRecord) => {
-              // User signed up successfully
-              const emailVerification = false;
-              const firstTime = true;
-              let currentDate = new Date();
+// // Output the result
+// console.log(randomNumber);
+//   admin
+//       .auth()
+//       .getUserByEmail(email)
+//       .then(() => {
+//         // If the email already exists, return an error response
+//         res.status(400).json({ error: 'Email already exists' });
+//       })
+//       .catch((getUserError) => {
+//         if (getUserError.code === 'auth/user-not-found') {
+//             // const signupDate= new Date();
+//           // If the email does not exist, create a new user in Firebase Authentication
+//           admin
+//             .auth()
+//             .createUser({
+//               email,
+//               password,
+//             })
+//             .then((userRecord) => {
+//               // User signed up successfully
+//               const emailVerification = false;
+//               const firstTime = true;
+//               let currentDate = new Date();
                     
 
-                    const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000)
+//                     const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000)
               
-              const userData = {
-                firstName,
-                lastName,
-                email,
-                uid: userRecord.uid,
-                emailVerification,
-                firstTime,
-                refFrom,
-                Date: currentDate.toISOString(),
-                signupdate : dateInSeconds,
-                verifyNumber: randomNumber
-              };
+//               const userData = {
+//                 firstName,
+//                 lastName,
+//                 email,
+//                 uid: userRecord.uid,
+//                 emailVerification,
+//                 firstTime,
+//                 refFrom,
+//                 Date: currentDate.toISOString(),
+//                 signupdate : dateInSeconds,
+//                 verifyNumber: randomNumber
+//               };
   
-              // Store user data in Firebase Realtime Database (or Firsestore)
-              const db = admin.database();
-              const usersRef = db.ref('users');
+//               // Store user data in Firebase Realtime Database (or Firsestore)
+//               const db = admin.database();
+//               const usersRef = db.ref('users');
 
-              try {
-                usersRef.child(userRecord.uid).set(userData, (error) => {
-                  if (error) {
-                    // Handle database error
-                    console.error('Database error:', error);
-                    res.status(500).json({ error: 'Database error' },error);
-                  } else {
-                    // Data stored successfully
-                    res.status(201).json({ message: 'Signup successful', user: userData });
-                  }
-                });
-              } catch (databaseError) {
-                // Handle any unexpected database error
-                console.error('Unexpected database error:', databaseError);
-                res.status(500).json({ error: 'Server error' });
-              }
-            })
-            .catch((signupError) => {
-              // Handle signup errors
-              console.error('Signup error:', signupError);
-              res.status(400).json({ error: 'Signup failed' }), signupError;
-            });
-        } else {
-          // Handle other errors that may occur while checking the email
-          console.error('Email check error:', getUserError);
-          res.status(500).json({ error: 'Server error' });
-        }
-      });
+//               try {
+//                 usersRef.child(userRecord.uid).set(userData, (error) => {
+//                   if (error) {
+//                     // Handle database error
+//                     console.error('Database error:', error);
+//                     res.status(500).json({ error: 'Database error' },error);
+//                   } else {
+//                     // Data stored successfully
+//                     res.status(201).json({ message: 'Signup successful', user: userData });
+//                   }
+//                 });
+//               } catch (databaseError) {
+//                 // Handle any unexpected database error
+//                 console.error('Unexpected database error:', databaseError);
+//                 res.status(500).json({ error: 'Server error' });
+//               }
+//             })
+//             .catch((signupError) => {
+//               // Handle signup errors
+//               console.error('Signup error:', signupError);
+//               res.status(400).json({ error: 'Signup failed' }), signupError;
+//             });
+//         } else {
+//           // Handle other errors that may occur while checking the email
+//           console.error('Email check error:', getUserError);
+//           res.status(500).json({ error: 'Server error' });
+//         }
+//       });
       
-      client.sendEmailWithTemplate({
-        From: 'info@koppoh.com',
-        To: email,
-        TemplateId: '33232370',
-        TemplateModel: {
-          firstName,
-          verifyNumber: randomNumber,
-        },
-      })
-    //   .then((response) => {
-    //     console.log('Email sent successfully:', response);
-    //     res.status(201).json({ message: 'Signup successful',});
-    //   })
-    //   .catch((error) => {
-    //     console.error('Email sending error:');
-    //     res.status(500).json({ error: 'Email sending error'});
-    //     return; // Add this line to stop the function execution
-    // })
+//       client.sendEmailWithTemplate({
+//         From: 'info@koppoh.com',
+//         To: email,
+//         TemplateId: '33232370',
+//         TemplateModel: {
+//           firstName,
+//           verifyNumber: randomNumber,
+//         },
+//       })
+//     //   .then((response) => {
+//     //     console.log('Email sent successfully:', response);
+//     //     res.status(201).json({ message: 'Signup successful',});
+//     //   })
+//     //   .catch((error) => {
+//     //     console.error('Email sending error:');
+//     //     res.status(500).json({ error: 'Email sending error'});
+//     //     return; // Add this line to stop the function execution
+//     // })
 
 
+// });
+
+
+router.post('/signup', (req, res) => {
+  const { firstName, lastName, email, password, refFrom } = req.body;
+
+  // Generate a unique verification token
+  const verificationToken = Math.random().toString(36).substr(2);
+
+  admin
+    .auth()
+    .getUserByEmail(email)
+    .then(() => {
+      // If the email already exists, return an error response
+      res.status(400).json({ error: 'Email already exists' });
+    })
+    .catch((getUserError) => {
+      if (getUserError.code === 'auth/user-not-found') {
+        // If the email does not exist, create a new user in Firebase Authentication
+        admin
+          .auth()
+          .createUser({
+            email,
+            password,
+          })
+          .then((userRecord) => {
+            // User signed up successfully
+            const emailVerification = false;
+            const firstTime = true;
+            const currentDate = new Date();
+            const dateInSeconds = Math.floor(currentDate.getTime() / 1000);
+
+            const userData = {
+              firstName,
+              lastName,
+              email,
+              uid: userRecord.uid,
+              emailVerification,
+              firstTime,
+              refFrom,
+              Date: currentDate.toISOString(),
+              signupdate: dateInSeconds,
+              verifyToken: verificationToken, // Add verification token to user data
+            };
+
+            // Store user data in Firebase Realtime Database (or Firestore)
+            const db = admin.database();
+            const usersRef = db.ref('users');
+
+            usersRef.child(userRecord.uid).set(userData, (error) => {
+              if (error) {
+                // Handle database error
+                console.error('Database error:', error);
+                res.status(500).json({ error: 'Database error' });
+              } else {
+                // Send email with confirmation link
+                const confirmationLink = `https://koppoh.ng/confirm-email?token=${verificationToken}`;
+                client.sendEmailWithTemplate({
+                  From: 'info@koppoh.com',
+                  To: email,
+                  TemplateId: '33232370', // Your template ID
+                  TemplateModel: {
+                    firstName,
+                    confirmationLink,
+                  },
+                })
+                .then(() => {
+                  // Email sent successfully
+                  res.status(201).json({ message: 'Signup successful', user: userData });
+                })
+                .catch((emailError) => {
+                  // Handle email sending error
+                  console.error('Email sending error:', emailError);
+                  res.status(500).json({ error: 'Email sending error' });
+                });
+              }
+            });
+          })
+          .catch((signupError) => {
+            // Handle signup errors
+            console.error('Signup error:', signupError);
+            res.status(400).json({ error: 'Signup failed' });
+          });
+      } else {
+        // Handle other errors that may occur while checking the email
+        console.error('Email check error:', getUserError);
+        res.status(500).json({ error: 'Server error' });
+      }
+    });
 });
+
+router.get('/confirm-email', (req, res) => {
+  const { token } = req.query;
+
+  // Check if token is provided
+  if (!token) {
+    return res.status(400).json({ error: 'Verification token is missing' });
+  }
+
+  // Find the user with the provided token
+  admin.database().ref('users').orderByChild('verifyToken').equalTo(token).once('value')
+    .then((snapshot) => {
+      const userData = snapshot.val();
+      if (!userData) {
+        return res.status(404).json({ error: 'Invalid verification token' });
+      }
+
+      // Get the user ID associated with the token
+      const userId = Object.keys(userData)[0];
+
+      // Update email verification status to true
+      admin.database().ref(`users/${userId}`).update({ emailVerification: true })
+        .then(() => {
+          res.status(200).json({ message: 'Email verification successful' });
+        })
+        .catch((updateError) => {
+          console.error('Error updating email verification status:', updateError);
+          res.status(500).json({ error: 'Server error' });
+        });
+    })
+    .catch((error) => {
+      console.error('Error finding user by verification token:', error);
+      res.status(500).json({ error: 'Server error' });
+    });
+});
+
+
+
 
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
