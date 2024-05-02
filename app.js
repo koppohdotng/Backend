@@ -764,6 +764,98 @@ app.post('/loanRequest/:userId', upload.fields([
     });
 });
 
+app.post('/bulkEquity/:userId', upload.fields([
+  { name: 'pitchDeckFile', maxCount: 1 },
+]), (req, res) => {
+  const userId = req.params.userId;
+  const {
+    problem,
+    solution,
+    UVP,
+    businessType,
+    totalRevenue,
+  } = req.body;
+
+  // Handle file uploads
+  const files = req.files;
+  const uploadPromises = [];
+  const fileUrls = {};
+  if (files) {
+    Object.keys(files).forEach((key) => {
+      const file = files[key][0];
+      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const bucket = admin.storage().bucket();
+      const fileRef = bucket.file(fileName);
+
+      const stream = fileRef.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      const uploadPromise = new Promise((resolve, reject) => {
+        stream.on('finish', () => {
+          fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+            .then(downloadUrls => {
+              fileUrls[key] = downloadUrls[0];
+              resolve();
+            })
+            .catch(error => {
+              console.error(`Error generating download URL for ${key} file:`, error);
+              reject(`Failed to generate ${key} file URL.`);
+            });
+        });
+
+        stream.on('error', (err) => {
+          console.error(`Error uploading ${key} file:`, err);
+          reject(`Failed to upload ${key} file.`);
+        });
+
+        stream.end(file.buffer);
+      });
+
+      uploadPromises.push(uploadPromise);
+    });
+  }
+
+  // Wait for all file uploads to complete
+  Promise.all(uploadPromises)
+    .then(() => {
+      // Create a bulk equity data object with the provided fields and file URLs
+      const bulkEquityData = {
+        problem,
+        solution,
+        UVP,
+        businessType,
+        totalRevenue,
+        pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+      };
+
+      // Update the bulk equity data
+      const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update bulk equity data.'});
+        } else {
+          const newKey = newRef.key;
+
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+            savedData.bulkEquityId = newKey;
+            res.status(200).json({
+              message: 'Bulk equity data updated successfully.',
+              savedData: savedData
+            });
+          });
+        }
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ error });
+    });
+});
+
 
 app.post('/equityRequest/:userId', upload.fields([
   { name: 'pitchdeck', maxCount: 1 },
