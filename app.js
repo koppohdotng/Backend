@@ -338,13 +338,16 @@ app.use('/investorRoutes',investorRoutes);
 
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
-  const { firstName, lastName, country, phoneNumber, role, linkedIn } = req.body;
+  const { firstName, lastName, country, phoneNumber, role, linkedIn, gender } = req.body;
 
   // Check if the provided data is available for update
   const updatedUserData = {};
 
   if (firstName) {
     updatedUserData.firstName = firstName;
+  }
+  if (gender) {
+    updatedUserData.firstName = gender;
   }
   if (lastName) {
     updatedUserData.lastName = lastName;
@@ -379,8 +382,9 @@ app.put('/api/update-user/:uid', (req, res) => {
       if (updatedUserData.phoneNumber) count++;
       if (updatedUserData.role) count++;
       if (updatedUserData.linkedIn) count++;
+      if (updatedUserData.gender) count++;
 
-      const profileCompleteness = (count / 6) * 100;
+      const profileCompleteness = (count / 7) * 100;
 
       // Update profile completeness in the database
       usersRef.child(userId).update({ profileCompleteness : profileCompleteness});
@@ -407,7 +411,7 @@ const upload = multer({ storage });
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
-  const { name, role } = req.body;
+  const { name, role, gender } = req.body;
 
   // Check if name and role are provided (compulsory fields)
   if (!name || !role) {
@@ -421,7 +425,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   // Create a new teammate object
   const newTeammate = {
     name,
-    role,
+    role, gender,
     imageURL: '', // Initialize the imageURL field
   };
 
