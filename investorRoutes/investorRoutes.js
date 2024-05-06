@@ -383,5 +383,55 @@ router.put('/update-investor/organisation/:uid', (req, res) => {
       });
   });
 
+  router.put('/update-fundCriteria/:uid', (req, res) => {
+    const userId = req.params.uid; // Get the user's UID from the URL
+    const { 
+        fundName, 
+        totalFund, 
+        availableFund, 
+        fundKickoffDate, 
+        minSize, 
+        maxSize, 
+        preferredIndustries, 
+        businessStages, 
+        investmentStages, 
+        businessModel, 
+        genderComposition, 
+        regions, 
+        countries 
+    } = req.body;
+  
+    // Fund criteria data
+    const fundCriteriaData = {
+        fundName,
+        totalFund,
+        availableFund,
+        fundKickoffDate,
+        minSize,
+        maxSize,
+        preferredIndustries,
+        businessStages,
+        investmentStages,
+        businessModel,
+        genderComposition,
+        regions,
+        countries
+    };
+
+    // Update the fund criteria data in the Firebase Realtime Database
+    const db = admin.database();
+    const fundCriteriaRef = db.ref(`users/${userId}/fundCriteria`);
+
+    fundCriteriaRef
+      .update(fundCriteriaData)
+      .then(() => {
+        res.status(200).json({ message: 'Fund criteria updated successfully' });
+      })
+      .catch((error) => {
+        console.error('Update fund criteria error:', error);
+        res.status(500).json({ error: 'Failed to update fund criteria' });
+      });
+});
+
 
 module.exports = router;
