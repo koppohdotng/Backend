@@ -411,7 +411,7 @@ const upload = multer({ storage });
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
-  const { name, role, gender } = req.body;
+  const { name, role, gender, experience } = req.body;
 
   // Check if name and role are provided (compulsory fields)
   if (!name || !role) {
@@ -426,6 +426,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   const newTeammate = {
     name,
     role, gender,
+    experience,
     imageURL: '', // Initialize the imageURL field
   };
 
@@ -498,6 +499,8 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     businessRCNumber,
     yearOfIncorporation,
     businessSector,
+    genderComposition,
+    targetAudience,
   } = req.body;
 
   // Handle image upload and generate a download URL
@@ -531,6 +534,9 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
             ...(businessRCNumber && { businessRCNumber }),
             ...(yearOfIncorporation && { yearOfIncorporation }),
             ...(businessSector && { businessSector }),
+            ...(genderComposition && {genderComposition }),
+            ...(targetAudience && {targetAudience}),
+            
             logoUrl: imageUrl, // Always include the logo URL
           };
 

@@ -271,20 +271,17 @@ router.post('/resendVerification', async (req, res) => {
 
   try {
     // Check if the user exists in Firebase Authentication
-    const userRecord = await admin.auth().getUserByEmail(email);
-
-    function generateRandomNumber() {
-      return Math.floor(Math.random() * 900000) + 100000;
-    }
-    // Generate a new random 6-digit number
-    const newRandomNumber = generateRandomNumber();
+    const verificationToken = Math.random().toString(36).substr(2);
+    
+    const confirmationLink = `https://koppoh.ng/confirm-email?token=${verificationToken}`;
+            
 
     // Update the user's verification number in the database
     const db = admin.database();
     const usersRef = db.ref('users');
 
     const userData = {
-      verifyNumber: newRandomNumber,
+      verifyToken: verificationToken
     };
 
     await usersRef.child(userRecord.uid).update(userData);
@@ -293,9 +290,10 @@ router.post('/resendVerification', async (req, res) => {
     await client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
       To: email,
-      TemplateId: '33232370',
+      TemplateId: '33232370', // Your template ID
       TemplateModel: {
-        verifyNumber: newRandomNumber,
+        firstName,
+        confirmationLink,
       },
     });
 
