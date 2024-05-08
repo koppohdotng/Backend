@@ -115,7 +115,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
                                 } else {
                                     // Send verification email with link
                                     const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
-                                    sendVerificationEmail(email, verificationLink);
+                                    sendVerificationEmail(email,firstName, verificationLink);
 
                                     // Data stored successfully
                                     res.status(201).json({ message: 'Signup successful', user: userData });
@@ -139,15 +139,46 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             }
         });
 });
+router.post('/resend-verification', (req, res) => {
+  const { email } = req.body;
+
+  admin
+      .auth()
+      .getUserByEmail(email)
+      .then((userRecord) => {
+          // If user exists, resend verification email
+          const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
+          const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+          sendVerificationEmail(email, userRecord.firstName, verificationLink);
+
+          // Update verification token in user data
+          const db = admin.database();
+          const investorsRef = db.ref('investors');
+          investorsRef.child(userRecord.uid).update({ verificationToken });
+
+          res.status(200).json({ message: 'Verification email resent successfully' });
+      })
+      .catch((error) => {
+          if (error.code === 'auth/user-not-found') {
+              // If user doesn't exist, return an error response
+              res.status(404).json({ error: 'User not found' });
+          } else {
+              // Handle other errors
+              console.error('Resend verification error:', error);
+              res.status(500).json({ error: 'Server error' });
+          }
+      });
+});
 
 // Helper function to send verification email
-function sendVerificationEmail(email, verificationLink) {
+function sendVerificationEmail(email, firstName, verificationLink) {
     client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
         To: email,
-        TemplateId: '5356090',
+        TemplateId: '33232370',
         TemplateModel: {
             verificationLink,
+            firstName
         },
     })
     .catch((error) => {
@@ -157,40 +188,48 @@ function sendVerificationEmail(email, verificationLink) {
 
 // Router endpoint to handle email verification
 router.get('/confirm-verification', (req, res) => {
-    const { email, token } = req.query;
+  const { email, token } = req.query;
 
-    // Get the user data from the Realtime Database
-    const db = admin.database();
-    const investorsRef = db.ref('investors');
+  // Get the user data from the Realtime Database
+  const db = admin.database();
+  const investorsRef = db.ref('investors');
 
-    investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
-        const userData = snapshot.val();
-        if (!userData) {
-            // If the email doesn't exist, return an error response
-            return res.status(404).json({ error: 'Email not found' });
-        }
+  investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
+      const userData = snapshot.val();
+      if (!userData) {
+          // If the email doesn't exist, return an error response
+          return res.status(404).json({ error: 'Email not found' });
+      }
 
-        // If the email exists, check if the verification token matches
-        const userId = Object.keys(userData)[0];
-        const storedToken = userData[userId].verificationToken;
+      // If the email exists, check if the verification token matches
+      const userId = Object.keys(userData)[0];
+      const storedToken = userData[userId].verificationToken;
+      const signupdate = userData[userId].signupdate;
 
-        if (token === storedToken) {
-            // Update email verification status
-            investorsRef.child(userId).update({ emailVerification: true });
+      // Check if the token matches and the signupdate is within the last 30 minutes
+      if (token === storedToken) {
+          const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+          const timeDifference = currentTimeInSeconds - signupdate;
+          const thirtyMinutesInSeconds = 30 * 60; // 30 minutes in seconds
 
-            res.status(200).json({ message: 'Email verification successful' });
-        } else {
-            res.status(400).json({ error: 'Invalid verification token' });
-        }
-    })
-    .catch((error) => {
-        console.error('Error fetching user data:', error);
-        res.status(500).json({ error: 'Server error' });
-    });
+          if (timeDifference <= thirtyMinutesInSeconds) {
+              // Update email verification status
+              investorsRef.child(userId).update({ emailVerification: true });
+
+              res.status(200).json({ message: 'Email verification successful' });
+          } else {
+              // If more than 30 minutes have passed, return an error
+              res.status(400).json({ error: 'Verification link expired' });
+          }
+      } else {
+          res.status(400).json({ error: 'Invalid verification token' });
+      }
+  })
+  .catch((error) => {
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ error: 'Server error' });
+  });
 });
-
-
-
 
 
 router.post('/check-email', async (req, res) => {
@@ -206,46 +245,6 @@ router.post('/check-email', async (req, res) => {
   });
 
 
-router.post('/resend-verification', (req, res) => {
-    const { email } = req.body;
-
-    // Check if the email exists
-    admin
-        .auth()
-        .getUserByEmail(email)
-        .then(() => {
-            // If the email exists, generate a new verification number
-            const randomNumber = generateRandomNumber();
-            console.log(randomNumber);
-
-            // Send the new verification number to the email
-            client.sendEmailWithTemplate({
-                From: 'info@koppoh.com',
-                To: email,
-                TemplateId: '33232370',
-                TemplateModel: {
-                    verifyNumber: randomNumber,
-                },
-            })
-            .then(() => {
-                // Verification number sent successfully
-                res.status(200).json({ message: 'Verification number resent successfully' });
-            })
-            .catch((error) => {
-                console.error('Email sending error:', error);
-                res.status(500).json({ error: 'Email sending error' });
-            });
-        })
-        .catch((getUserError) => {
-            // If the email doesn't exist, return an error response
-            if (getUserError.code === 'auth/user-not-found') {
-                res.status(404).json({ error: 'Email not found' });
-            } else {
-                console.error('Email check error:', getUserError);
-                res.status(500).json({ error: 'Server error' });
-            }
-        });
-});
 
 // Function to generate a random 6-digit number
 function generateRandomNumber() {
@@ -255,183 +254,6 @@ function generateRandomNumber() {
 
 
 
-router.get('/get-investor-data/:investorId', (req, res) => {
-    const investorId = req.params.investorId;
-
-    // Get the user data from the Realtime Database
-    const db = admin.database();
-    const investorsRef = db.ref('investors');
-    
-    investorsRef.child(investorId).once('value', (snapshot) => {
-        const investorData = snapshot.val();
-        if (!investorData) {
-            // If the investor ID doesn't exist, return an error response
-            return res.status(404).json({ error: 'Investor not found' });
-        }
-
-        res.status(200).json({ investorData });
-    }, (error) => {
-        console.error('Error fetching investor data:', error);
-        res.status(500).json({ error: 'Server error' });
-    });
-});
-
-router.put('/update-investor/:uid', (req, res) => {
-    const userId = req.params.uid; // Get the user's UID from the URL
-    const { firstName, lastName, country, phoneNumber, role, linkedIn } = req.body;
-  
-    // Check if the provided data is available for update
-    const updatedUserData = {};
-  
-    if (firstName) {
-      updatedUserData.firstName = firstName;
-    }
-    if (lastName) {
-      updatedUserData.lastName = lastName;
-    }
-    if (country) {
-      updatedUserData.country = country;
-    }
-    if (phoneNumber) {
-      updatedUserData.phoneNumber = phoneNumber;
-    }
-    if (role) {
-      updatedUserData.role = role;
-    }
-    if (linkedIn) {
-      updatedUserData.linkedIn = linkedIn;
-    }
-  
-    // Update the user's data in the Firebase Realtime Database
-    const db = admin.database();
-    const usersRef = db.ref('investors');
-  
-    usersRef
-      .child(userId)
-      .update(updatedUserData)
-      .then(() => {
-        // Calculate profile completeness
-        let count = 0;
-  
-        if (updatedUserData.firstName) count++;
-        if (updatedUserData.lastName) count++;
-        if (updatedUserData.country) count++;
-        if (updatedUserData.phoneNumber) count++;
-        if (updatedUserData.role) count++;
-        if (updatedUserData.linkedIn) count++;
-  
-        const profileCompleteness = (count / 6) * 100;
-  
-        // Update profile completeness in the database
-        usersRef.child(userId).update({ profileCompleteness : profileCompleteness});
-  
-        res.status(200).json({ message: 'User information updated successfully', profileCompleteness });
-      })
-      .catch((error) => {
-        console.error('Update user error:', error);
-        res.status(500).json({ error: 'Failed to update user information' });
-      });
-  });
-
-router.put('/update-investor/organisation/:uid', (req, res) => {
-    const userId = req.params.uid; // Get the user's UID from the URL
-    const { 
-        organizationName, 
-        investorType, 
-        organizationWebsite, 
-        yearFounded, 
-        numberOfEmployees, 
-        regionHQ, 
-        countryHQ, 
-        localAddress, 
-        vision, 
-        mission, 
-        values, 
-        portfolio, 
-        deals 
-    } = req.body;
-  
-    // Organization data
-    const organizationData = {
-        organizationName,
-        investorType,
-        organizationWebsite,
-        yearFounded,
-        numberOfEmployees,
-        regionHQ,
-        countryHQ,
-        localAddress,
-        vision,
-        mission,
-        values,
-        portfolio,
-        deals
-    };
-
-    // Update the organization data in the Firebase Realtime Database
-    const db = admin.database();
-    const organizationRef = db.ref(`investors/${userId}/organisation`);
-
-    organizationRef
-      .update(organizationData)
-      .then(() => {
-        res.status(200).json({ message: 'Organization information updated successfully' });
-      })
-      .catch((error) => {
-        console.error('Update organization error:', error);
-        res.status(500).json({ error: 'Failed to update organization information' });
-      });
-  });
-
-  router.put('/update-fundCriteria/:uid', (req, res) => {
-    const userId = req.params.uid; // Get the user's UID from the URL
-    const { 
-        fundName, 
-        totalFund, 
-        availableFund, 
-        fundKickoffDate, 
-        minSize, 
-        maxSize, 
-        preferredIndustries, 
-        businessStages, 
-        investmentStages, 
-        businessModel, 
-        genderComposition, 
-        regions, 
-        countries 
-    } = req.body;
-  
-    // Fund criteria data
-    const fundCriteriaData = {
-        fundName,
-        totalFund,
-        availableFund,
-        fundKickoffDate,
-        minSize,
-        maxSize,
-        preferredIndustries,
-        businessStages,
-        investmentStages,
-        businessModel,
-        genderComposition,
-        regions,
-        countries
-    };
-
-    // Update the fund criteria data in the Firebase Realtime Database
-    const db = admin.database();
-    const fundCriteriaRef = db.ref(`users/${userId}/fundCriteria`);
-
-    fundCriteriaRef
-      .update(fundCriteriaData)
-      .then(() => {
-        res.status(200).json({ message: 'Fund criteria updated successfully' });
-      })
-      .catch((error) => {
-        console.error('Update fund criteria error:', error);
-        res.status(500).json({ error: 'Failed to update fund criteria' });
-      });
-});
-
+ 
 
 module.exports = router;
