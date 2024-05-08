@@ -780,6 +780,8 @@ app.post('/bulkEquity/:userId', upload.fields([
     UVP,
     businessType,
     totalRevenue,
+    stage
+
   } = req.body;
 
   // Handle file uploads
@@ -834,6 +836,7 @@ app.post('/bulkEquity/:userId', upload.fields([
         UVP,
         businessType,
         totalRevenue,
+        stage,
         pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
       };
 
