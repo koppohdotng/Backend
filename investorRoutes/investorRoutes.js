@@ -115,9 +115,11 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
                                 } else {
                                     // Send verification email with link
                                     const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+                                    
                                     sendVerificationEmail(email,firstName, verificationLink);
 
                                     // Data stored successfully
+
                                     res.status(201).json({ message: 'Signup successful', user: userData });
                                 }
                             });
@@ -149,6 +151,7 @@ router.post('/resend-verification', (req, res) => {
           // If user exists, resend verification email
           const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
           const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+          console.log(verificationLink)
           sendVerificationEmail(email, userRecord.firstName, verificationLink);
 
           // Update verification token in user data
