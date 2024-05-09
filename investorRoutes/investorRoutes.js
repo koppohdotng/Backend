@@ -224,7 +224,10 @@ router.post('/resend-verification', (req, res) => {
           // Update verification token in user data
           const db = admin.database();
           const investorsRef = db.ref('investors');
+          const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
           investorsRef.child(userRecord.uid).update({ verificationToken });
+
+          investorsRef.child(userRecord.uid).update({ signupdate });
 
           res.status(200).json({ message: 'Verification email resent successfully' });
       })
@@ -280,7 +283,7 @@ router.get('/confirm-verification', (req, res) => {
 
 
       console.log(token)
-      
+
      var tokenx = parseFloat(token);
 
       // Check if the token matches and the signupdate is within the last 30 minutes
