@@ -276,10 +276,11 @@ router.get('/confirm-verification', (req, res) => {
       const storedToken = userData[userId].verificationToken;
       const signupdate = userData[userId].signupdate;
 
-      console.log(typeof storedToken)
+      console.log(storedToken)
 
 
-      console.log(typeof token)
+      console.log(token)
+      
      var tokenx = parseFloat(token);
 
       // Check if the token matches and the signupdate is within the last 30 minutes
