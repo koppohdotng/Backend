@@ -280,7 +280,7 @@ router.get('/confirm-verification', (req, res) => {
       console.log(token)
 
       // Check if the token matches and the signupdate is within the last 30 minutes
-      if (token === storedToken) {
+      if (token == storedToken) {
           const currentTimeInSeconds = Math.floor(Date.now() / 1000);
           const timeDifference = currentTimeInSeconds - signupdate;
           const thirtyMinutesInSeconds = 30 * 60; // 30 minutes in seconds
