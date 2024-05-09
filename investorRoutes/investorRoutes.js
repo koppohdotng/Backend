@@ -229,7 +229,7 @@ router.post('/resend-verification', (req, res) => {
           investorsRef.child(userRecord.uid).update({ verificationToken });
 
           investorsRef.child(userRecord.uid).update({ signupdate });
-
+           console.log("debe")
           res.status(200).json({ message: 'Verification email resent successfully' });
       })
       .catch((error) => {
