@@ -224,6 +224,7 @@ router.post('/resend-verification', (req, res) => {
           // Update verification token in user data
           const db = admin.database();
           const investorsRef = db.ref('investors');
+          const currentDate = new Date();
           const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
           investorsRef.child(userRecord.uid).update({ verificationToken });
 
