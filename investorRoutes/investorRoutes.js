@@ -54,6 +54,73 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
   
   });
 
+  router.get('/user-details', (req, res) => {
+    const { userId } = req.query;
+
+    // Check if userId is provided
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Retrieve user details for the given userId
+    const db = admin.database();
+    const investorsRef = db.ref('investors');
+
+    investorsRef.child(userId).once('value')
+        .then(snapshot => {
+            // Check if user exists
+            if (!snapshot.exists()) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            const userDetails = snapshot.val();
+
+            // Return user details
+            return res.status(200).json({ userDetails });
+        })
+        .catch(error => {
+            console.error('Database error:', error);
+            return res.status(500).json({ error: 'Server error' });
+        });
+});
+
+  router.post('/idverify-email', (req, res) => {
+    const { userId } = req.body;
+
+    // Check if userId is provided
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Update emailVerification to true for the given userId
+    const db = admin.database();
+    const investorsRef = db.ref('investors');
+
+    investorsRef.child(userId).once('value')
+        .then(snapshot => {
+            // Check if user exists
+            if (!snapshot.exists()) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Update emailVerification to true
+            investorsRef.child(userId).update({ emailVerification: true }, error => {
+                if (error) {
+                    console.error('Database error:', error);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+
+                // Email verification updated successfully
+                return res.status(200).json({ message: 'Email verification updated successfully' });
+            });
+        })
+        .catch(error => {
+            console.error('Database error:', error);
+            return res.status(500).json({ error: 'Server error' });
+        });
+});
+
+
 
   router.post('/signup', (req, res) => {
     const { firstName, lastName, email, password, organisation } = req.body;
