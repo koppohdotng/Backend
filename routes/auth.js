@@ -229,38 +229,54 @@ router.post('/signup', (req, res) => {
 });
 
 router.get('/confirm-email', (req, res) => {
-  const { token } = req.query;
+  const { email, token } = req.query;
 
-  // Check if token is provided
-  if (!token) {
-    return res.status(400).json({ error: 'Verification token is missing' });
-  }
+  // Get the user data from the Realtime Database
+  const db = admin.database();
+  const investorsRef = db.ref('users');
 
-  // Find the user with the provided token
-  admin.database().ref('users').orderByChild('verifyToken').equalTo(token).once('value')
-    .then((snapshot) => {
+  investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
       const userData = snapshot.val();
       if (!userData) {
-        return res.status(404).json({ error: 'Invalid verification token' });
+          // If the email doesn't exist, return an error response
+          return res.status(404).json({ error: 'Email not found' });
       }
 
-      // Get the user ID associated with the token
+      // If the email exists, check if the verification token matches
       const userId = Object.keys(userData)[0];
+      const storedToken = userData[userId].verificationToken;
+      const signupdate = userData[userId].signupdate;
 
-      // Update email verification status to true
-      admin.database().ref(`users/${userId}`).update({ emailVerification: true })
-        .then(() => {
-          res.status(200).json({ message: 'Email verification successful' });
-        })
-        .catch((updateError) => {
-          console.error('Error updating email verification status:', updateError);
-          res.status(500).json({ error: 'Server error' });
-        });
-    })
-    .catch((error) => {
-      console.error('Error finding user by verification token:', error);
+      console.log(storedToken)
+
+
+      console.log(token)
+
+     var tokenx = parseFloat(token);
+
+      // Check if the token matches and the signupdate is within the last 30 minutes
+      if (tokenx == storedToken) {
+          const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+          const timeDifference = currentTimeInSeconds - signupdate;
+          const thirtyMinutesInSeconds = 30 * 60; // 30 minutes in seconds
+
+          if (timeDifference <= thirtyMinutesInSeconds) {
+              // Update email verification status
+              investorsRef.child(userId).update({ emailVerification: true });
+
+              res.status(200).json({ message: 'Email verification successful' });
+          } else {
+              // If more than 30 minutes have passed, return an error
+              res.status(400).json({ error: 'Verification link expired' });
+          }
+      } else {
+          res.status(400).json({ error: 'Invalid verification token' });
+      }
+  })
+  .catch((error) => {
+      console.error('Error fetching user data:', error);
       res.status(500).json({ error: 'Server error' });
-    });
+  });
 });
 
 
@@ -269,43 +285,37 @@ router.get('/confirm-email', (req, res) => {
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
 
-  try {
-    // Check if the user exists in Firebase Authentication
-    const verificationToken = Math.random().toString(36).substr(2);
-    
-    const confirmationLink = `https://koppoh.ng/confirm-email?token=${verificationToken}`;
-            
+  admin
+      .auth()
+      .getUserByEmail(email)
+      .then((userRecord) => {
+          // If user exists, resend verification email
+          const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
+          const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+          console.log(verificationLink)
+          sendVerificationEmail(email, userRecord.firstName, verificationLink);
 
-    // Update the user's verification number in the database
-    const db = admin.database();
-    const usersRef = db.ref('users');
+          // Update verification token in user data
+          const db = admin.database();
+          const investorsRef = db.ref('users');
+          const currentDate = new Date();
+          const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
+          investorsRef.child(userRecord.uid).update({ verificationToken });
 
-    const userData = {
-      verifyToken: verificationToken
-    };
-
-    await usersRef.child(userRecord.uid).update(userData);
-
-    // Send a verification email with the new random number
-    await client.sendEmailWithTemplate({
-      From: 'info@koppoh.com',
-      To: email,
-      TemplateId: '33232370', // Your template ID
-      TemplateModel: {
-        firstName,
-        confirmationLink,
-      },
-    });
-
-    res.status(200).json({ message: 'Verification email resent successfully' });
-  } catch (error) {
-    console.error('Error resending verification email:', error);
-    if (error.code === 'auth/user-not-found') {
-      res.status(404).json({ error: 'User not found' });
-    } else {
-      res.status(500).json({ error: 'Server error' });
-    }
-  }
+          investorsRef.child(userRecord.uid).update({ signupdate });
+           console.log("debe")
+          res.status(200).json({ message: 'Verification email resent successfully' });
+      })
+      .catch((error) => {
+          if (error.code === 'auth/user-not-found') {
+              // If user doesn't exist, return an error response
+              res.status(404).json({ error: 'User not found' });
+          } else {
+              // Handle other errors
+              console.error('Resend verification error:', error);
+              res.status(500).json({ error: 'Server error' });
+          }
+      });
 });
 
 
