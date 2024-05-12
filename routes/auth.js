@@ -143,8 +143,12 @@ admin.initializeApp({
 router.post('/signup', (req, res) => {
   const { firstName, lastName, email, password, refFrom } = req.body;
 
+  function generateRandomNumber() {
+    return Math.floor(Math.random() * 900000) + 100000;
+  }
+
   // Generate a unique verification token
-  const verificationToken = Math.random().toString(36).substr(2);
+  const verificationToken = generateRandomNumber()
 
   admin
     .auth()
