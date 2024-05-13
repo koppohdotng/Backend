@@ -857,7 +857,7 @@ app.post('/bulkEquity/:userId', upload.fields([
             });
           });
         }
-      });
+      }); 
     })
     .catch(error => {
       console.log(error);

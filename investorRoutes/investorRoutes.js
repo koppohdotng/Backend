@@ -335,6 +335,194 @@ function generateRandomNumber() {
 
 
 
+router.put('/updateInvestorProfile/:uid', (req, res) => {
+    const userId = req.params.uid; // Get the user's UID from the URL
+    const { firstName, lastName, country, phoneNumber, role, linkedIn, gender } = req.body;
+  
+    // Check if the provided data is available for update
+    const updatedUserData = {};
+  
+    if (firstName) {
+      updatedUserData.firstName = firstName;
+    }
+    if (gender) {
+      updatedUserData.firstName = gender;
+    }
+    if (lastName) {
+      updatedUserData.lastName = lastName;
+    }
+    if (country) {
+      updatedUserData.country = country;
+    }
+    if (phoneNumber) {
+      updatedUserData.phoneNumber = phoneNumber;
+    }
+    if (role) {
+      updatedUserData.role = role;
+    }
+    if (linkedIn) {
+      updatedUserData.linkedIn = linkedIn;
+    }
+  
+    // Update the user's data in the Firebase Realtime Database
+    const db = admin.database();
+    const usersRef = db.ref('investors');
+  
+    usersRef
+      .child(userId)
+      .update(updatedUserData)
+      .then(() => {
+        // Calculate profile completeness
+        let count = 0;
+  
+        if (updatedUserData.firstName) count++;
+        if (updatedUserData.lastName) count++;
+        if (updatedUserData.country) count++;
+        if (updatedUserData.phoneNumber) count++;
+        if (updatedUserData.role) count++;
+        if (updatedUserData.linkedIn) count++;
+        if (updatedUserData.gender) count++;
+  
+        
+        res.status(200).json({ message: 'User information updated successfully' });
+      })
+      .catch((error) => {
+        console.error('Update user error:', error);
+        res.status(500).json({ error: 'Failed to update user information' });
+      });
+  });
+
  
+router.put('/update-investor/:uid', (req, res) => {
+    const userId = req.params.uid; // Get the user's UID from the URL
+    const { 
+        organizationName, 
+        investorType, 
+        organizationWebsite, 
+        yearFounded, 
+        numberOfEmployees, 
+        regionHQ, 
+        countryHQ, 
+        localAddress, 
+        vision, 
+        mission, 
+        values, 
+        portfolio, 
+        deals 
+    } = req.body;
+  
+    // Check if the provided data is available for update
+    const updatedUserData = {};
+  
+    if (organizationName) {
+      updatedUserData.organizationName = organizationName;
+    }
+    if (investorType) {
+      updatedUserData.investorType = investorType;
+    }
+    if (organizationWebsite) {
+      updatedUserData.organizationWebsite = organizationWebsite;
+    }
+    if (yearFounded) {
+      updatedUserData.yearFounded = yearFounded;
+    }
+    if (numberOfEmployees) {
+      updatedUserData.numberOfEmployees = numberOfEmployees;
+    }
+    if (regionHQ) {
+      updatedUserData.regionHQ = regionHQ;
+    }
+    if (countryHQ) {
+      updatedUserData.countryHQ = countryHQ;
+    }
+    if (localAddress) {
+      updatedUserData.localAddress = localAddress;
+    }
+    if (vision) {
+      updatedUserData.vision = vision;
+    }
+    if (mission) {
+      updatedUserData.mission = mission;
+    }
+    if (values) {
+      updatedUserData.values = values;
+    }
+    if (portfolio) {
+      updatedUserData.portfolio = portfolio;
+    }
+    if (deals) {
+      updatedUserData.deals = deals;
+    }
+  
+    // Update the user's data in the Firebase Realtime Database
+    const db = admin.database();
+    const usersRef = db.ref('investors');
+  
+    usersRef
+      .child(userId)
+      .update(updatedUserData)
+      .then(() => {
+        // Calculate profile completeness
+        let count = 0;
+        const requiredFields = [
+          'organizationName', 
+          'investorType', 
+          'organizationWebsite', 
+          'yearFounded', 
+          'numberOfEmployees', 
+          'regionHQ', 
+          'countryHQ', 
+          'localAddress', 
+          'vision', 
+          'mission', 
+          'values', 
+          'portfolio', 
+          'deals'
+        ];
+
+       
+        res.status(200).json({ message: 'User information updated successfully'});
+      })
+      .catch((error) => {
+        console.error('Update user error:', error);
+        res.status(500).json({ error: 'Failed to update user information' });
+      });
+  });
+
+router.post('/update-password', (req, res) => {
+    const { email, newPassword } = req.body;
+
+    // Check if the email exists in Firebase Authentication
+    admin
+        .auth()
+        .getUserByEmail(email)
+        .then((userRecord) => {
+            // If the user exists, update their password
+            admin
+                .auth()
+                .updateUser(userRecord.uid, {
+                    password: newPassword
+                })
+                .then(() => {
+                    res.status(200).json({ message: 'Password updated successfully' });
+                })
+                .catch((updateError) => {
+                    // Handle password update errors
+                    console.error('Password update error:', updateError);
+                    res.status(500).json({ error: 'Password update failed' });
+                });
+        })
+        .catch((getUserError) => {
+            // If the email doesn't exist, return an error response
+            if (getUserError.code === 'auth/user-not-found') {
+                res.status(404).json({ error: 'User not found' });
+            } else {
+                // Handle other errors that may occur while checking the email
+                console.error('Email check error:', getUserError);
+                res.status(500).json({ error: 'Server error' });
+            }
+        });
+});
+
 
 module.exports = router;
