@@ -322,7 +322,20 @@ router.post('/resendVerification', async (req, res) => {
       });
 });
 
-
+function sendVerificationEmail(email, firstName, verificationLink) {
+  client.sendEmailWithTemplate({
+      From: 'info@koppoh.com',
+      To: email,
+      TemplateId: '33232370',
+      TemplateModel: {
+          verificationLink,
+          firstName
+      },
+  })
+  .catch((error) => {
+      console.error('Email sending error:', error);
+  });
+}
 
 router.post('/change-password', (req, res) => {
   const { email, currentPassword, newPassword } = req.body;
