@@ -244,7 +244,7 @@ router.post('/check-email', async (req, res) => {
   }
 });
 
-router.get('/confirm-email', (req, res) => {
+router.post('/confirm-email', (req, res) => {
   const { email, token } = req.query;
 
   // Get the user data from the Realtime Database
