@@ -244,7 +244,7 @@ router.post('/check-email', async (req, res) => {
   }
 });
 
-router.get('/confirm-verification', (req, res) => {
+router.get('/confirm-email', (req, res) => {
   const { email, token } = req.query;
 
   // Get the user data from the Realtime Database
@@ -294,8 +294,6 @@ router.get('/confirm-verification', (req, res) => {
       res.status(500).json({ error: 'Server error' });
   });
 });
-
-
 
 
 router.post('/resendVerification', async (req, res) => {
