@@ -120,8 +120,6 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
         });
 });
 
-
-
   router.post('/signup', (req, res) => {
     const { firstName, lastName, email, password, organisation } = req.body;
 
@@ -335,68 +333,130 @@ function generateRandomNumber() {
 
 
 
-router.put('/updateInvestorProfile/:uid', (req, res) => {
-    const userId = req.params.uid; // Get the user's UID from the URL
-    const { firstName, lastName, country, phoneNumber, role, linkedIn, gender } = req.body;
-  
-    // Check if the provided data is available for update
-    const updatedUserData = {};
-  
-    if (firstName) {
-      updatedUserData.firstName = firstName;
-    }
-    if (gender) {
-      updatedUserData.firstName = gender;
-    }
-    if (lastName) {
-      updatedUserData.lastName = lastName;
-    }
-    if (country) {
-      updatedUserData.country = country;
-    }
-    if (phoneNumber) {
-      updatedUserData.phoneNumber = phoneNumber;
-    }
-    if (role) {
-      updatedUserData.role = role;
-    }
-    if (linkedIn) {
-      updatedUserData.linkedIn = linkedIn;
-    }
-  
-    // Update the user's data in the Firebase Realtime Database
-    const db = admin.database();
-    const usersRef = db.ref('investors');
-  
-    usersRef
-      .child(userId)
-      .update(updatedUserData)
-      .then(() => {
-        // Calculate profile completeness
-        let count = 0;
-  
-        if (updatedUserData.firstName) count++;
-        if (updatedUserData.lastName) count++;
-        if (updatedUserData.country) count++;
-        if (updatedUserData.phoneNumber) count++;
-        if (updatedUserData.role) count++;
-        if (updatedUserData.linkedIn) count++;
-        if (updatedUserData.gender) count++;
-  
-        
-        res.status(200).json({ message: 'User information updated successfully' });
-      })
-      .catch((error) => {
-        console.error('Update user error:', error);
-        res.status(500).json({ error: 'Failed to update user information' });
-      });
-  });
+router.put('/updateInvestorProfileIndividual/:uid', (req, res) => {
+  const userId = req.params.uid; // Get the user's UID from the URL
+  const { firstName, lastName, country, phoneNumber, website, linkedIn, stage, recentPortfolio, deals } = req.body;
+
+  // Check if the provided data is available for update
+  const updatedUserData = {};
+
+  if (firstName) {
+    updatedUserData.firstName = firstName;
+  }
+  if (lastName) {
+    updatedUserData.lastName = lastName;
+  }
+  if (country) {
+    updatedUserData.country = country;
+  }
+  if (phoneNumber) {
+    updatedUserData.phoneNumber = phoneNumber;
+  }
+  if (website) {
+    updatedUserData.website = website;
+  }
+  if (linkedIn) {
+    updatedUserData.linkedIn = linkedIn;
+  }
+  if (stage) {
+    updatedUserData.stage = stage;
+  }
+  if (recentPortfolio) {
+    updatedUserData.recentPortfolio = recentPortfolio;
+  }
+  if (deals) {
+    updatedUserData.deals = deals;
+  }
+
+  // Update the user's data in the Firebase Realtime Database
+  const db = admin.database();
+  const usersRef = db.ref('investors');
+
+  usersRef
+    .child(userId)
+    .update(updatedUserData)
+    .then(() => {
+      // Calculate profile completeness
+      let count = 0;
+
+      if (updatedUserData.firstName) count++;
+      if (updatedUserData.lastName) count++;
+      if (updatedUserData.country) count++;
+      if (updatedUserData.phoneNumber) count++;
+      if (updatedUserData.website) count++;
+      if (updatedUserData.linkedIn) count++;
+      if (updatedUserData.stage) count++;
+      if (updatedUserData.recentPortfolio) count++;
+      if (updatedUserData.deals) count++;
+
+      res.status(200).json({ message: 'User information updated successfully', profileCompleteness: count });
+    })
+    .catch((error) => {
+      console.error('Update user error:', error);
+      res.status(500).json({ error: 'Failed to update user information' });
+    });
+});
+
+router.put('/updateInvestorProfileCompany/:uid', (req, res) => {
+  const userId = req.params.uid; // Get the user's UID from the URL
+  const { firstName, lastName, country, phoneNumber, linkedIn, role } = req.body;
+
+  // Check if the provided data is available for update
+  const updatedUserData = {};
+
+  if (firstName) {
+    updatedUserData.firstName = firstName;
+  }
+  if (lastName) {
+    updatedUserData.lastName = lastName;
+  }
+  if (country) {
+    updatedUserData.country = country;
+  }
+  if (phoneNumber) {
+    updatedUserData.phoneNumber = phoneNumber;
+  }
+  if (linkedIn) {
+    updatedUserData.linkedIn = linkedIn;
+  }
+  if (role) {
+    updatedUserData.role = role;
+  }
+
+  // Update the user's data in the Firebase Realtime Database
+  const db = admin.database();
+  const usersRef = db.ref('companies');
+
+  usersRef
+    .child(userId)
+    .update(updatedUserData)
+    .then(() => {
+      // Calculate profile completeness
+      let count = 0;
+
+      if (updatedUserData.firstName) count++;
+      if (updatedUserData.lastName) count++;
+      if (updatedUserData.country) count++;
+      if (updatedUserData.phoneNumber) count++;
+      if (updatedUserData.linkedIn) count++;
+      if (updatedUserData.role) count++;
+
+      res.status(200).json({ message: 'Company information updated successfully', profileCompleteness: count });
+    })
+    .catch((error) => {
+      console.error('Update company error:', error);
+      res.status(500).json({ error: 'Failed to update company information' });
+    });
+});
+
 
  
-router.put('/update-investor/:uid', (req, res) => {
+router.put('/update-investorCompany/:uid', (req, res) => {
     const userId = req.params.uid; // Get the user's UID from the URL
     const { 
         organizationName, 
+        about,
+        website,
         investorType, 
         organizationWebsite, 
         yearFounded, 
@@ -453,6 +513,13 @@ router.put('/update-investor/:uid', (req, res) => {
     if (deals) {
       updatedUserData.deals = deals;
     }
+    if (deals) {
+      updatedUserData.about = about;
+    }if (deals) {
+      updatedUserData.website = website;
+    }
+
+  
   
     // Update the user's data in the Firebase Realtime Database
     const db = admin.database();
@@ -477,7 +544,9 @@ router.put('/update-investor/:uid', (req, res) => {
           'mission', 
           'values', 
           'portfolio', 
-          'deals'
+          'deals',
+          'about',
+        'website',
         ];
 
        
