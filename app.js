@@ -14,6 +14,10 @@ const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
 
 const key = require('./serviceAccountKey.json');
+
+
+const investorList = require('./investorList.json');
+
 var postmark = require("postmark");
 //const axios = require('axios');
 app.use(express.static(__dirname));
@@ -65,7 +69,19 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 });
 
 
+app.get('/storeInvestorList', (req, res) => {
+  const db = admin.database();
+  const ref = db.ref('InvestorList');
 
+  // Set the JSON data under InvestorList in the Realtime Database
+  ref.set(investorList, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to store data in Firebase' });
+    } else {
+      res.status(200).json({ message: 'Data stored successfully' });
+    }
+  });
+});
 
 
 
@@ -770,6 +786,104 @@ app.post('/loanRequest/:userId', upload.fields([
     });
 });
 
+// app.post('/bulkEquity/:userId', upload.fields([
+//   { name: 'pitchDeckFile', maxCount: 1 },
+// ]), (req, res) => {
+//   const userId = req.params.userId;
+//   const {
+//     problem,
+//     solution,
+//     UVP,
+//     businessType,
+//     totalRevenue,
+//     stage
+
+//   } = req.body;
+
+//   // Handle file uploads
+//   const files = req.files;
+//   const uploadPromises = [];
+//   const fileUrls = {};
+//   if (files) {
+//     Object.keys(files).forEach((key) => {
+//       const file = files[key][0];
+//       const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+//       const bucket = admin.storage().bucket();
+//       const fileRef = bucket.file(fileName);
+
+//       const stream = fileRef.createWriteStream({
+//         metadata: {
+//           contentType: file.mimetype,
+//         },
+//       });
+
+//       const uploadPromise = new Promise((resolve, reject) => {
+//         stream.on('finish', () => {
+//           fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+//             .then(downloadUrls => {
+//               fileUrls[key] = downloadUrls[0];
+//               resolve();
+//             })
+//             .catch(error => {
+//               console.error(`Error generating download URL for ${key} file:`, error);
+//               reject(`Failed to generate ${key} file URL.`);
+//             });
+//         });
+
+//         stream.on('error', (err) => {
+//           console.error(`Error uploading ${key} file:`, err);
+//           reject(`Failed to upload ${key} file.`);
+//         });
+
+//         stream.end(file.buffer);
+//       });
+
+//       uploadPromises.push(uploadPromise);
+//     });
+//   }
+
+//   // Wait for all file uploads to complete
+//   Promise.all(uploadPromises)
+//     .then(() => {
+//       // Create a bulk equity data object with the provided fields and file URLs
+//       const bulkEquityData = {
+//         problem,
+//         solution,
+//         UVP,
+//         businessType,
+//         totalRevenue,
+//         stage,
+//         pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+//       };
+
+//       // Update the bulk equity data
+//       const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
+//         if (error) {
+//           res.status(500).json({ error: 'Failed to update bulk equity data.'});
+//         } else {
+//           const newKey = newRef.key;
+
+//           // Retrieve the saved data using the correct key
+//           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
+//             const savedData = snapshot.val();
+
+
+//             savedData.bulkEquityId = newKey;
+//             res.status(200).json({
+//               message: 'Bulk equity data updated successfully.',
+//               savedData: savedData
+//             });
+//           });
+//         }
+//       }); 
+//     })
+//     .catch(error => {
+//       console.log(error);
+//       res.status(500).json({ error });
+//     });
+// });
+
+
 app.post('/bulkEquity/:userId', upload.fields([
   { name: 'pitchDeckFile', maxCount: 1 },
 ]), (req, res) => {
@@ -781,7 +895,6 @@ app.post('/bulkEquity/:userId', upload.fields([
     businessType,
     totalRevenue,
     stage
-
   } = req.body;
 
   // Handle file uploads
@@ -791,7 +904,7 @@ app.post('/bulkEquity/:userId', upload.fields([
   if (files) {
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
-      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const fileName = `${key}_${userId}_${Date.now()}a.pdf`; // Change the naming convention as needed
       const bucket = admin.storage().bucket();
       const fileRef = bucket.file(fileName);
 
@@ -829,6 +942,50 @@ app.post('/bulkEquity/:userId', upload.fields([
   // Wait for all file uploads to complete
   Promise.all(uploadPromises)
     .then(() => {
+      // Fetch user data
+      return dataRef.child(`users/${userId}`).once('value');
+    })
+    .then((userSnapshot) => {
+      const userData = userSnapshot.val();
+      if (!userData) {
+        throw new Error(`User with ID ${userId} not found.`);
+      }
+
+      var country = userData.country;
+      var businessStage = ""
+      if (totalRevenue == 0) {
+        var businessStage = "No Revenue"
+      } else {
+        var businessStage = "Early Revenue"
+      }
+      var BusinessSector = userData.businessSector;
+
+      var region = ""
+      if (!userData.region) {} else {
+        region = userData;
+      }
+
+      investorsRef.once('value', snapshot => {
+        const investors = snapshot.val();
+        let filteredInvestors = investors.filter(investor => {
+          return (
+            (!businessStage || investor.BusinessStage.includes(businessStage)) &&
+            (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
+            (!businessSector || investor.BusinessSector.includes(businessSector)) &&
+            (!country || investor.Countries.includes(country)) &&
+            (!region || investor.Region.includes(region))
+          );
+        });
+
+        const response = {
+          count: filteredInvestors.length,
+          investors: filteredInvestors,
+          message: 'Bulk equity data updated successfully.',
+          savedData: savedData
+        };
+        res.status(200).json(response);
+      });
+
       // Create a bulk equity data object with the provided fields and file URLs
       const bulkEquityData = {
         problem,
@@ -838,12 +995,13 @@ app.post('/bulkEquity/:userId', upload.fields([
         totalRevenue,
         stage,
         pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+        userData: userData // Include user data in bulk equity data
       };
 
       // Update the bulk equity data
       const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
         if (error) {
-          res.status(500).json({ error: 'Failed to update bulk equity data.'});
+          res.status(500).json({ error: 'Failed to update bulk equity data.' });
         } else {
           const newKey = newRef.key;
 
@@ -851,19 +1009,18 @@ app.post('/bulkEquity/:userId', upload.fields([
           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
             const savedData = snapshot.val();
             savedData.bulkEquityId = newKey;
-            res.status(200).json({
-              message: 'Bulk equity data updated successfully.',
-              savedData: savedData
-            });
           });
         }
-      }); 
+      });
     })
     .catch(error => {
-      console.log(error);
-      res.status(500).json({ error });
+      console.error(error);
+      res.status(500).json({ error: error.message });
     });
 });
+
+
+
 
 
 app.post('/equityRequest/:userId', upload.fields([
