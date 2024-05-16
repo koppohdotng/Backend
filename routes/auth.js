@@ -247,53 +247,59 @@ router.post('/check-email', async (req, res) => {
 router.post('/confirm-email', (req, res) => {
   const { email, token } = req.query;
 
+  // Check if email and token are provided
+  if (!email || !token) {
+      return res.status(400).json({ error: 'Email and token are required' });
+  }
+
+  console.log('Email:', email);
+  console.log('Token:', token);
+
   // Get the user data from the Realtime Database
   const db = admin.database();
   const investorsRef = db.ref('users');
 
-  investorsRef.orderByChild('email').equalTo(email).once('value', (snapshot) => {
-      const userData = snapshot.val();
-      if (!userData) {
-          // If the email doesn't exist, return an error response
-          return res.status(404).json({ error: 'Email not found' });
-      }
-
-      // If the email exists, check if the verification token matches
-      const userId = Object.keys(userData)[0];
-      const storedToken = userData[userId].verificationToken;
-      const signupdate = userData[userId].signupdate;
-
-      console.log(storedToken)
-
-
-      console.log(token)
-
-     var tokenx = parseFloat(token);
-
-      // Check if the token matches and the signupdate is within the last 30 minutes
-      if (tokenx == storedToken) {
-          const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-          const timeDifference = currentTimeInSeconds - signupdate;
-          const thirtyMinutesInSeconds = 30 * 60; // 30 minutes in seconds
-
-          if (timeDifference <= thirtyMinutesInSeconds) {
-              // Update email verification status
-              investorsRef.child(userId).update({ emailVerification: true });
-
-              res.status(200).json({ message: 'Email verification successful' });
-          } else {
-              // If more than 30 minutes have passed, return an error
-              res.status(400).json({ error: 'Verification link expired' });
+  investorsRef.orderByChild('email').equalTo(email).once('value')
+      .then(snapshot => {
+          const userData = snapshot.val();
+          if (!userData) {
+              // If the email doesn't exist, return an error response
+              return res.status(404).json({ error: 'Email not found' });
           }
-      } else {
-          res.status(400).json({ error: 'Invalid verification token' });
-      }
-  })
-  .catch((error) => {
-      console.error('Error fetching user data:', error);
-      res.status(500).json({ error: 'Server error' });
-  });
+
+          // If the email exists, check if the verification token matches
+          const userId = Object.keys(userData)[0];
+          const storedToken = userData[userId].verificationToken;
+          const signupdate = userData[userId].signupdate;
+
+          console.log('Stored Token:', storedToken);
+
+          var tokenx = parseFloat(token);
+
+          // Check if the token matches and the signupdate is within the last 30 minutes
+          if (tokenx == storedToken) {
+              const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+              const timeDifference = currentTimeInSeconds - signupdate;
+              const thirtyMinutesInSeconds = 30 * 60; // 30 minutes in seconds
+
+              if (timeDifference <= thirtyMinutesInSeconds) {
+                  // Update email verification status
+                  investorsRef.child(userId).update({ emailVerification: true });
+                  res.status(200).json({ message: 'Email verification successful' });
+              } else {
+                  // If more than 30 minutes have passed, return an error
+                  res.status(400).json({ error: 'Verification link expired' });
+              }
+          } else {
+              res.status(400).json({ error: 'Invalid verification token' });
+          }
+      })
+      .catch(error => {
+          console.error('Error fetching user data:', error);
+          res.status(500).json({ error: 'Server error' });
+      });
 });
+
 
 
 router.post('/resendVerification', async (req, res) => {
