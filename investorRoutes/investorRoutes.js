@@ -594,4 +594,84 @@ router.post('/update-password', (req, res) => {
 });
 
 
+router.put('/update-dealcriteria/:uid', (req, res) => {
+  const userId = req.params.uid; // Get the user's UID from the URL
+  const { 
+      fundname, 
+      totalfund, 
+      availablefund, 
+      fundkickoff, 
+      dealsizemin, 
+      dealsizemax, 
+      preferredindustry, 
+      businessstage, 
+      investmentstage, 
+      businessmodel, 
+      gendercomposition, 
+      region, 
+      country 
+  } = req.body;
+
+  // Check if the provided data is available for update
+  const updatedDealCriteria = {};
+
+  if (fundname) {
+      updatedDealCriteria.fundname = fundname;
+  }
+  if (totalfund) {
+      updatedDealCriteria.totalfund = totalfund;
+  }
+  if (availablefund) {
+      updatedDealCriteria.availablefund = availablefund;
+  }
+  if (fundkickoff) {
+      updatedDealCriteria.fundkickoff = fundkickoff;
+  }
+  if (dealsizemin) {
+      updatedDealCriteria.dealsizemin = dealsizemin;
+  }
+  if (dealsizemax) {
+      updatedDealCriteria.dealsizemax = dealsizemax;
+  }
+  if (preferredindustry) {
+      updatedDealCriteria.preferredindustry = preferredindustry;
+  }
+  if (businessstage) {
+      updatedDealCriteria.businessstage = businessstage;
+  }
+  if (investmentstage) {
+      updatedDealCriteria.investmentstage = investmentstage;
+  }
+  if (businessmodel) {
+      updatedDealCriteria.businessmodel = businessmodel;
+  }
+  if (gendercomposition) {
+      updatedDealCriteria.gendercomposition = gendercomposition;
+  }
+  if (region) {
+      updatedDealCriteria.region = region;
+  }
+  if (country) {
+      updatedDealCriteria.country = country;
+  }
+
+  // Update the deal criteria in the Firebase Realtime Database
+  const db = admin.database();
+  const dealCriteriaRef = db.ref('dealcriteria');
+
+  dealCriteriaRef
+      .child(userId)
+      .update(updatedDealCriteria)
+      .then(() => {
+          res.status(200).json({ message: 'Deal criteria updated successfully' });
+      })
+      .catch((error) => {
+          console.error('Update deal criteria error:', error);
+          res.status(500).json({ error: 'Failed to update deal criteria' });
+      });
+});
+
+
+
+
 module.exports = router;
