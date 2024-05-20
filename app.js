@@ -989,12 +989,13 @@ app.post('/bulkEquity/:userId', upload.fields([
             (!region || investor.Region.includes(region))
           );
         });
+        const savedData = bulkEquityData
 
         const response = {
           count: filteredInvestors.length,
           investors: filteredInvestors,
           message: 'Bulk equity data updated successfully.',
-          bulkEquityData
+          savedData
           
         };
         res.status(200).json(response);
@@ -1012,7 +1013,7 @@ app.post('/bulkEquity/:userId', upload.fields([
 
           // Retrieve the saved data using the correct key
           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
-            const savedData = snapshot.val();
+           savedData = snapshot.val();
             savedData.bulkEquityId = newKey;
             
           });
