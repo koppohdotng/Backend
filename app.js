@@ -943,10 +943,11 @@ app.post('/bulkEquity/:userId', upload.fields([
   Promise.all(uploadPromises)
     .then(() => {
       // Fetch user data
-      return dataRef.child(`users/${userId}`).once('value');
+      return dataRef.child(`${userId}`).once('value');
     })
     .then((userSnapshot) => {
       const userData = userSnapshot.val();
+
       if (!userData) {
         throw new Error(`User with ID ${userId} not found.`);
       }
