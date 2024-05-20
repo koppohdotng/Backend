@@ -984,7 +984,7 @@ app.post('/bulkEquity/:userId', upload.fields([
           count: filteredInvestors.length,
           investors: filteredInvestors,
           message: 'Bulk equity data updated successfully.',
-          savedData: savedData
+          
         };
         res.status(200).json(response);
       });
