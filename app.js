@@ -1012,6 +1012,7 @@ app.post('/bulkEquity/:userId', upload.fields([
           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
             const savedData = snapshot.val();
             savedData.bulkEquityId = newKey;
+            res.status(200).json(savedData);
           });
         }
       });
