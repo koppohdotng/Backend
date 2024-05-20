@@ -965,7 +965,7 @@ app.post('/bulkEquity/:userId', upload.fields([
       if (!userData.region) {} else {
         region = userData;
       }
-
+       const investorsRef= db.ref('InvestorList');
       investorsRef.once('value', snapshot => {
         const investors = snapshot.val();
         let filteredInvestors = investors.filter(investor => {
