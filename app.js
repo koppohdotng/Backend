@@ -959,7 +959,7 @@ app.post('/bulkEquity/:userId', upload.fields([
       } else {
         var businessStage = "Early Revenue"
       }
-      var BusinessSector = userData.businessSector;
+      var businessSector = userData.businessSector;
 
       var region = ""
       if (!userData.region) {} else {
