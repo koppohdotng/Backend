@@ -966,6 +966,16 @@ app.post('/bulkEquity/:userId', upload.fields([
         region = userData;
       }
       const investmentStage = stage;
+      const bulkEquityData = {
+        problem,
+        solution,
+        UVP,
+        businessType,
+        totalRevenue,
+        stage,
+        pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+        userData: userData // Include user data in bulk equity data
+      };
 
        const investorsRef= db.ref('InvestorList');
       investorsRef.once('value', snapshot => {
@@ -984,22 +994,14 @@ app.post('/bulkEquity/:userId', upload.fields([
           count: filteredInvestors.length,
           investors: filteredInvestors,
           message: 'Bulk equity data updated successfully.',
+          bulkEquityData
           
         };
         res.status(200).json(response);
       });
 
       // Create a bulk equity data object with the provided fields and file URLs
-      const bulkEquityData = {
-        problem,
-        solution,
-        UVP,
-        businessType,
-        totalRevenue,
-        stage,
-        pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-        userData: userData // Include user data in bulk equity data
-      };
+     
 
       // Update the bulk equity data
       const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
@@ -1012,7 +1014,7 @@ app.post('/bulkEquity/:userId', upload.fields([
           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
             const savedData = snapshot.val();
             savedData.bulkEquityId = newKey;
-            res.status(200).json(bulkEquityData);
+            
           });
         }
       });
