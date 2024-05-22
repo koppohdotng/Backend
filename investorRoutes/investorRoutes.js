@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 // const crypto = require('crypto');
 
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Initialize Firebase Admin SDK with your service account key
 
@@ -333,48 +334,97 @@ function generateRandomNumber() {
 
 
 
-router.put('/updateInvestorProfileIndividual/:uid', (req, res) => {
-  const userId = req.params.uid; // Get the user's UID from the URL
-  const { firstName, lastName, country, phoneNumber, website, linkedIn, stage, recentPortfolio, deals } = req.body;
+router.put('/updateInvestorProfileIndividual/:uid', upload.single('logo'), (req, res) => {
+  const userId = req.params.uid;
+  const {
+    firstName, lastName, country, phoneNumber, website, linkedIn, stage, recentPortfolio, deals
+  } = req.body;
 
-  // Check if the provided data is available for update
-  const updatedUserData = {};
+  // Handle image upload and generate a download URL
+  let logoFileName = '';
 
-  if (firstName) {
-    updatedUserData.firstName = firstName;
-  }
-  if (lastName) {
-    updatedUserData.lastName = lastName;
-  }
-  if (country) {
-    updatedUserData.country = country;
-  }
-  if (phoneNumber) {
-    updatedUserData.phoneNumber = phoneNumber;
-  }
-  if (website) {
-    updatedUserData.website = website;
-  }
-  if (linkedIn) {
-    updatedUserData.linkedIn = linkedIn;
-  }
-  if (stage) {
-    updatedUserData.stage = stage;
-  }
-  if (recentPortfolio) {
-    updatedUserData.recentPortfolio = recentPortfolio;
-  }
-  if (deals) {
-    updatedUserData.deals = deals;
-  }
+  if (req.file) {
+    console.log("Uploading image...");
 
-  // Update the user's data in the Firebase Realtime Database
+    logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(logoFileName);
+
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    stream.on('finish', () => {
+      console.log("Image uploaded successfully.");
+      // Generate a download URL for the uploaded image
+      file.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+        .then(downloadUrls => {
+          const imageUrl = downloadUrls[0];
+          // Collect updated user data including the new logo URL
+          const updatedUserData = {
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+            ...(country && { country }),
+            ...(phoneNumber && { phoneNumber }),
+            ...(website && { website }),
+            ...(linkedIn && { linkedIn }),
+            ...(stage && { stage }),
+            ...(recentPortfolio && { recentPortfolio }),
+            ...(deals && { deals }),
+            logoUrl: imageUrl, // Always include the logo URL
+          };
+
+          updateUserProfile(userId, updatedUserData, res);
+        })
+        .catch(error => {
+          console.error("Error generating download URL:", error);
+          res.status(500).json({ error: 'Failed to generate image URL.' });
+        });
+    });
+
+    stream.on('error', (err) => {
+      console.error("Error uploading image:", err);
+      res.status(500).json({ error: 'Failed to upload image.' });
+    });
+
+    stream.end(req.file.buffer);
+  } else {
+    console.log("No file to upload.");
+    // Collect updated user data without new logo URL
+    const updatedUserData = {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(country && { country }),
+      ...(phoneNumber && { phoneNumber }),
+      ...(website && { website }),
+      ...(linkedIn && { linkedIn }),
+      ...(stage && { stage }),
+      ...(recentPortfolio && { recentPortfolio }),
+      ...(deals && { deals })
+    };
+
+    // Include the existing logo URL if it already exists in the database
+    const db = admin.database();
+    const usersRef = db.ref('investors');
+
+    usersRef.child(userId).once('value', (snapshot) => {
+      const existingUserData = snapshot.val();
+      if (existingUserData && existingUserData.logoUrl) {
+        updatedUserData.logoUrl = existingUserData.logoUrl;
+      }
+
+      updateUserProfile(userId, updatedUserData, res);
+    });
+  }
+});
+
+function updateUserProfile(userId, updatedUserData, res) {
   const db = admin.database();
   const usersRef = db.ref('investors');
 
-  usersRef
-    .child(userId)
-    .update(updatedUserData)
+  usersRef.child(userId).update(updatedUserData)
     .then(() => {
       // Calculate profile completeness
       let count = 0;
@@ -388,48 +438,99 @@ router.put('/updateInvestorProfileIndividual/:uid', (req, res) => {
       if (updatedUserData.stage) count++;
       if (updatedUserData.recentPortfolio) count++;
       if (updatedUserData.deals) count++;
+      if (updatedUserData.logoUrl) count++;
 
-      res.status(200).json({ message: 'User information updated successfully'});
+      res.status(200).json({ message: 'User information updated successfully' });
     })
     .catch((error) => {
       console.error('Update user error:', error);
       res.status(500).json({ error: 'Failed to update user information' });
     });
-});
+}
 
-router.put('/updateInvestorProfileCompany/:uid', (req, res) => {
-  const userId = req.params.uid; // Get the user's UID from the URL
+router.put('/updateInvestorProfileCompany/:uid', upload.single('logo'), (req, res) => {
+  const userId = req.params.uid;
   const { firstName, lastName, country, phoneNumber, linkedIn, role } = req.body;
 
-  // Check if the provided data is available for update
-  const updatedUserData = {};
+  // Handle image upload and generate a download URL
+  let logoFileName = '';
 
-  if (firstName) {
-    updatedUserData.firstName = firstName;
-  }
-  if (lastName) {
-    updatedUserData.lastName = lastName;
-  }
-  if (country) {
-    updatedUserData.country = country;
-  }
-  if (phoneNumber) {
-    updatedUserData.phoneNumber = phoneNumber;
-  }
-  if (linkedIn) {
-    updatedUserData.linkedIn = linkedIn;
-  }
-  if (role) {
-    updatedUserData.role = role;
-  }
+  if (req.file) {
+    console.log("Uploading image...");
 
-  // Update the user's data in the Firebase Realtime Database
+    logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(logoFileName);
+
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    stream.on('finish', () => {
+      console.log("Image uploaded successfully.");
+      // Generate a download URL for the uploaded image
+      file.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+        .then(downloadUrls => {
+          const imageUrl = downloadUrls[0];
+          // Collect updated user data including the new logo URL
+          const updatedUserData = {
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+            ...(country && { country }),
+            ...(phoneNumber && { phoneNumber }),
+            ...(linkedIn && { linkedIn }),
+            ...(role && { role }),
+            logoUrl: imageUrl, // Always include the logo URL
+          };
+
+          updateCompanyProfile(userId, updatedUserData, res);
+        })
+        .catch(error => {
+          console.error("Error generating download URL:", error);
+          res.status(500).json({ error: 'Failed to generate image URL.' });
+        });
+    });
+
+    stream.on('error', (err) => {
+      console.error("Error uploading image:", err);
+      res.status(500).json({ error: 'Failed to upload image.' });
+    });
+
+    stream.end(req.file.buffer);
+  } else {
+    console.log("No file to upload.");
+    // Collect updated user data without new logo URL
+    const updatedUserData = {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(country && { country }),
+      ...(phoneNumber && { phoneNumber }),
+      ...(linkedIn && { linkedIn }),
+      ...(role && { role })
+    };
+
+    // Include the existing logo URL if it already exists in the database
+    const db = admin.database();
+    const usersRef = db.ref('companies');
+
+    usersRef.child(userId).once('value', (snapshot) => {
+      const existingUserData = snapshot.val();
+      if (existingUserData && existingUserData.logoUrl) {
+        updatedUserData.logoUrl = existingUserData.logoUrl;
+      }
+
+      updateCompanyProfile(userId, updatedUserData, res);
+    });
+  }
+});
+
+function updateCompanyProfile(userId, updatedUserData, res) {
   const db = admin.database();
   const usersRef = db.ref('companies');
 
-  usersRef
-    .child(userId)
-    .update(updatedUserData)
+  usersRef.child(userId).update(updatedUserData)
     .then(() => {
       // Calculate profile completeness
       let count = 0;
@@ -440,6 +541,7 @@ router.put('/updateInvestorProfileCompany/:uid', (req, res) => {
       if (updatedUserData.phoneNumber) count++;
       if (updatedUserData.linkedIn) count++;
       if (updatedUserData.role) count++;
+      if (updatedUserData.logoUrl) count++;
 
       res.status(200).json({ message: 'Company information updated successfully', profileCompleteness: count });
     })
@@ -447,7 +549,7 @@ router.put('/updateInvestorProfileCompany/:uid', (req, res) => {
       console.error('Update company error:', error);
       res.status(500).json({ error: 'Failed to update company information' });
     });
-});
+}
 
 
  
