@@ -424,7 +424,6 @@ const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in yo
 const storage = multer.memoryStorage();
 
 
-
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
