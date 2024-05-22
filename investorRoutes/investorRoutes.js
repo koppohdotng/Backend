@@ -440,7 +440,10 @@ function updateUserProfile(userId, updatedUserData, res) {
       if (updatedUserData.deals) count++;
       if (updatedUserData.logoUrl) count++;
 
-      res.status(200).json({ message: 'User information updated successfully' });
+      const profileCompleteness = (count / 10) * 100;
+      
+
+      res.status(200).json({ message: 'User information updated successfully', "profileCompleteness ": profileCompleteness  });
     })
     .catch((error) => {
       console.error('Update user error:', error);
@@ -543,7 +546,9 @@ function updateCompanyProfile(userId, updatedUserData, res) {
       if (updatedUserData.role) count++;
       if (updatedUserData.logoUrl) count++;
 
-      res.status(200).json({ message: 'Company information updated successfully', profileCompleteness: count });
+      const profileCompleteness = (count / 10) * 100;
+
+      res.status(200).json({ message: 'Company information updated successfully', "profileCompleteness": profileCompleteness });
     })
     .catch((error) => {
       console.error('Update company error:', error);
