@@ -422,8 +422,7 @@ const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in yo
 
 // Initialize Multer for handling image uploads
 const storage = multer.memoryStorage();
-const multer = require('multer');
-const upload = multer({ storage });
+
 
 
 // API endpoint to add a new teammate
