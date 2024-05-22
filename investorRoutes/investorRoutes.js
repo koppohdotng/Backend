@@ -7,7 +7,7 @@ const { OAuth2Client } = require('google-auth-library');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Firebase Admin SDK with your service account key
+// Initialize Firebase Admin SDK wisssth your service account key
 
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
