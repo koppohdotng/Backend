@@ -952,19 +952,10 @@ app.post('/bulkEquity/:userId', upload.fields([
         throw new Error(`User with ID ${userId} not found.`);
       }
 
-      var country = userData.country;
-      var businessStage = ""
-      if (totalRevenue == 0) {
-        var businessStage = "No Revenue"
-      } else {
-        var businessStage = "Early Revenue"
-      }
-      var businessSector = userData.businessSector;
-
-      var region = ""
-      if (!userData.region) {} else {
-        region = userData;
-      }
+      const country = userData.country;
+      const businessStage = totalRevenue == 0 ? "No Revenue" : "Early Revenue";
+      const businessSector = userData.businessSector;
+      const region = userData.region || "";
       const investmentStage = stage;
       const bulkEquityData = {
         problem,
@@ -974,13 +965,17 @@ app.post('/bulkEquity/:userId', upload.fields([
         totalRevenue,
         stage,
         pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-        userData: userData // Include user data in bulk equity data
+        country,
+        businessStage,
+        businessSector,
+        region,
+        investmentStage
       };
 
-       const investorsRef= db.ref('InvestorList');
+      const investorsRef = db.ref('InvestorList');
       investorsRef.once('value', snapshot => {
         const investors = snapshot.val();
-        let filteredInvestors = investors.filter(investor => {
+        let filteredInvestors = Object.values(investors).filter(investor => {
           return (
             (!businessStage || investor.BusinessStage.includes(businessStage)) &&
             (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
@@ -989,35 +984,29 @@ app.post('/bulkEquity/:userId', upload.fields([
             (!region || investor.Region.includes(region))
           );
         });
-        const savedData = bulkEquityData
 
-        const response = {
-          count: filteredInvestors.length,
-          investors: filteredInvestors,
-          message: 'Bulk equity data updated successfully.',
-          savedData
-          
-        };
-        res.status(200).json(response);
-      });
+        // Update the bulk equity data
+        const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
+          if (error) {
+            res.status(500).json({ error: 'Failed to update bulk equity data.' });
+          } else {
+            const newKey = newRef.key;
 
-      // Create a bulk equity data object with the provided fields and file URLs
-     
+            // Retrieve the saved data using the correct key
+            dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
+              const savedData = snapshot.val();
+              savedData.bulkEquityId = newKey;
 
-      // Update the bulk equity data
-      const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
-        if (error) {
-          res.status(500).json({ error: 'Failed to update bulk equity data.' });
-        } else {
-          const newKey = newRef.key;
-
-          // Retrieve the saved data using the correct key
-          dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
-           savedData = snapshot.val();
-            savedData.bulkEquityId = newKey;
-            
-          });
-        }
+              const response = {
+                count: filteredInvestors.length,
+                investors: filteredInvestors,
+                message: 'Bulk equity data updated successfully.',
+                savedData
+              };
+              res.status(200).json(response);
+            });
+          }
+        });
       });
     })
     .catch(error => {

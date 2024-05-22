@@ -389,7 +389,7 @@ router.put('/updateInvestorProfileIndividual/:uid', (req, res) => {
       if (updatedUserData.recentPortfolio) count++;
       if (updatedUserData.deals) count++;
 
-      res.status(200).json({ message: 'User information updated successfully', profileCompleteness: count });
+      res.status(200).json({ message: 'User information updated successfully'});
     })
     .catch((error) => {
       console.error('Update user error:', error);
