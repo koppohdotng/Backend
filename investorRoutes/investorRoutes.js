@@ -76,14 +76,32 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
 
             const userDetails = snapshot.val();
 
-            // Return user details
-            return res.status(200).json({ userDetails });
+            // Determine profile completeness
+            const isProfileComplete = (user) => {
+                const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber', 'linkedIn'];
+                if (user.organisation) {
+                    const organisationFields = ['website', 'stage', 'recentPortfolio', 'deals'];
+                    return commonFields.concat(organisationFields).every(field => field in user);
+                } else {
+                    const individualFields = ['role'];
+                    return commonFields.concat(individualFields).every(field => field in user);
+                }
+            };
+
+            const profileComplete = isProfileComplete(userDetails);
+
+            // Return user details along with profile completeness
+            return res.status(200).json({ 
+                userDetails,
+                profileComplete: profileComplete ? 'Profile is complete' : 'Profile is incomplete' 
+            });
         })
         .catch(error => {
             console.error('Database error:', error);
             return res.status(500).json({ error: 'Server error' });
         });
 });
+
 
   router.post('/idverify-email', (req, res) => {
     const { userId } = req.body;
