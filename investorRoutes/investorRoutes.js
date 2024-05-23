@@ -198,7 +198,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
                                     res.status(500).json({ error: 'Database error' });
                                 } else {
                                     // Send verification email with link
-                                    const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+                                    const verificationLink = `https://investor-dev.netlify.app/auth/verify-email?email${email}&token=${verificationToken}`;
                                     
                                     sendVerificationEmail(email,firstName, verificationLink);
 
@@ -234,7 +234,7 @@ router.post('/resend-verification', (req, res) => {
       .then((userRecord) => {
           // If user exists, resend verification email
           const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
-          const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+          const verificationLink = `https://investor-dev.netlify.app/auth/reset-password?email=${email}&token=${verificationToken}`;
           console.log(verificationLink)
           sendVerificationEmail(email, userRecord.firstName, verificationLink);
 
