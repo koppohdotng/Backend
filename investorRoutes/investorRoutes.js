@@ -89,6 +89,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             };
 
             const profileComplete = isProfileComplete(userDetails);
+            console.log(profileComplete)
 
             // Return user details along with profile completeness
             return res.status(200).json({ 
