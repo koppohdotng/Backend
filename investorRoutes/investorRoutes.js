@@ -577,111 +577,112 @@ function updateCompanyProfile(userId, updatedUserData, res) {
 
  
 router.put('/update-investorCompany/:uid', (req, res) => {
-    const userId = req.params.uid; // Get the user's UID from the URL
-    const { 
-        organizationName, 
-        about,
-        website,
-        investorType, 
-        organizationWebsite, 
-        yearFounded, 
-        numberOfEmployees, 
-        regionHQ, 
-        countryHQ, 
-        localAddress, 
-        vision, 
-        mission, 
-        values, 
-        portfolio, 
-        deals 
-    } = req.body;
-  
-    // Check if the provided data is available for update
-    const updatedUserData = {};
-  
-    if (organizationName) {
-      updatedUserData.organizationName = organizationName;
-    }
-    if (investorType) {
-      updatedUserData.investorType = investorType;
-    }
-    if (organizationWebsite) {
-      updatedUserData.organizationWebsite = organizationWebsite;
-    }
-    if (yearFounded) {
-      updatedUserData.yearFounded = yearFounded;
-    }
-    if (numberOfEmployees) {
-      updatedUserData.numberOfEmployees = numberOfEmployees;
-    }
-    if (regionHQ) {
-      updatedUserData.regionHQ = regionHQ;
-    }
-    if (countryHQ) {
-      updatedUserData.countryHQ = countryHQ;
-    }
-    if (localAddress) {
-      updatedUserData.localAddress = localAddress;
-    }
-    if (vision) {
-      updatedUserData.vision = vision;
-    }
-    if (mission) {
-      updatedUserData.mission = mission;
-    }
-    if (values) {
-      updatedUserData.values = values;
-    }
-    if (portfolio) {
-      updatedUserData.portfolio = portfolio;
-    }
-    if (deals) {
-      updatedUserData.deals = deals;
-    }
-    if (deals) {
-      updatedUserData.about = about;
-    }if (deals) {
-      updatedUserData.website = website;
-    }
+  const userId = req.params.uid; // Get the user's UID from the URL
+  const { 
+      organizationName, 
+      about,
+      website,
+      investorType, 
+      organizationWebsite, 
+      yearFounded, 
+      numberOfEmployees, 
+      regionHQ, 
+      countryHQ, 
+      localAddress, 
+      vision, 
+      mission, 
+      values, 
+      portfolio, 
+      deals 
+  } = req.body;
 
-  
-  
-    // Update the user's data in the Firebase Realtime Database
-    const db = admin.database();
-    const usersRef = db.ref('investors');
-  
-    usersRef
-      .child(userId)
-      .update(updatedUserData)
-      .then(() => {
-        // Calculate profile completeness
-        let count = 0;
-        const requiredFields = [
-          'organizationName', 
-          'investorType', 
-          'organizationWebsite', 
-          'yearFounded', 
-          'numberOfEmployees', 
-          'regionHQ', 
-          'countryHQ', 
-          'localAddress', 
-          'vision', 
-          'mission', 
-          'values', 
-          'portfolio', 
-          'deals',
-          'about',
+  // Check if the provided data is available for update
+  const updatedUserData = {};
+
+  if (organizationName !== undefined) {
+    updatedUserData.organizationName = organizationName;
+  }
+  if (investorType !== undefined) {
+    updatedUserData.investorType = investorType;
+  }
+  if (organizationWebsite !== undefined) {
+    updatedUserData.organizationWebsite = organizationWebsite;
+  }
+  if (yearFounded !== undefined) {
+    updatedUserData.yearFounded = yearFounded;
+  }
+  if (numberOfEmployees !== undefined) {
+    updatedUserData.numberOfEmployees = numberOfEmployees;
+  }
+  if (regionHQ !== undefined) {
+    updatedUserData.regionHQ = regionHQ;
+  }
+  if (countryHQ !== undefined) {
+    updatedUserData.countryHQ = countryHQ;
+  }
+  if (localAddress !== undefined) {
+    updatedUserData.localAddress = localAddress;
+  }
+  if (vision !== undefined) {
+    updatedUserData.vision = vision;
+  }
+  if (mission !== undefined) {
+    updatedUserData.mission = mission;
+  }
+  if (values !== undefined) {
+    updatedUserData.values = values;
+  }
+  if (portfolio !== undefined) {
+    updatedUserData.portfolio = portfolio;
+  }
+  if (deals !== undefined) {
+    updatedUserData.deals = deals;
+  }
+  if (about !== undefined) {
+    updatedUserData.about = about;
+  }
+  if (website !== undefined) {
+    updatedUserData.website = website;
+  }
+
+  // Update the user's data in the Firebase Realtime Database
+  const db = admin.database();
+  const usersRef = db.ref('investors');
+
+  usersRef
+    .child(userId)
+    .update(updatedUserData)
+    .then(() => {
+      // Calculate profile completeness
+      let count = 0;
+      const requiredFields = [
+        'organizationName', 
+        'investorType', 
+        'organizationWebsite', 
+        'yearFounded', 
+        'numberOfEmployees', 
+        'regionHQ', 
+        'countryHQ', 
+        'localAddress', 
+        'vision', 
+        'mission', 
+        'values', 
+        'portfolio', 
+        'deals',
+        'about',
         'website',
-        ];
+      ];
 
-       
-        res.status(200).json({ message: 'User information updated successfully'});
-      })
-      .catch((error) => {
-        console.error('Update user error:', error);
-        res.status(500).json({ error: 'Failed to update user information' });
-      });
-  });
+      // Implementation for calculating profile completeness would go here
+
+      res.status(200).json({ message: 'User information updated successfully' });
+    })
+    .catch((error) => {
+      console.error('Update user error:', error);
+      res.status(500).json({ error: 'Failed to update user information' });
+    });
+});
+
 
 router.post('/update-password', (req, res) => {
     const { email, newPassword } = req.body;
