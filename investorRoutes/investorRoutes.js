@@ -79,17 +79,17 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             var user = userDetails
 
             // Determine profile completeness
-            const isProfileComplete = (user) => {
-              console.log(user);
+            const isProfileComplete = (userDetails) => {
+              console.log(userDetails);
           
               const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber'];
           
               // Helper function to find missing fields
               const findMissingFields = (fields) => {
-                  return fields.filter(field => !(field in user));
+                  return fields.filter(field => !(field in userDetails));
               };
           
-              if (user.organisation) {
+              if (userDetails.organisation) {
                   const organisationFields = ['website', 'investmentstage', 'Portfolio', 'deals'];
                   const allFields = commonFields.concat(organisationFields);
                   const missingFields = findMissingFields(allFields);
