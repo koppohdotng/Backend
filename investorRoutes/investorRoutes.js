@@ -549,7 +549,7 @@ router.put('/updateInvestorProfileCompany/:uid', upload.single('logo'), (req, re
 
 function updateCompanyProfile(userId, updatedUserData, res) {
   const db = admin.database();
-  const usersRef = db.ref('companies');
+  const usersRef = db.ref('users');
 
   usersRef.child(userId).update(updatedUserData)
     .then(() => {
