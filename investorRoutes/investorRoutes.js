@@ -90,7 +90,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
               };
           
               if (userDetails.organisation) {
-                  const organisationFields = ['website', 'investmentstage', 'Portfolio', 'deals'];
+                  const organisationFields = ['website', 'investmentstage', 'portfolio', 'deals'];
                   const allFields = commonFields.concat(organisationFields);
                   const missingFields = findMissingFields(allFields);
           
