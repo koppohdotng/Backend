@@ -100,7 +100,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
           
                   return missingFields.length === 0;
               } else {
-                  const individualFields = ['role'];
+                  const individualFields = ['website', 'stage', 'recentPortfolio', 'deals'];
                   const allFields = commonFields.concat(individualFields);
                   const missingFields = findMissingFields(allFields);
           
