@@ -78,7 +78,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
 
             // Determine profile completeness
             const isProfileComplete = (user) => {
-                const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber', 'linkedIn'];
+                const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber',];
                 if (user.organisation) {
                     const organisationFields = ['website', 'stage', 'recentPortfolio', 'deals'];
                     return commonFields.concat(organisationFields).every(field => field in user);
@@ -93,7 +93,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             // Return user details along with profile completeness
             return res.status(200).json({ 
                 userDetails,
-                profileComplete: profileComplete ? 'Profile is complete' : 'Profile is incomplete' 
+                profileComplete: profileComplete ? 'true' : 'false' 
             });
         })
         .catch(error => {
@@ -593,7 +593,8 @@ router.put('/update-investorCompany/:uid', (req, res) => {
       mission, 
       values, 
       portfolio, 
-      deals 
+      deals ,
+      investmentstage
   } = req.body;
 
   // Check if the provided data is available for update
@@ -644,7 +645,12 @@ router.put('/update-investorCompany/:uid', (req, res) => {
   if (website !== undefined) {
     updatedUserData.website = website;
   }
+  if ( investmentstage !== undefined) {
+    updatedUserData.website =  investmentstage
+    ;
+  }
 
+ 
   // Update the user's data in the Firebase Realtime Database
   const db = admin.database();
   const usersRef = db.ref('investors');
@@ -671,6 +677,7 @@ router.put('/update-investorCompany/:uid', (req, res) => {
         'deals',
         'about',
         'website',
+        ' investmentstage'
       ];
 
       // Implementation for calculating profile completeness would go here
@@ -735,7 +742,8 @@ router.put('/update-dealcriteria/:uid', (req, res) => {
       businessmodel, 
       gendercomposition, 
       region, 
-      country 
+      country,
+      currency
   } = req.body;
 
   // Check if the provided data is available for update
@@ -780,6 +788,10 @@ router.put('/update-dealcriteria/:uid', (req, res) => {
   if (country) {
       updatedDealCriteria.country = country;
   }
+  if (currency) {
+    updatedDealCriteria.country = currency;
+}
+  
 
   // Update the deal criteria in the Firebase Realtime Database
   const db = admin.database();
