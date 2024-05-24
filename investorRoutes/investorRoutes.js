@@ -80,7 +80,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             const isProfileComplete = (user) => {
                 const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber',];
                 if (user.organisation) {
-                    const organisationFields = ['website', 'stage', 'recentPortfolio', 'deals'];
+                    const organisationFields = ['website', 'stage', 'Portfolio', 'deals'];
                     return commonFields.concat(organisationFields).every(field => field in user);
                 } else {
                     const individualFields = ['role'];
@@ -94,7 +94,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
             // Return user details along with profile completeness
             return res.status(200).json({ 
                 userDetails,
-                profileComplete: profileComplete ? 'true' : 'false' 
+                profileComplete: profileComplete ? true : false 
             });
         })
         .catch(error => {
