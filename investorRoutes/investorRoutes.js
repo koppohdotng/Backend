@@ -76,6 +76,8 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
 
             const userDetails = snapshot.val();
 
+            var user = userDetails
+
             // Determine profile completeness
             const isProfileComplete = (user) => {
               console.log(user);
