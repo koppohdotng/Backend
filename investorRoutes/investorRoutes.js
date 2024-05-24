@@ -78,15 +78,38 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
 
             // Determine profile completeness
             const isProfileComplete = (user) => {
-                const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber',];
-                if (user.organisation) {
-                    const organisationFields = ['website', 'investmentstage', 'Portfolio', 'deals'];
-                    return commonFields.concat(organisationFields).every(field => field in user);
-                } else {
-                    const individualFields = ['role'];
-                    return commonFields.concat(individualFields).every(field => field in user);
-                }
-            };
+              console.log(user);
+          
+              const commonFields = ['firstName', 'lastName', 'country', 'phoneNumber'];
+          
+              // Helper function to find missing fields
+              const findMissingFields = (fields) => {
+                  return fields.filter(field => !(field in user));
+              };
+          
+              if (user.organisation) {
+                  const organisationFields = ['website', 'investmentstage', 'Portfolio', 'deals'];
+                  const allFields = commonFields.concat(organisationFields);
+                  const missingFields = findMissingFields(allFields);
+          
+                  if (missingFields.length > 0) {
+                      console.log("Missing fields:", missingFields);
+                  }
+          
+                  return missingFields.length === 0;
+              } else {
+                  const individualFields = ['role'];
+                  const allFields = commonFields.concat(individualFields);
+                  const missingFields = findMissingFields(allFields);
+          
+                  if (missingFields.length > 0) {
+                      console.log("Missing fields:", missingFields);
+                  }
+          
+                  return missingFields.length === 0;
+              }
+          };
+          
 
             const profileComplete = isProfileComplete(userDetails);
             console.log(profileComplete)
