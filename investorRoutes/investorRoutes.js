@@ -473,6 +473,8 @@ router.put('/updateInvestorProfileCompany/:uid', upload.single('logo'), (req, re
   const userId = req.params.uid;
   const { firstName, lastName, country, phoneNumber, linkedIn, role } = req.body;
 
+
+  console.log(linkedIn)
   // Handle image upload and generate a download URL
   let logoFileName = '';
 
