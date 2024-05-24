@@ -649,7 +649,7 @@ router.put('/update-investorCompany/:uid', (req, res) => {
     updatedUserData.website = website;
   }
   if ( investmentstage !== undefined) {
-    updatedUserData.website =  investmentstage
+    updatedUserData.investmentstage =  investmentstage
     ;
   }
 
