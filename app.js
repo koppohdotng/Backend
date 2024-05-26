@@ -886,6 +886,8 @@ app.post('/loanRequest/:userId', upload.fields([
 
 app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
   const userId = req.params.userId;
+  console.log(`Received request for userId: ${userId}`);
+  
   const {
     problem,
     solution,
@@ -924,10 +926,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     // Fetch user data
     const userSnapshot = await dataRef.child(`${userId}`).once('value');
     const userData = userSnapshot.val();
-
+    
     if (!userData) {
       throw new Error(`User with ID ${userId} not found.`);
     }
+
+    console.log(`User data retrieved: ${JSON.stringify(userData)}`);
 
     const country = userData.country || '';
     const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
@@ -943,8 +947,17 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       totalRevenue,
       stage,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      userData // Include user data in bulk equity data
+      // Only include necessary references from userData
+      userId: userData.userId,
+      userName: userData.userName,
+      userCountry: userData.country,
+      userRegion: userData.region,
+      businessSector: userData.businessSector,
+      businessStage: businessStage,
+      investmentStage: investmentStage,
     };
+
+    console.log(`Prepared bulk equity data: ${JSON.stringify(bulkEquityData)}`);
 
     // Fetch investors and filter based on criteria
     const investorsSnapshot = await db.ref('InvestorList').once('value');
@@ -977,10 +990,11 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(200).json(response);
 
   } catch (error) {
-    console.error(error);
+    console.error('Error during bulk equity update:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
