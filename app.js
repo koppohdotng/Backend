@@ -943,7 +943,14 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       totalRevenue,
       stage,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      userData // Include user data in bulk equity data
+      // Only include necessary references from userData
+      userId: userData.userId,
+      userName: userData.userName,
+      userCountry: userData.country,
+      userRegion: userData.region,
+      businessSector: userData.businessSector,
+      businessStage: businessStage,
+      investmentStage: investmentStage,
     };
 
     // Fetch investors and filter based on criteria
