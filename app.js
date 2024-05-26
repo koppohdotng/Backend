@@ -974,6 +974,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     // Update bulk equity data
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
     const newKey = newRef.key;
+     console.log(newKey)
 
     // Retrieve the saved data using the correct key
     const savedDataSnapshot = await dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value');
