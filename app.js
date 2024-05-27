@@ -948,7 +948,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       stage,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
       // Only include necessary references from userData
-      userId: userData.userId,
+      // userId: userData.userId,
       userName: userData.userName,
       userCountry: userData.country,
       userRegion: userData.region,
