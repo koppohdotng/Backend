@@ -931,7 +931,6 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-   
     const country = userData.country || '';
     const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
     const businessSector = userData.businessSector || '';
@@ -946,17 +945,15 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       totalRevenue,
       stage,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      // Only include necessary references from userData
-      // userId: userData.userId,
       userName: userData.userName,
       userCountry: userData.country,
       userRegion: userData.region,
       businessSector: userData.businessSector,
       businessStage: businessStage,
       investmentStage: investmentStage,
+      investorEmails: [] // Initialize investorEmails array
     };
 
-   
     // Fetch investors and filter based on criteria
     const investorsSnapshot = await db.ref('InvestorList').once('value');
     const investors = investorsSnapshot.val() || [];
@@ -968,14 +965,15 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       (!country || investor.Countries.includes(country)) &&
       (!region || investor.Region.includes(region)) &&
       (!investor.MinThreshold || totalRevenue > investor.MinThreshold)
-      
-
     ));
+
+    // Extract investor emails and add to bulkEquityData
+    bulkEquityData.investorEmails = filteredInvestors.map(investor => investor.Email);
 
     // Update bulk equity data
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
     const newKey = newRef.key;
-     console.log(newKey)
+    console.log(newKey);
 
     // Retrieve the saved data using the correct key
     const savedDataSnapshot = await dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value');
@@ -997,6 +995,80 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   }
 });
 
+
+app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
+  const userId = req.params.userId;
+  const bulkEquityId = req.params.bulkEquityId;
+  const { numberOfEmails, numberOfWeeks } = req.body;
+
+  try {
+    // Fetch bulkEquity data
+    const bulkEquitySnapshot = await db.ref(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      throw new Error(`Bulk equity data with ID ${bulkEquityId} not found.`);
+    }
+
+    const { investorEmails, pitchDeckFileUrl } = bulkEquityData;
+    if (!investorEmails || investorEmails.length === 0) {
+      throw new Error('No investor emails found.');
+    }
+
+    const emailsToSend = investorEmails.slice(0, numberOfEmails * numberOfWeeks);
+    if (emailsToSend.length < numberOfEmails * numberOfWeeks) {
+      throw new Error('Not enough emails to cover the given number of weeks and emails per week.');
+    }
+
+    // Fetch the PDF file
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(pitchDeckFileUrl);
+    const [fileBuffer] = await file.download();
+
+    const attachment = {
+      Name: 'PitchDeck.pdf',
+      Content: fileBuffer.toString('base64'),
+      ContentType: 'application/pdf'
+    };
+
+    const sendEmails = async (emails) => {
+      // Send emails using Postmark
+      for (const email of emails) {
+        await postmarkClient.sendEmail({
+          From: 'your-email@example.com',
+          To: email,
+          Subject: 'Your Subject Here',
+          HtmlBody: 'Your HTML body content here',
+          Attachments: [attachment]
+        });
+      }
+    };
+
+    // Schedule emails
+    for (let i = 0; i < numberOfWeeks; i++) {
+      const emails = emailsToSend.slice(i * numberOfEmails, (i + 1) * numberOfEmails);
+      const date = new Date();
+      date.setDate(date.getDate() + 7 * i);
+
+      schedule.scheduleJob(date, () => {
+        sendEmails(emails).catch(console.error);
+      });
+    }
+
+    res.status(200).json({ message: 'Emails scheduled successfully.' });
+
+  } catch (error) {
+    console.error('Error scheduling emails:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+ 
 
 
 
