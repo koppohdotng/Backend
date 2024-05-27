@@ -931,8 +931,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    console.log(`User data retrieved: ${JSON.stringify(userData)}`);
-
+   
     const country = userData.country || '';
     const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
     const businessSector = userData.businessSector || '';
@@ -957,8 +956,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       investmentStage: investmentStage,
     };
 
-    console.log(`Prepared bulk equity data: ${JSON.stringify(bulkEquityData)}`);
-
+   
     // Fetch investors and filter based on criteria
     const investorsSnapshot = await db.ref('InvestorList').once('value');
     const investors = investorsSnapshot.val() || [];
@@ -968,7 +966,10 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
       (!businessSector || investor.BusinessSector.includes(businessSector)) &&
       (!country || investor.Countries.includes(country)) &&
-      (!region || investor.Region.includes(region))
+      (!region || investor.Region.includes(region)) &&
+      (!investor.MinThreshold || totalRevenue > investor.MinThreshold)
+      
+
     ));
 
     // Update bulk equity data
