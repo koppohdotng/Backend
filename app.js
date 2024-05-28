@@ -892,9 +892,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     problem,
     solution,
     UVP,
-    businessType,
+    businessstage,
     totalRevenue,
-    stage
+    stage,
+    equityAmount,
+    fundingType,currency
+
   } = req.body;
 
   try {
@@ -944,6 +947,10 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       businessType,
       totalRevenue,
       stage,
+      businessstage,
+      equityAmount,
+      fundingType,
+      currency,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
       
       investorEmails: [] // Initialize investorEmails array
