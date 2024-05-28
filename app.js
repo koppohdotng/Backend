@@ -945,12 +945,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       totalRevenue,
       stage,
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      userName: userData.userName,
-      userCountry: userData.country,
-      userRegion: userData.region,
-      businessSector: userData.businessSector,
-      businessStage: businessStage,
-      investmentStage: investmentStage,
+      
       investorEmails: [] // Initialize investorEmails array
     };
 
