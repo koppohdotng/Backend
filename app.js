@@ -952,12 +952,14 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       equityAmount,
       fundingType,
       currency,
-      debtAmount,
+      
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
       
       investorEmails: [] // Initialize investorEmails array
     };
-
+    if (debtAmount !== undefined) {
+      bulkEquityData.debtAmount = debtAmount;
+    }
     // Fetch investors and filter based on criteria
     const investorsSnapshot = await db.ref('InvestorList').once('value');
     const investors = investorsSnapshot.val() || [];
