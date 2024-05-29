@@ -413,6 +413,50 @@ app.put('/api/update-user/:uid', (req, res) => {
     });
 });
 
+app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
+  const { userId, bulkEquityId } = req.params;
+  const { email, amount } = req.body;
+  
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
+
+  try {
+    const response = await axios.post('https://api.paystack.co/transaction/initialize', {
+      email,
+      amount
+    }, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const { data } = response;
+
+    // Save payment data under bulkEquity for the user
+    const paymentData = {
+      email,
+      amount,
+      transactionReference: data.data.reference,
+      status: 'initialized',
+      createdAt: new Date().toISOString()
+    };
+
+    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).push(paymentData);
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error initializing transaction:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to initialize transaction' });
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
 
 app.post('/initialize-transaction', async (req, res) => {
   const { email, amount } = req.body;
