@@ -452,6 +452,8 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
 });
 
 
+
+
  // Initialize Firebase Realtime Database
 const db = admin.database();
 const teammatesRef = db.ref('users'); // Reference to the 'teammates' node in your database
