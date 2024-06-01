@@ -1045,6 +1045,7 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
   const bulkEquityId = req.params.bulkEquityId;
   const { numberOfEmails, numberOfWeeks } = req.body;
   const dbs = admin.database();
+  console.log(userId,bulkEquityId)
   try {
     // Fetch bulkEquity data
     const bulkEquitySnapshot = await dbs.ref(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
