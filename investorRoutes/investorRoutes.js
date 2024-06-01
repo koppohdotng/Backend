@@ -823,7 +823,7 @@ router.put('/update-dealcriteria/:uid', (req, res) => {
 
   // Update the deal criteria in the Firebase Realtime Database
   const db = admin.database();
-  const dealCriteriaRef = db.ref('users');
+  const dealCriteriaRef = db.ref('investors');
 
   dealCriteriaRef
       .child(userId)
