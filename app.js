@@ -1045,24 +1045,25 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
   const bulkEquityId = req.params.bulkEquityId;
   const { numberOfEmails, numberOfWeeks } = req.body;
   const dbs = admin.database();
-  console.log(userId,bulkEquityId)
+  console.log(userId, bulkEquityId);
+  
   try {
     // Fetch bulkEquity data
     const bulkEquitySnapshot = await dbs.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
     const bulkEquityData = bulkEquitySnapshot.val();
 
     if (!bulkEquityData) {
-      throw new Error(`Bulk equity data with ID ${bulkEquityId} not found.`);
+      return res.status(404).json({ error: `Bulk equity data with ID ${bulkEquityId} not found.` });
     }
 
     const { investorEmails, pitchDeckFileUrl } = bulkEquityData;
     if (!investorEmails || investorEmails.length === 0) {
-      throw new Error('No investor emails found.');
+      return res.status(400).json({ error: 'No investor emails found.' });
     }
 
     const emailsToSend = investorEmails.slice(0, numberOfEmails * numberOfWeeks);
     if (emailsToSend.length < numberOfEmails * numberOfWeeks) {
-      throw new Error('Not enough emails to cover the given number of weeks and emails per week.');
+      return res.status(400).json({ error: 'Not enough emails to cover the given number of weeks and emails per week.' });
     }
 
     // Fetch the PDF file
