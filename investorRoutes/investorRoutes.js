@@ -820,6 +820,7 @@ router.put('/update-dealcriteria/:uid', (req, res) => {
     updatedDealCriteria.country = currency;
 }
   
+console.log(updatedDealCriteria)
 
   // Update the deal criteria in the Firebase Realtime Database
   const db = admin.database();

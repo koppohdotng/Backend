@@ -91,3 +91,30 @@ const stagingConfig = {
   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com', // Update with your staging database URL
   storageBucket: 'koppoh-362da.appspot.com' // Update with your staging storage bucket
 };
+
+
+#!/bin/bash
+
+# Set the URL of the API endpoint
+URL="http://localhost:3000/investorRoutes/update-dealcriteria/3yLfh7YgOdP919Q8rCUaQVDCJlv2"
+
+# Set the data you want to send in the request body
+DATA='{
+  "fundname": "New Fund Name",
+  "totalfund": 1000000,
+  "availablefund": 500000,
+  "fundkickoff": "2024-06-03",
+  "dealsizemin": 10000,
+  "dealsizemax": 50000,
+  "preferredindustry": "Tech",
+  "businessstage": "Startup",
+  "investmentstage": "Seed",
+  "businessmodel": "SaaS",
+  "gendercomposition": "Mixed",
+  "region": "North America",
+  "country": "USA",
+  "currency": "USD"
+}'
+
+# Send the request
+curl -X PUT -H "Content-Type: application/json" -d "$DATA" $URL
