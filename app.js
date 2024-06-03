@@ -973,12 +973,18 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    const country = userData.country || '';
-    const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
-    const businessSector = userData.businessSector || '';
-    const region = userData.region || '';
-    const investmentStage = stage;
+    // const country = userData.country || '';
+    // const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
+    // const businessSector = userData.businessSector || '';
+    // const region = userData.region || '';
+    // const investmentStage = stage;
+    const BusinessSector = userData.businessSector; // Example value
+    const BusinessStage = businessstage; // Example value
+    const Countries = userData.country || ''; // Example value
+    const InvestmentType = stage; // Example value
+    const MinThreshold = totalRevenue; // Example value
 
+ 
     const bulkEquityData = {
       problem,
       solution,
@@ -999,19 +1005,49 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       bulkEquityData.debtAmount = debtAmount;
     }
     // Fetch investors and filter based on criteria
-    const investorsSnapshot = await db.ref('InvestorList').once('value');
-    const investors = investorsSnapshot.val() || [];
+    // const investorsSnapshot = await db.ref('InvestorList').once('value');
+    // const investors = investorsSnapshot.val() || [];
 
-    const filteredInvestors = investors.filter(investor => (
-      (!businessStage || investor.BusinessStage.includes(businessStage)) &&
-      (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
-      (!businessSector || investor.BusinessSector.includes(businessSector)) &&
-      (!country || investor.Countries.includes(country)) &&
-      (!region || investor.Region.includes(region)) &&
-      (!investor.MinThreshold || totalRevenue > investor.MinThreshold)
-    ));
+    // const filteredInvestors = investors.filter(investor => (
+    //   (!businessStage || investor.BusinessStage.includes(businessStage)) &&
+    //   (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
+    //   (!businessSector || investor.BusinessSector.includes(businessSector)) &&
+    //   (!country || investor.Countries.includes(country)) &&
+    //   (!region || investor.Region.includes(region)) &&
+    //   (!investor.MinThreshold || totalRevenue > investor.MinThreshold)
+    // ));
 
     // Extract investor emails and add to bulkEquityData
+
+    const filters = {
+      BusinessSector: [BusinessSector],
+      BusinessStage: [BusinessStage],
+      Countries: [Countries],
+      InvestmentType: [InvestmentType],
+      MinThreshold: MinThreshold
+    };
+
+    const snapshot = await db.ref('/InvestorList').once('value');
+    const investors = snapshot.val();
+
+    if (!investors) {
+      return res.status(404).json({ message: 'No investors found' });
+    }
+
+    const filterInvestors = (investors, filters) => {
+      return investors.filter(investor => {
+        const sectorMatch = !filters.BusinessSector.length || filters.BusinessSector.some(sector => investor.BusinessSector.includes(sector));
+        const stageMatch = !filters.BusinessStage.length || filters.BusinessStage.some(stage => investor.BusinessStage.includes(stage));
+        const countryMatch = filters.Countries.includes('Global') || filters.Countries.includes(investor.Countries);
+        const typeMatch = !filters.InvestmentType.length || filters.InvestmentType.some(type => Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(type) : investor.InvestmentType === type);
+        const thresholdMatch = !filters.MinThreshold || investor.MinThreshold >= filters.MinThreshold;
+
+        return sectorMatch && stageMatch && countryMatch && typeMatch && thresholdMatch;
+      });
+    };
+
+    const filteredInvestors = filterInvestors(Object.values(investors), filters);
+
     bulkEquityData.investorEmails = filteredInvestors.map(investor => investor.Email);
 
     // Update bulk equity data
@@ -1058,11 +1094,14 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
 
     const { investorEmails, pitchDeckFileUrl } = bulkEquityData;
     if (!investorEmails || investorEmails.length === 0) {
+      console.log('No investor emails found.' );
       return res.status(400).json({ error: 'No investor emails found.' });
     }
 
     const emailsToSend = investorEmails.slice(0, numberOfEmails * numberOfWeeks);
     if (emailsToSend.length < numberOfEmails * numberOfWeeks) {
+
+      console.log('Not enough emails to cover the given number of weeks and emails per week.' );
       return res.status(400).json({ error: 'Not enough emails to cover the given number of weeks and emails per week.' });
     }
 
