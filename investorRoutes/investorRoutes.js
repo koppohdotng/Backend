@@ -165,6 +165,26 @@ async function getUserDetails(userId) {
 }
 
 
+router.post('/saveInvestorInterest/:fundingRequestId/:investorId', (req, res) => {
+  const fundingRequestId = req.params.fundingRequestId;
+  const investorId = req.params.investorId;
+
+  // Update the equity request data with investor interest
+  dataRef.child(`${fundingRequestId}/interestedInvestors/${investorId}`)
+    .set({
+      date: Date.now(),
+      investorId,
+      interestStatus: true,
+    })
+    .then(() => {
+      res.status(200).json({ message: 'Investor interest saved successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error saving investor interest:', error);
+      res.status(500).json({ error: 'Failed to save investor interest.' });
+    });
+})
+
 router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
   
