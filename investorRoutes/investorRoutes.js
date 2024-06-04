@@ -12,6 +12,54 @@ const upload = multer({ storage: multer.memoryStorage() });
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
+router.get('/fundingrequest/:fundingRequestId', async (req, res) => {
+  const fundingRequestId = req.params.fundingRequestId;
+
+  try {
+    // Get all funding requests
+    const fundingRequestsRef = admin.database().ref('fundingRequest');
+    const fundingRequestsSnapshot = await fundingRequestsRef.once('value');
+    const fundingRequests = fundingRequestsSnapshot.val();
+
+    if (!fundingRequests) {
+      return res.status(404).json({ error: 'Funding requests not found' });
+    }
+
+    // Find the funding request with the given ID
+    let foundFundingRequest = null;
+    let foundUserId = null;
+
+    for (const userId in fundingRequests) {
+      const userFundingRequests = fundingRequests[userId];
+
+      for (const requestId in userFundingRequests) {
+        if (requestId === fundingRequestId) {
+          foundFundingRequest = userFundingRequests[requestId];
+          foundUserId = userId;
+          break;
+        }
+      }
+
+      if (foundFundingRequest) {
+        break;
+      }
+    }
+
+    if (!foundFundingRequest) {
+      return res.status(404).json({ error: 'Funding request not found' });
+    }
+
+    res.status(200).json({
+      fundingRequestId,
+      userId: foundUserId,
+      ...foundFundingRequest,
+    });
+  } catch (error) {
+    console.error('Error fetching funding request:', error);
+    res.status(500).json({ error: 'Failed to retrieve funding request' });
+  }
+});
+
 router.get('/investor/:investorId/fundingrequests', async (req, res) => {
   const investorId = req.params.investorId;
   const page = parseInt(req.query.page) || 1;
