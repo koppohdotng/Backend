@@ -1150,7 +1150,7 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
 
 
 
-app.post('/equityRequest/:userId', upload.fields([
+app.post('/equityRequest/:userId', upload.fields([  
   { name: 'pitchdeck', maxCount: 1 },
   { name: 'valuation', maxCount: 1 },
   { name: 'captable', maxCount: 1 },

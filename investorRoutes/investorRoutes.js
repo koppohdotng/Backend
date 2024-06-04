@@ -376,8 +376,6 @@ function generateRandomNumber() {
 }
 
 
-
-
 router.put('/updateInvestorProfileIndividual/:uid', upload.single('logo'), (req, res) => {
   const userId = req.params.uid;
   const {
