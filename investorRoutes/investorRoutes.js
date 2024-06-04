@@ -12,6 +12,110 @@ const upload = multer({ storage: multer.memoryStorage() });
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
+router.get('/investor/:investorId/fundingrequests', async (req, res) => {
+  const investorId = req.params.investorId;
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = 10;
+
+  try {
+    // Get the investor's deal criteria
+    const investorRef = admin.database().ref(`investors/${investorId}`);
+    const investorSnapshot = await investorRef.once('value');
+    const dealCriteria = investorSnapshot.val();
+
+    if (!dealCriteria) {
+      return res.status(404).json({ error: 'Investor not found' });
+    }
+
+    // Get all funding requests
+    const fundingRequestsRef = admin.database().ref('fundingRequest');
+    const fundingRequestsSnapshot = await fundingRequestsRef.once('value');
+    const fundingRequests = fundingRequestsSnapshot.val();
+
+    if (!fundingRequests) {
+      return res.status(200).json({ fundingRequestInfos: [] });
+    }
+
+    // Get all user details
+    const usersRef = admin.database().ref('users');
+    const userPromises = Object.keys(fundingRequests).map(userId => getUserDetails(userId)
+      .then(userData => ({ userId, userData, fundingRequest: fundingRequests[userId] }))
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        return null; // Return null for failed user data fetch
+      })
+    );
+
+    const userDetailsArray = await Promise.all(userPromises);
+
+    // Filter and map funding requests based on deal criteria
+    const filteredFundingRequestInfos = userDetailsArray
+      .filter(item => item && item.userData && item.userData.country && item.userData.genderComposition && item.userData.businessSector)
+      .map(item => {
+        const fundingRequest = item.fundingRequest;
+        const fundingRequestId = Object.keys(fundingRequest)[0]; // Assuming fundingRequest is an object with one key
+        const requestDetails = fundingRequest[fundingRequestId]; // Get the actual funding request details
+        let matchScore = 0;
+        let totalCriteria = 0;
+
+        const checkMatch = (criteria, requestValue) => {
+          if (criteria) {
+            totalCriteria++;
+            if (Array.isArray(criteria)) {
+              if (criteria.includes(requestValue)) {
+                matchScore++;
+              }
+            } else if (criteria === requestValue) {
+              matchScore++;
+            }
+          }
+        };
+
+        // Calculate match score based on deal criteria
+        checkMatch(dealCriteria.businessstage, requestDetails.businessstage);
+        checkMatch(dealCriteria.investmentstage, requestDetails.investmentStage);
+        checkMatch(dealCriteria.businessmodel, requestDetails.businessModel);
+        checkMatch(dealCriteria.gendercomposition, item.userData.genderComposition);
+        checkMatch(dealCriteria.country, item.userData.country);
+
+        const matchPercentage = (matchScore / totalCriteria) * 100;
+
+        return {
+          fundingRequestId,
+          userId: item.userId,
+          ...requestDetails,
+          userCountry: item.userData.country,
+          userGenderComposition: item.userData.genderComposition,
+          userBusinessSector: item.userData.businessSector,
+          matchPercentage,
+        };
+      });
+
+    // Sort by match percentage
+    filteredFundingRequestInfos.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+    // Pagination
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = page * pageSize;
+    const paginatedResults = filteredFundingRequestInfos.slice(startIndex, endIndex);
+
+    res.status(200).json({
+      fundingRequestInfos: paginatedResults,
+      currentPage: page,
+      totalPages: Math.ceil(filteredFundingRequestInfos.length / pageSize),
+    });
+  } catch (error) {
+    console.error('Error fetching funding requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve funding requests' });
+  }
+});
+
+// This function retrieves user data for a given user ID
+async function getUserDetails(userId) {
+  const userSnapshot = await admin.database().ref(`users/${userId}`).once('value');
+  return userSnapshot.val();
+}
+
 
 router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
