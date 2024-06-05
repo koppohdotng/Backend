@@ -174,7 +174,7 @@ router.post('/saveInvestorInterest/:fundingRequestId/:investorId/userId', (req, 
   const investorId = req.params.investorId;
   const userId = req.params.userId;
 
-  dataRefi.child(`${investorId}`)
+  dataRefi.child(`${investorId}/interest`)
   .push({
     date: Date.now(),
     fundingRequestId: fundingRequestId,
@@ -196,6 +196,82 @@ router.post('/saveInvestorInterest/:fundingRequestId/:investorId/userId', (req, 
       res.status(500).json({ error: 'Failed to save investor interest.' });
     });
 })
+
+router.get('/getFundingRequests', (req, res) => {
+  const { fundingRequestIds, page = 1 } = req.query;
+  const ids = JSON.parse(fundingRequestIds);
+  const perPage = 6;
+
+  // Pagination calculations
+  const startIndex = (page - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  const paginatedIds = ids.slice(startIndex, endIndex);
+
+  const dataRef = db.ref('users');
+  const promises = paginatedIds.map(id => {
+    return new Promise((resolve, reject) => {
+      dataRef.orderByChild(`fundingRequest/${id}`).once('value', snapshot => {
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnapshot => {
+            const userId = childSnapshot.key;
+            const request = childSnapshot.val().fundingRequest[id];
+            if (request) {
+              request.fundingRequestId = id;
+              request.userId = userId;
+              resolve(request);
+            } else {
+              resolve(null);
+            }
+          });
+        } else {
+          resolve(null);
+        }
+      }).catch(reject);
+    });
+  });
+
+  Promise.all(promises)
+    .then(results => {
+      const filteredResults = results.filter(result => result !== null);
+      const totalResults = ids.length;
+      res.status(200).json({
+        totalResults,
+        currentPage: parseInt(page, 10),
+        totalPages: Math.ceil(totalResults / perPage),
+        fundingRequests: filteredResults
+      });
+    })
+    .catch(error => {
+      console.error('Error retrieving funding requests:', error);
+      res.status(500).json({ error: 'Failed to retrieve funding requests.' });
+    });
+});
+
+
+router.get('/getFundingRequests/:investorId/:interestStatus', (req, res) => {
+  const investorId = req.params.investorId;
+  const interestStatus = req.params.interestStatus;
+
+  const dataRefi = db.ref(`investors/${investorId}/interest`);
+
+  dataRefi.orderByChild('interestStatus').equalTo(interestStatus).once('value', (snapshot) => {
+    if (snapshot.exists()) {
+      const result = [];
+      snapshot.forEach(childSnapshot => {
+        result.push({
+          fundingRequestId: childSnapshot.val().fundingRequestId,
+          date: childSnapshot.val().date,
+        });
+      });
+      res.status(200).json(result);
+    } else {
+      res.status(404).json({ message: 'No funding requests found with the specified status.' });
+    }
+  }).catch((error) => {
+    console.error('Error retrieving funding requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve funding requests.' });
+  });
+});
 
 router.post('/sendPasswordResetEmail', async (req, res) => {
     const email = req.body.email;
