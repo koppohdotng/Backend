@@ -135,6 +135,7 @@ router.get('/investor/:investorId/fundingrequests', async (req, res) => {
           userCountry: item.userData.country,
           userGenderComposition: item.userData.genderComposition,
           userBusinessSector: item.userData.businessSector,
+
           matchPercentage,
         };
       });
@@ -166,12 +167,22 @@ async function getUserDetails(userId) {
 //dvdfdsfd
 
 
-router.post('/saveInvestorInterest/:fundingRequestId/:investorId', (req, res) => {
+router.post('/saveInvestorInterest/:fundingRequestId/:investorId/userId', (req, res) => {
+  const dataRef = db.ref('users');
+  const dataRefi = db.ref('investors');
   const fundingRequestId = req.params.fundingRequestId;
   const investorId = req.params.investorId;
+  const userId = req.params.userId;
+
+  dataRefi.child(`${investorId}`)
+  .push({
+    date: Date.now(),
+    fundingRequestId: fundingRequestId,
+    interestStatus: pending,
+  })
 
   // Update the equity request data with investor interest
-  dataRef.child(`${fundingRequestId}/interestedInvestors/${investorId}`)
+  dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/interestedInvestors/${investorId}`)
     .set({
       date: Date.now(),
       investorId,
