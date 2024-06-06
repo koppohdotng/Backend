@@ -70,6 +70,7 @@ router.get('/investor/:investorId/fundingrequests', async (req, res) => {
     const investorRef = admin.database().ref(`investors/${investorId}`);
     const investorSnapshot = await investorRef.once('value');
     const dealCriteria = investorSnapshot.val();
+    console.log(dealCriteria)
 
     if (!dealCriteria) {
       return res.status(404).json({ error: 'Investor not found' });
