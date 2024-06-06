@@ -80,6 +80,7 @@ router.get('/investor/:investorId/fundingrequests', async (req, res) => {
     const fundingRequestsRef = admin.database().ref('fundingRequest');
     const fundingRequestsSnapshot = await fundingRequestsRef.once('value');
     const fundingRequests = fundingRequestsSnapshot.val();
+    console.log(fundingRequestsSnapshot)
 
     if (!fundingRequests) {
       return res.status(200).json({ fundingRequestInfos: [] });
