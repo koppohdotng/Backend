@@ -67,7 +67,7 @@ router.get('/investor/:investorId/fundingrequests', async (req, res) => {
 
   try {
     // Get the investor's deal criteria
-    const investorRef = admin.database().ref(`investors/${investorId}`);
+    const investorRef = admin.database().ref(`investors/${investorId}/dealCriteria`);
     const investorSnapshot = await investorRef.once('value');
     const dealCriteria = investorSnapshot.val();
     console.log(dealCriteria)
@@ -1083,7 +1083,7 @@ console.log(updatedDealCriteria,userId)
 
   // Update the deal criteria in the Firebase Realtime Database
   const db = admin.database();
-  const dealCriteriaRef = db.ref('investors');
+  const dealCriteriaRef = db.ref('investors/DealCriteria');
 
   dealCriteriaRef
       .child(userId)
