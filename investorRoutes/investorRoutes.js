@@ -1086,7 +1086,6 @@ console.log(updatedDealCriteria,userId)
   const dealCriteriaRef = db.ref(`investors/${userId}/dealCriteria`);
 
   dealCriteriaRef
-      .child(userId)
       .update(updatedDealCriteria)
       .then(() => {
           res.status(200).json({ message: 'Deal criteria updated successfully' });
