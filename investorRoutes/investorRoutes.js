@@ -1083,7 +1083,7 @@ console.log(updatedDealCriteria,userId)
 
   // Update the deal criteria in the Firebase Realtime Database
   const db = admin.database();
-  const dealCriteriaRef = db.ref('investors/DealCriteria');
+  const dealCriteriaRef = db.ref(`investors/${userId}/dealCriteria`);
 
   dealCriteriaRef
       .child(userId)
