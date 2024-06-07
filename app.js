@@ -1455,7 +1455,6 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
 const storagex = admin.storage();
 
 app.get('/storeTeaser-pdf', async (req, res) => {
-
   const { userId, fundingRequestId, url } = req.query;
 
   if (!userId || !url) {
@@ -1472,12 +1471,15 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    const pdfBuffer = await page.pdf();
+    // Generate PDF with A4 size
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+    });
+
     await browser.close();
 
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-      console.log(randomNumber);
-
+    console.log(randomNumber);
 
     const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
 
@@ -1514,6 +1516,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', error });
   }
 });
+
 
 
 
