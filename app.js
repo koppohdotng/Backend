@@ -1473,7 +1473,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     // Generate PDF with A4 size and no margins
     const pdfBuffer = await page.pdf({
-      format: 'A4',
+      format: 'A5',
       margin: { top: 0, right: 0, bottom: 0, left: 0 }
     });
 
