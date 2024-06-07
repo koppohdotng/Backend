@@ -166,7 +166,7 @@ router.post('/resendVerification', async (req, res) => {
     await client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
       To: email,
-      TemplateId: '33232370',
+      TemplateId: '36197708',
       TemplateModel: {
         verifyNumber: newRandomNumber,
       },
