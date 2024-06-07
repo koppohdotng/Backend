@@ -120,7 +120,7 @@ console.log(randomNumber);
       client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
         To: email,
-        TemplateId: '33232370',
+        TemplateId: '36197708',
         TemplateModel: {
           firstName,
           verifyNumber: randomNumber,
