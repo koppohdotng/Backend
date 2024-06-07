@@ -19,7 +19,7 @@ var postmark = require("postmark");
 app.use(express.static(__dirname));
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
-
+const { Storage } = require('@google-cloud/storage');
 
 const Sentry = require('@sentry/node');
 const { ProfilingIntegration } = require('@sentry/profiling-node');
@@ -1454,8 +1454,75 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
 
 const storagex = admin.storage();
 
+// app.get('/storeTeaser-pdf', async (req, res) => {
+//   const { userId, fundingRequestId, url } = req.query;
+
+//   if (!userId || !url) {
+//     return res.status(400).json({ error: 'Missing required parameters' });
+//   }
+
+//   try {
+//     const browser = await puppeteer.launch({
+//       args: [
+//         '--no-sandbox',
+//         '--disable-setuid-sandbox',
+//       ],
+//     });
+//     const page = await browser.newPage();
+//     await page.goto(url, { waitUntil: 'networkidle2' });
+
+//     // Generate PDF with A4 size and no margins
+//     const pdfBuffer = await page.pdf({
+//       format: 'A5',
+//       margin: { top: 0, right: 0, bottom: 0, left: 0 }
+//     });
+
+//     await browser.close();
+
+//     const randomNumber = Math.floor(100000 + Math.random() * 900000);
+//     console.log(randomNumber);
+
+//     const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
+
+//     // Upload the PDF directly from memory to Firebase Storage
+//     const bucket = storagex.bucket();
+//     const file = bucket.file(`pdfs/${fileName}`);
+//     await file.save(pdfBuffer, {
+//       metadata: { contentType: 'application/pdf' },
+//     });
+
+//     // Get the signed URL for the uploaded PDF
+//     const [signedUrl] = await file.getSignedUrl({
+//       action: 'read',
+//       expires: '03-09-2491', // Replace with an appropriate expiration date
+//     });
+
+//     // Update the teaser data in the Realtime Database
+//     const ref = db.ref(`/users/${userId}/teaser`);
+
+//     const teaserData = {
+//       pdfUrl: signedUrl,
+//       storageDate: new Date().toISOString(),
+//     };
+
+//     if (fundingRequestId) {
+//       teaserData.fundingRequestId = fundingRequestId;
+//     }
+
+//     await ref.push(teaserData);
+
+//     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal server error', error });
+//   }
+// });
+
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
+
+  const storagex = new Storage();
+  const db = admin.database();
 
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
@@ -1471,10 +1538,11 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    // Generate PDF with A4 size and no margins
+    // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
       format: 'A5',
-      margin: { top: 0, right: 0, bottom: 0, left: 0 }
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      printBackground: true, // Include background color
     });
 
     await browser.close();
@@ -1482,7 +1550,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
     console.log(randomNumber);
 
-    const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
+    const fileName = `${userId}${randomNumber}.pdf`;
 
     // Upload the PDF directly from memory to Firebase Storage
     const bucket = storagex.bucket();
@@ -1517,7 +1585,6 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', error });
   }
 });
-
 
 
 
