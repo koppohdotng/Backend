@@ -1521,9 +1521,6 @@ const storagex = admin.storage();
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
- 
-const db = admin.database();
-
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -1540,7 +1537,7 @@ const db = admin.database();
 
     // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
-      format: 'A5',
+      format: 'A4',
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
       printBackground: true, // Include background color
     });
