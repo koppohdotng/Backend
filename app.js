@@ -1379,7 +1379,9 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType } = req.body;
+     fundingType,
+    businessModel
+   } = req.body;
 
   // Check if date and type are provided (compulsory fields)
   if (!date || !type) {
@@ -1407,7 +1409,7 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType 
+     fundingType ,businessModel
     
     // Initialize the receiptURL field
   };
