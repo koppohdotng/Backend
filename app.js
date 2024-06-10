@@ -649,10 +649,10 @@ app.post('/loanRequest/:userId', upload.fields([
     currency,
     fundingAmount,
     reviewstage,
-    businessModel,                                                                                                                                                                                                                                                                                                                                                  
+    targetCustomer,                                                                                                                                                                                                                                                                                                                                                  
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
-    targetCustomer
+    
   } = req.body;
 
   const otherValue = other !== undefined ? other : '';
@@ -714,15 +714,14 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel , 
+        targetCustomer, 
         useOfFunds: {
           product,
           saleAndMarketing,
           researchAndDevelopment,
           capitalExpenditure,
           operation,
-          other: otherValue,
-          targetCustomer
+          other: otherValue
           
         },
        
@@ -783,11 +782,11 @@ app.post('/equityRequest/:userId', upload.fields([
     currency,
     fundingAmount,
 
-    businessModel,
+    targetCustomer,
     reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
-    targetCustomer
+    
   } = req.body;
   const otherValue = other !== undefined ? other : '';
 
@@ -847,7 +846,7 @@ app.post('/equityRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel,
+        targetCustomer,
         useOfFunds: {
           product,
           saleAndMarketing,
@@ -855,7 +854,7 @@ app.post('/equityRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other: otherValue,
-          targetCustomer
+          
         },
         financials,
         
