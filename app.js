@@ -407,7 +407,8 @@ const upload = multer({ storage });
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
-  const { name, role } = req.body;
+  const { name, role, gender,experience
+  } = req.body;
 
   // Check if name and role are provided (compulsory fields)
   if (!name || !role) {
@@ -422,6 +423,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   const newTeammate = {
     name,
     role,
+    gender,experience,
     imageURL: '', // Initialize the imageURL field
   };
 
