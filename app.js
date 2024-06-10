@@ -423,7 +423,8 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   const newTeammate = {
     name,
     role,
-    gender,experience,
+    gender,
+    experience,
     imageURL: '', // Initialize the imageURL field
   };
 
@@ -651,6 +652,7 @@ app.post('/loanRequest/:userId', upload.fields([
     businessModel,                                                                                                                                                                                                                                                                                                                                                  
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
+    targetCustomer
   } = req.body;
 
   const otherValue = other !== undefined ? other : '';
@@ -720,7 +722,7 @@ app.post('/loanRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other: otherValue,
-          
+          targetCustomer
           
         },
        
@@ -780,10 +782,12 @@ app.post('/equityRequest/:userId', upload.fields([
     investmentStage,
     currency,
     fundingAmount,
+
     businessModel,
     reviewstage,
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
+    targetCustomer
   } = req.body;
   const otherValue = other !== undefined ? other : '';
 
@@ -851,6 +855,7 @@ app.post('/equityRequest/:userId', upload.fields([
           capitalExpenditure,
           operation,
           other: otherValue,
+          targetCustomer
         },
         financials,
         
