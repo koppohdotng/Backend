@@ -1409,7 +1409,8 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType ,businessModel
+     fundingType ,
+    businessModel
     
     // Initialize the receiptURL field
   };
