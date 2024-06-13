@@ -1252,7 +1252,7 @@ app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
 app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
   const userId = req.params.userId;
   const teammateId = req.params.teammateId;
-  const { name, role } = req.body;
+  const { name, role,gender,experience, } = req.body;
 
   // Reference to the specific teammate in the database
   const teammateRef = teammatesRef.child(`${userId}/Teammate/${teammateId}`);
@@ -1278,6 +1278,10 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     const updatedTeammate = {
       name: name || existingTeammate.name,
       role: role || existingTeammate.role,
+      role:gender || existingTeammate.gender,
+      role:experience|| existingTeammate.experience,
+
+
       imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
     };
 
