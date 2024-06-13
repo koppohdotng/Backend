@@ -1254,6 +1254,8 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
   const teammateId = req.params.teammateId;
   const { name, role, gender, experience } = req.body;
 
+  console.log('Request body:', req.body); // Log the request body
+
   // Reference to the specific teammate in the database
   const teammateRef = teammatesRef.child(`${userId}/Teammate/${teammateId}`);
 
@@ -1283,6 +1285,8 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
     };
 
+    console.log('Updated teammate object:', updatedTeammate); // Log the updated teammate object
+
     // If an image is provided, update it in Firebase Storage and update its download URL in the teammate object
     if (req.file) {
       const bucket = admin.storage().bucket();
@@ -1296,6 +1300,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       });
 
       blobStream.on('error', (error) => {
+        console.error('Error uploading the image:', error);
         return res.status(500).json({ error: 'Error uploading the image.' });
       });
 
@@ -1303,6 +1308,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
         // Get the download URL for the updated image
         file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
           if (error) {
+            console.error('Error getting download URL:', error);
             return res.status(500).json({ error: 'Error getting download URL.' });
           }
 
@@ -1311,6 +1317,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
           // Update the teammate in the database
           teammateRef.update(updatedTeammate, (error) => {
             if (error) {
+              console.error('Error updating teammate in the database:', error);
               return res.status(500).json({ error: 'Error updating teammate in the database.' });
             }
 
@@ -1324,6 +1331,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       // If no new image is provided, update the teammate object in the database directly
       teammateRef.update(updatedTeammate, (error) => {
         if (error) {
+          console.error('Error updating teammate in the database:', error);
           return res.status(500).json({ error: 'Error updating teammate in the database.' });
         }
 
