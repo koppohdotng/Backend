@@ -979,20 +979,27 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     // const businessSector = userData.businessSector || '';
     // const region = userData.region || '';
     // const investmentStage = stage;
-    const BusinessSector = userData.businessSector; // Example value
-    const BusinessStage = businessstage; // Example value
-    const Countries = userData.country || ''; // Example value
+
+    // const BusinessSector = userData.businessSector; // Example value
+    // const BusinessStage = businessstage; // Example value
+    // const Countries = userData.country || ''; // Example value
+    // const InvestmentType = stage; // Example value
+    // const MinThreshold = totalRevenue; // Example value
+
+    const BusinessSector = "Technology"; // Example value
+    const BusinessStage = "Early Revenue"; // Example value
+    const Countries = "Global" ; // Example value
     const InvestmentType = stage; // Example value
-    const MinThreshold = totalRevenue; // Example value
+    const MinThreshold = 100000; // Example value
 
 
-    const filters = {
-      BusinessSector : "Technology",
-      BusinessStage : "Early Revenue",
-      Countries : "Global",
-      InvestmentType : "Equity",
-      MinThreshold : 100000
-    };
+    // const filters = {
+    //   BusinessSector : "Technology",
+    //   BusinessStage : "Early Revenue",
+    //   Countries : "Global",
+    //   InvestmentType : "Equity",
+    //   MinThreshold : 100000
+    // };
 
  
     const bulkEquityData = {
