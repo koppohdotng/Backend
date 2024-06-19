@@ -987,11 +987,11 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
 
     const filters = {
-      BusinessSector,
-      BusinessStage,
-      Countries,
-      InvestmentType,
-      MinThreshold
+      BusinessSector : "Technology",
+      BusinessStage : "Early Revenue",
+      Countries : "Global",
+      InvestmentType : "Equity",
+      MinThreshold : 100000
     };
 
  
