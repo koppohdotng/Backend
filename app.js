@@ -1106,7 +1106,6 @@ app.get('/filter-investors', async (req, res) => {
   try {
       const snapshot = await db.ref('investors').once('value');
       const investors = snapshot.val();
-      console.log(investors)
 
       if (!investors) {
           res.status(404).json({ error: 'No investors found' });
