@@ -1094,41 +1094,43 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
-
 app.get('/filter-investors', async (req, res) => {
-  const BusinessSector = "Technology"; // Example value
-  const BusinessStage = "Early Revenue"; // Example value
-  const Country = "Global"; // Example value
-  const InvestmentType = "Equity"; // Example value
-  const MinThreshold = 100000; // Example value
-    try {
-      const snapshot = await db.ref('InvestorList').once('value');
+  const BusinessSector = "Technology";
+  const BusinessStage = "Early Revenue";
+  const Country = "Global";
+  const InvestmentType = "Equity";
+  const MinThreshold = 100000;
+
+  try {
+      const snapshot = await db.ref('investors').once('value');
       const investors = snapshot.val();
-  
+      console.log(investors)
+
       if (!investors) {
-        throw new Error('No investors found in the database');
+          res.status(404).json({ error: 'No investors found' });
+          return;
       }
-  
-      const filteredInvestors = Object.values(investors).filter(investor => {
-        return (
-          investor.BusinessSector.includes(BusinessSector) &&
-          investor.BusinessStage.includes(BusinessStage) &&
-          investor.Countries.includes(Country) &&
-          (Array.isArray(investor.InvestmentType)
-            ? investor.InvestmentType.includes(InvestmentType)
-            : investor.InvestmentType === InvestmentType) &&
-          investor.MinThreshold <= MinThreshold
-        );
-      });
-  
-      const emails = filteredInvestors.map(investor => investor.Email);
-  
-      res.json({ emails });
-    } catch (error) {
-      console.error('Error filtering investors:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
+
+      // Convert object to array
+      const investorList = Object.values(investors);
+
+      // Filter investors based on criteria
+      const filteredInvestors = investorList.filter(investor => {
+          return (
+              investor.BusinessSector.includes(BusinessSector) &&
+              investor.BusinessStage.includes(BusinessStage) &&
+              investor.Countries.includes(Country) &&
+              investor.InvestmentType.includes(InvestmentType) &&
+              investor.MinThreshold >= MinThreshold
+          );
+      }).map(investor => investor.Email);
+
+      res.json(filteredInvestors);
+  } catch (error) {
+      console.error('Error fetching and filtering investors:', error);
+      res.status(500).json({ error: 'Error fetching and filtering investors' });
+  }
+});;
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
