@@ -76,15 +76,15 @@ router.get('/investor/:investorId/fundingrequests', async (req, res) => {
       return res.status(404).json({ error: 'Investor not found' });
     }
 
-    // // Get all funding requests
-    // const fundingRequestsRef = admin.database().ref('fundingRequest');
-    // const fundingRequestsSnapshot = await fundingRequestsRef.once('value');
-    // const fundingRequests = fundingRequestsSnapshot.val();
-    // console.log(fundingRequestsSnapshot)
+    // Get all funding requests
+    const fundingRequestsRef = admin.database().ref('fundingRequest');
+    const fundingRequestsSnapshot = await fundingRequestsRef.once('value');
+    const fundingRequests = fundingRequestsSnapshot.val();
+    console.log(fundingRequestsSnapshot)
 
-    // if (!fundingRequests) {
-    //   return res.status(200).json({ fundingRequestInfos: [] });
-    // }
+    if (!fundingRequests) {
+      return res.status(200).json({ fundingRequestInfos: [] });
+    }
 
     // Get all user details
     const usersRef = admin.database().ref('users');
