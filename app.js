@@ -1045,20 +1045,28 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     }
 
     const filterInvestors = Object.values(investors).filter(investor => {
-      return (
+      const matchesCriteria =
         investor.BusinessSector.includes(BusinessSector) &&
         investor.BusinessStage.includes(BusinessStage) &&
         investor.Countries.includes(Country) &&
         (Array.isArray(investor.InvestmentType)
           ? investor.InvestmentType.includes(InvestmentType)
           : investor.InvestmentType === InvestmentType) &&
-        investor.MinThreshold <= MinThreshold
-      );
+        investor.MinThreshold <= MinThreshold;
+    
+      if (matchesCriteria) {
+        console.log(`Investor ${investor.Investor} matches criteria.`);
+      }
+    
+      return matchesCriteria;
     });
-
-    // const filteredInvestors = filterInvestors(Object.values(investors), filters);
-
+    
+    console.log(`Found ${filterInvestors.length} matching investors.`);
+    
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
+    
+    console.log('Filtered investors:', filterInvestors);
+    
 
     // Update bulk equity data
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
