@@ -1096,6 +1096,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 });
 
 
+// Endpoint to filter investors
 app.get('/filter-investors', async (req, res) => {
   const BusinessSector = "Technology";
   const BusinessStage = "Early Revenue";
@@ -1104,7 +1105,7 @@ app.get('/filter-investors', async (req, res) => {
   const MinThreshold = 100000;
 
   try {
-      const snapshot = await db.ref('investors').once('value');
+      const snapshot = await db.ref('InvestorList').once('value');
       const investors = snapshot.val();
 
       if (!investors) {
@@ -1117,13 +1118,23 @@ app.get('/filter-investors', async (req, res) => {
 
       // Filter investors based on criteria
       const filteredInvestors = investorList.filter(investor => {
-          return (
-              investor.BusinessSector.includes(BusinessSector) &&
-              investor.BusinessStage.includes(BusinessStage) &&
-              investor.Countries.includes(Country) &&
-              investor.InvestmentType.includes(InvestmentType) &&
-              investor.MinThreshold >= MinThreshold
-          );
+          // Check if all required properties exist and are arrays
+          if (
+              Array.isArray(investor.BusinessSector) &&
+              Array.isArray(investor.BusinessStage) &&
+              Array.isArray(investor.Countries) &&
+              Array.isArray(investor.InvestmentType)
+          ) {
+              return (
+                  investor.BusinessSector.includes(BusinessSector) &&
+                  investor.BusinessStage.includes(BusinessStage) &&
+                  investor.Countries.includes(Country) &&
+                  investor.InvestmentType.includes(InvestmentType) &&
+                  investor.MinThreshold >= MinThreshold
+              );
+          } else {
+              return false; // If any required property is not an array, exclude this investor
+          }
       }).map(investor => investor.Email);
 
       res.json(filteredInvestors);
@@ -1132,6 +1143,7 @@ app.get('/filter-investors', async (req, res) => {
       res.status(500).json({ error: 'Error fetching and filtering investors' });
   }
 });
+
 
 
 
