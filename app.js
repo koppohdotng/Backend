@@ -1063,8 +1063,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
-    console.log(filterInvestors.map(investor => investor.Email))
-     
+    const emails = filteredInvestors.map(investor => investor.Email);
     
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
     
@@ -1096,6 +1095,40 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   }
 });
 
+app.get('/filter-investors', async (req, res) => {
+  const BusinessSector = "Technology"; // Example value
+  const BusinessStage = "Early Revenue"; // Example value
+  const Country = "Global"; // Example value
+  const InvestmentType = "Equity"; // Example value
+  const MinThreshold = 100000; // Example value
+    try {
+      const snapshot = await db.ref('InvestorList').once('value');
+      const investors = snapshot.val();
+  
+      if (!investors) {
+        throw new Error('No investors found in the database');
+      }
+  
+      const filteredInvestors = Object.values(investors).filter(investor => {
+        return (
+          investor.BusinessSector.includes(BusinessSector) &&
+          investor.BusinessStage.includes(BusinessStage) &&
+          investor.Countries.includes(Country) &&
+          (Array.isArray(investor.InvestmentType)
+            ? investor.InvestmentType.includes(InvestmentType)
+            : investor.InvestmentType === InvestmentType) &&
+          investor.MinThreshold <= MinThreshold
+        );
+      });
+  
+      const emails = filteredInvestors.map(investor => investor.Email);
+  
+      res.json({ emails });
+    } catch (error) {
+      console.error('Error filtering investors:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
