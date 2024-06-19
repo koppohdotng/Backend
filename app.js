@@ -1094,6 +1094,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+
+
 app.get('/filter-investors', async (req, res) => {
   const BusinessSector = "Technology";
   const BusinessStage = "Early Revenue";
@@ -1130,7 +1132,9 @@ app.get('/filter-investors', async (req, res) => {
       console.error('Error fetching and filtering investors:', error);
       res.status(500).json({ error: 'Error fetching and filtering investors' });
   }
-});;
+});
+
+
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
