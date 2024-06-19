@@ -1049,7 +1049,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       );
     });
 
-    const filteredInvestors = filterInvestors(Object.values(investors), filters);
+    
 
     bulkEquityData.investorEmails = filteredInvestors.map(investor => investor.Email);
 
