@@ -935,7 +935,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     stage,
     equityAmount,
     fundingType,
-    currency,debtAmount
+    currency,
+    debtAmount
 
   } = req.body;
 
@@ -1019,13 +1020,6 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     // Extract investor emails and add to bulkEquityData
 
-    const filters = {
-      BusinessSector: [BusinessSector],
-      BusinessStage: [BusinessStage],
-      Countries: [Countries],
-      InvestmentType: [InvestmentType],
-      MinThreshold: MinThreshold
-    };
 
     const snapshot = await db.ref('/InvestorList').once('value');
     const investors = snapshot.val();
@@ -1034,17 +1028,17 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    const filterInvestors = (investors, filters) => {
-      return investors.filter(investor => {
-        const sectorMatch = !filters.BusinessSector.length || filters.BusinessSector.some(sector => investor.BusinessSector.includes(sector));
-        const stageMatch = !filters.BusinessStage.length || filters.BusinessStage.some(stage => investor.BusinessStage.includes(stage));
-        const countryMatch = filters.Countries.includes('Global') || filters.Countries.includes(investor.Countries);
-        const typeMatch = !filters.InvestmentType.length || filters.InvestmentType.some(type => Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(type) : investor.InvestmentType === type);
-        const thresholdMatch = !filters.MinThreshold || investor.MinThreshold >= filters.MinThreshold;
-
-        return sectorMatch && stageMatch && countryMatch && typeMatch && thresholdMatch;
-      });
-    };
+    const filterInvestors = Object.values(investors).filter(investor => {
+      return (
+        investor.BusinessSector.includes(BusinessSector) &&
+        investor.BusinessStage.includes(BusinessStage) &&
+        investor.Countries.includes(Country) &&
+        (Array.isArray(investor.InvestmentType)
+          ? investor.InvestmentType.includes(InvestmentType)
+          : investor.InvestmentType === InvestmentType) &&
+        investor.MinThreshold <= MinThreshold
+      );
+    });
 
     const filteredInvestors = filterInvestors(Object.values(investors), filters);
 
