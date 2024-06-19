@@ -1064,8 +1064,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     savedData.bulkEquityId = newKey;
 
     const response = {
-      count: filteredInvestors.length,
-      investors: filteredInvestors,
+      count: filterInvestors.length,
+      investors:filterInvestors,
       message: 'Bulk equity data updated successfully.',
       savedData
     };
