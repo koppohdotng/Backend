@@ -988,8 +988,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const BusinessSector = "Technology"; // Example value
     const BusinessStage = "Early Revenue"; // Example value
-    const Country = "Global" ; // Example value
-    const InvestmentType = stage; // Example value
+    const Country = "Global"; // Example value
+    const InvestmentType = "Equity"; // Example value
     const MinThreshold = 100000; // Example value
 
 
@@ -1062,6 +1062,9 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     });
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
+
+    console.log(filteredInvestors.map(investor => investor.Email))
+     
     
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
     
