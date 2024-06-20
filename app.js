@@ -1102,7 +1102,7 @@ app.post('/filter-investors', async (req, res) => {
   
   try {
       // Fetch investor data from Firebase
-      const snapshot = await database.ref('/InvestorList').once('value');
+      const snapshot = await db.ref('/InvestorList').once('value');
       const investorList = snapshot.val();
 
       if (!investorList) {
