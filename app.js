@@ -980,26 +980,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     // const region = userData.region || '';
     // const investmentStage = stage;
 
-    // const BusinessSector = userData.businessSector; // Example value
-    // const BusinessStage = businessstage; // Example value
-    // const Countries = userData.country || ''; // Example value
-    // const InvestmentType = stage; // Example value
+    const BusinessSector = userData.businessSector;
+    const BusinessStage = businessstage; 
+    const Country = userData.country || '';
+    const InvestmentType = stage; 
     // const MinThreshold = totalRevenue; // Example value
 
-    const BusinessSector = "Technology"; // Example value
-    const BusinessStage = "Early Revenue"; // Example value
-    const Country = "Global"; // Example value
-    const InvestmentType = "Equity"; // Example value
-    const MinThreshold = 100000; // Example value
-
-
-    // const filters = {
-    //   BusinessSector : "Technology",
-    //   BusinessStage : "Early Revenue",
-    //   Countries : "Global",
-    //   InvestmentType : "Equity",
-    //   MinThreshold : 100000
-    // };
 
  
     const bulkEquityData = {
@@ -1021,20 +1007,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     if (debtAmount !== undefined) {
       bulkEquityData.debtAmount = debtAmount;
     }
-    // Fetch investors and filter based on criteria
-    // const investorsSnapshot = await db.ref('InvestorList').once('value');
-    // const investors = investorsSnapshot.val() || [];
-
-    // const filteredInvestors = investors.filter(investor => (
-    //   (!businessStage || investor.BusinessStage.includes(businessStage)) &&
-    //   (!investmentStage || investor.InvestmentStage.includes(investmentStage)) &&
-    //   (!businessSector || investor.BusinessSector.includes(businessSector)) &&
-    //   (!country || investor.Countries.includes(country)) &&
-    //   (!region || investor.Region.includes(region)) &&
-    //   (!investor.MinThreshold || totalRevenue > investor.MinThreshold)
-    // ));
-
-    // Extract investor emails and add to bulkEquityData
+    
 
 
     const snapshot = await db.ref('/InvestorList').once('value');
@@ -1044,22 +1017,14 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    const filterInvestors = Object.values(investors).filter(investor => {
-      const matchesCriteria =
-        investor.BusinessSector.includes(BusinessSector) &&
-        investor.BusinessStage.includes(BusinessStage) &&
-        investor.Countries.includes(Country) &&
-        (Array.isArray(investor.InvestmentType)
-          ? investor.InvestmentType.includes(InvestmentType)
-          : investor.InvestmentType === InvestmentType) &&
-        investor.MinThreshold <= MinThreshold;
-    
-      if (matchesCriteria) {
-        console.log(`Investor ${investor.Investor} matches criteria.`);
-      }
-    
-      return matchesCriteria;
-    });
+    const filterInvestors = investorList.filter(investor => {
+            return (
+                (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+                (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+                (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
+                (!investor.Countries.includes(Country)) 
+            );
+        });
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
