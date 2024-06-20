@@ -1061,43 +1061,6 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 });
 
 
-// Endpoint to filter investors
-app.post('/filter-investors', async (req, res) => {
-    const { BusinessSector, BusinessStage, Country, InvestmentType, MinThreshold } = req.body;
-    
-    try {
-        // Fetch investor data from Firebase
-        const snapshot = await db.ref('/InvestorList').once('value');
-        const investorList = snapshot.val();
-
-        if (!investorList) {
-            return res.status(404).json({ error: 'No investor data found' });
-        }
-
-        // Filter logic
-        const filteredInvestors = investorList.filter(investor => {
-            return (
-                (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
-                (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-                (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-                (!investor.Countries.includes(Country)) 
-            );
-        });
-
-        // Extract only the email and website fields
-        const result = filteredInvestors.map(investor => ({
-            email: investor.Email,
-            website: investor.Website
-        }));
-
-        res.json(result);
-    } catch (error) {
-        console.error("Error fetching investor data:", error);
-        res.status(500).json({ error: 'Failed to fetch investor data' });
-    }
-});
-
-
 
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
