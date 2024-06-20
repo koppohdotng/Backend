@@ -1099,11 +1099,11 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 // Endpoint to filter investors
 app.get('/filter-investors', async (req, res) => {
   // Define default values
-  const BusinessSector = "Fintech";
-  const BusinessStage = "Early Revenue";
-  const Country = "Africa";
-  const InvestmentType = "Equity";
-  const MinThreshold = 100000;
+  const BusinessSector = req.query.BusinessSector || "Fintech";
+  const BusinessStage = req.query.BusinessStage || "Early Revenue";
+  const Country = req.query.Country || "Africa";
+  const InvestmentType = req.query.InvestmentType || "Equity";
+  const MinThreshold = parseInt(req.query.MinThreshold, 10) || 100000;
 
   try {
       const snapshot = await db.ref('InvestorList').once('value');
@@ -1117,14 +1117,9 @@ app.get('/filter-investors', async (req, res) => {
       // Convert object to array
       const investorList = Object.values(investors);
 
-      console.log('Total Investors:', investorList.length);
-
       // Filter investors based on criteria
       const filteredInvestors = investorList.filter(investor => {
-          // Log investor details for debugging
-          console.log('Checking investor:', investor);
-
-          // Check if all required properties exist and are arrays or strings
+          // Check if all required properties exist and are arrays
           if (
               Array.isArray(investor.BusinessSector) &&
               Array.isArray(investor.BusinessStage) &&
@@ -1132,37 +1127,19 @@ app.get('/filter-investors', async (req, res) => {
               (
                   Array.isArray(investor.InvestmentType) ||
                   typeof investor.InvestmentType === 'string'
-              ) &&
-              typeof investor.MinThreshold === 'number'
+              )
           ) {
-              const isBusinessSectorMatch = investor.BusinessSector.includes(BusinessSector);
-              const isBusinessStageMatch = investor.BusinessStage.includes(BusinessStage);
-              const isCountryMatch = investor.Countries.includes(Country);
-              const isInvestmentTypeMatch = Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(InvestmentType) : investor.InvestmentType === InvestmentType;
-              const isMinThresholdMatch = investor.MinThreshold >= MinThreshold;
-
-              // Log each match condition
-              console.log(`BusinessSector match: ${isBusinessSectorMatch}`);
-              console.log(`BusinessStage match: ${isBusinessStageMatch}`);
-              console.log(`Country match: ${isCountryMatch}`);
-              console.log(`InvestmentType match: ${isInvestmentTypeMatch}`);
-              console.log(`MinThreshold match: ${isMinThresholdMatch}`);
-
               return (
-                  isBusinessSectorMatch &&
-                  isBusinessStageMatch &&
-                  isCountryMatch &&
-                  isInvestmentTypeMatch &&
-                  isMinThresholdMatch
+                  (BusinessSector ? investor.BusinessSector.includes(BusinessSector) : true) &&
+                  (BusinessStage ? investor.BusinessStage.includes(BusinessStage) : true) &&
+                  (Country ? investor.Countries.includes(Country) : true) &&
+                  (InvestmentType ? (Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(InvestmentType) : investor.InvestmentType === InvestmentType) : true) &&
+                  (MinThreshold ? investor.MinimumInvestment <= MinThreshold : true)
               );
           } else {
-              console.log('Investor data missing or incorrect format:', investor);
               return false; // If any required property is not as expected, exclude this investor
           }
       }).map(investor => investor.Email);
-
-      // Log filtered investors
-      console.log('Filtered Investors:', filteredInvestors);
 
       res.json({ filteredInvestors });
   } catch (error) {
@@ -1170,6 +1147,7 @@ app.get('/filter-investors', async (req, res) => {
       res.status(500).json({ error: 'Error fetching and filtering investors' });
   }
 });
+
 
 
 
