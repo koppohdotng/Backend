@@ -1112,7 +1112,9 @@ app.post('/filter-investors', async (req, res) => {
       // Filter logic
       const filteredInvestors = investorList.filter(investor => {
           return (
-              (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) 
+              (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+              (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) 
           );
       });
 
