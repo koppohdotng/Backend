@@ -1098,9 +1098,10 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
 // Endpoint to filter investors
 app.get('/filter-investors', async (req, res) => {
-  const BusinessSector = "Technology";
+  // Define default values
+  const BusinessSector = "Fintech";
   const BusinessStage = "Early Revenue";
-  const Country = "Global";
+  const Country = "Africa";
   const InvestmentType = "Equity";
   const MinThreshold = 100000;
 
@@ -1122,28 +1123,30 @@ app.get('/filter-investors', async (req, res) => {
           if (
               Array.isArray(investor.BusinessSector) &&
               Array.isArray(investor.BusinessStage) &&
-              Array.isArray(investor.Countries) &&
-              Array.isArray(investor.InvestmentType)
+              typeof investor.Countries === 'string' &&
+              (
+                  Array.isArray(investor.InvestmentType) ||
+                  typeof investor.InvestmentType === 'string'
+              )
           ) {
               return (
-                  investor.BusinessSector.includes(BusinessSector) &&
-                  investor.BusinessStage.includes(BusinessStage) &&
-                  investor.Countries.includes(Country) &&
-                  investor.InvestmentType.includes(InvestmentType) &&
-                  investor.MinThreshold >= MinThreshold
+                  (BusinessSector ? investor.BusinessSector.includes(BusinessSector) : true) &&
+                  (BusinessStage ? investor.BusinessStage.includes(BusinessStage) : true) &&
+                  (Country ? investor.Countries.includes(Country) : true) &&
+                  (InvestmentType ? (Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(InvestmentType) : investor.InvestmentType === InvestmentType) : true) &&
+                  (MinThreshold ? investor.MinThreshold >= MinThreshold : true)
               );
           } else {
-              return false; // If any required property is not an array, exclude this investor
+              return false; // If any required property is not as expected, exclude this investor
           }
       }).map(investor => investor.Email);
 
-      res.json(filteredInvestors);
+      res.json({ filteredInvestors });
   } catch (error) {
       console.error('Error fetching and filtering investors:', error);
       res.status(500).json({ error: 'Error fetching and filtering investors' });
   }
 });
-
 
 
 
