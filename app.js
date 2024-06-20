@@ -1097,57 +1097,30 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
 
 // Endpoint to filter investors
-app.get('/filter-investors', async (req, res) => {
-  // Define default values
-  const BusinessSector = req.query.BusinessSector || "Fintech";
-  const BusinessStage = req.query.BusinessStage || "Early Revenue";
-  const Country = req.query.Country || "Africa";
-  const InvestmentType = req.query.InvestmentType || "Equity";
-  const MinThreshold = parseInt(req.query.MinThreshold, 10) || 100000;
-
+app.post('/filter-investors', async (req, res) => {
+  const { BusinessSector, BusinessStage, Country, InvestmentType, MinThreshold } = req.body;
+  
   try {
-      const snapshot = await db.ref('InvestorList').once('value');
-      const investors = snapshot.val();
+      // Fetch investor data from Firebase
+      const snapshot = await database.ref('/InvestorList').once('value');
+      const investorList = snapshot.val();
 
-      if (!investors) {
-          res.status(404).json({ error: 'No investors found' });
-          return;
-      }
-
-      // Convert object to array
-      const investorList = Object.values(investors);
-
-      // Filter investors based on criteria
+      // Filter logic
       const filteredInvestors = investorList.filter(investor => {
-          // Check if all required properties exist and are arrays
-          if (
-              Array.isArray(investor.BusinessSector) &&
-              Array.isArray(investor.BusinessStage) &&
-              typeof investor.Countries === 'string' &&
-              (
-                  Array.isArray(investor.InvestmentType) ||
-                  typeof investor.InvestmentType === 'string'
-              )
-          ) {
-              return (
-                  (BusinessSector ? investor.BusinessSector.includes(BusinessSector) : true) &&
-                  (BusinessStage ? investor.BusinessStage.includes(BusinessStage) : true) &&
-                  (Country ? investor.Countries.includes(Country) : true) &&
-                  (InvestmentType ? (Array.isArray(investor.InvestmentType) ? investor.InvestmentType.includes(InvestmentType) : investor.InvestmentType === InvestmentType) : true) &&
-                  (MinThreshold ? investor.MinimumInvestment <= MinThreshold : true)
-              );
-          } else {
-              return false; // If any required property is not as expected, exclude this investor
-          }
-      }).map(investor => investor.Email);
+          return (
+              (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+              (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+              (!Country || investor.Countries.includes(Country)) &&
+              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
+              (!MinThreshold || investor.MinimumInvestment >= MinThreshold)
+          );
+      });
 
-      res.json({ filteredInvestors });
+      res.json(filteredInvestors);
   } catch (error) {
-      console.error('Error fetching and filtering investors:', error);
-      res.status(500).json({ error: 'Error fetching and filtering investors' });
+      res.status(500).json({ error: 'Failed to fetch investor data' });
   }
-});
-
+})
 
 
 
