@@ -1115,8 +1115,7 @@ app.post('/filter-investors', async (req, res) => {
               (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
               (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
               (!Country || investor.Countries.includes(Country)) &&
-              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-              (!MinThreshold || investor.MinimumInvestment >= MinThreshold)
+              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) 
           );
       });
 
