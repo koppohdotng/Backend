@@ -1102,7 +1102,7 @@ app.post('/filter-investors', async (req, res) => {
   
   try {
       // Fetch investor data from Firebase
-      const snapshot = await database.ref('/InvestorList').once('value');
+      const snapshot = await db.ref('/InvestorList').once('value');
       const investorList = snapshot.val();
 
       if (!investorList) {
@@ -1114,8 +1114,8 @@ app.post('/filter-investors', async (req, res) => {
           return (
               (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
               (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-              (!MinThreshold || investor.MinimumInvestment >= MinThreshold)
+              (!InvestmentType || investor.InvestmentType.includes(InvestmentType))
+              
           );
       });
 
