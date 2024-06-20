@@ -1105,6 +1105,10 @@ app.post('/filter-investors', async (req, res) => {
       const snapshot = await database.ref('/InvestorList').once('value');
       const investorList = snapshot.val();
 
+      if (!investorList) {
+          return res.status(404).json({ error: 'No investor data found' });
+      }
+
       // Filter logic
       const filteredInvestors = investorList.filter(investor => {
           return (
@@ -1118,10 +1122,10 @@ app.post('/filter-investors', async (req, res) => {
 
       res.json(filteredInvestors);
   } catch (error) {
+      console.error("Error fetching investor data:", error);
       res.status(500).json({ error: 'Failed to fetch investor data' });
   }
-})
-
+});
 
 
 
