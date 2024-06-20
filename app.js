@@ -1102,7 +1102,7 @@ app.post('/filter-investors', async (req, res) => {
   
   try {
       // Fetch investor data from Firebase
-      const snapshot = await db.ref('/InvestorList').once('value');
+      const snapshot = await database.ref('/InvestorList').once('value');
       const investorList = snapshot.val();
 
       if (!investorList) {
@@ -1114,16 +1114,24 @@ app.post('/filter-investors', async (req, res) => {
           return (
               (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
               (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) 
+              (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
+              (!MinThreshold || investor.MinimumInvestment >= MinThreshold)
           );
       });
 
-      res.json(filteredInvestors);
+      // Extract only the email and website fields
+      const result = filteredInvestors.map(investor => ({
+          email: investor.Email,
+          website: investor.Website
+      }));
+
+      res.json(result);
   } catch (error) {
       console.error("Error fetching investor data:", error);
       res.status(500).json({ error: 'Failed to fetch investor data' });
   }
 });
+
 
 
 
