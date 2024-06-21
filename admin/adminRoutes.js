@@ -1435,7 +1435,7 @@ router.get('/analyticsData', async (req, res) => {
 });
 
 
-app.get('/bulkEquity', async (req, res) => {
+router.get('/bulkEquity', async (req, res) => {
   console.log('Fetching bulk equity data for all users');
 
   const page = parseInt(req.query.page) || 1;
