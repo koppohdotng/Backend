@@ -1435,5 +1435,70 @@ router.get('/analyticsData', async (req, res) => {
 });
 
 
+app.get('/bulkEquity', async (req, res) => {
+  console.log('Fetching bulk equity data for all users');
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  try {
+    // Fetch all users' data
+    const usersSnapshot = await dataRef.once('value');
+    const usersData = usersSnapshot.val();
+    
+    if (!usersData) {
+      return res.status(404).json({ message: 'No users found.' });
+    }
+
+    let allBulkEquityData = [];
+
+    // Iterate through all users and collect their bulk equity data
+    for (const userId in usersData) {
+      if (usersData.hasOwnProperty(userId)) {
+        const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity`).once('value');
+        const bulkEquityData = bulkEquitySnapshot.val();
+
+        if (bulkEquityData) {
+          const bulkEquityArray = Object.keys(bulkEquityData).map(key => {
+            return { ...bulkEquityData[key], bulkEquityId: key, userId };
+          });
+          allBulkEquityData.push(...bulkEquityArray);
+        }
+      }
+    }
+
+    if (allBulkEquityData.length === 0) {
+      return res.status(404).json({ message: 'No bulk equity data found.' });
+    }
+
+    // Sort by createdAt timestamp in descending order
+    allBulkEquityData.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateB - dateA; // Sort descending (most recent first)
+    });
+
+    // Apply pagination
+    const paginatedData = allBulkEquityData.slice(startIndex, endIndex);
+
+    const response = {
+      message: 'Bulk equity data fetched successfully.',
+      bulkEquityData: paginatedData,
+      totalItems: allBulkEquityData.length,
+      totalPages: Math.ceil(allBulkEquityData.length / limit),
+      currentPage: page
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error fetching bulk equity data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
   module.exports = router;

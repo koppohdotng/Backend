@@ -974,42 +974,34 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // const country = userData.country || '';
-    // const businessStage = totalRevenue == 0 ? 'No Revenue' : 'Early Revenue';
-    // const businessSector = userData.businessSector || '';
-    // const region = userData.region || '';
-    // const investmentStage = stage;
-
     const BusinessSector = userData.businessSector;
     const BusinessStage = businessstage; 
     const Country = userData.country || '';
     const InvestmentType = stage; 
-    // const MinThreshold = totalRevenue; // Example value
 
+    // Create a createdAt timestamp in ISO 8601 format
+    const createdAt = new Date().toISOString();
 
- 
     const bulkEquityData = {
       problem,
       solution,
       UVP,
-    
       totalRevenue,
       stage,
       businessstage,
       equityAmount,
       fundingType,
       currency,
-      
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      
-      investorEmails: [] // Initialize investorEmails array
+      investorEmails: [], // Initialize investorEmails array
+      createdAt // Store the current timestamp in ISO 8601 format
     };
+
     if (debtAmount !== undefined) {
       bulkEquityData.debtAmount = debtAmount;
     }
-    
 
-
+    // Filter investors based on criteria
     const snapshot = await db.ref('/InvestorList').once('value');
     const investors = snapshot.val();
 
@@ -1017,25 +1009,20 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    const filterInvestors = investorList.filter(investor => {
-            return (
-                (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
-                (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-                (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-                (!investor.Countries.includes(Country)) 
-            );
-        });
-    
+    const filterInvestors = investors.filter(investor => {
+      return (
+        (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+        (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+        (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
+        (!investor.Countries.includes(Country)) 
+      );
+    });
+
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
-    const emails = filteredInvestors.map(investor => investor.Email);
-    
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
-    
-    console.log('Filtered investors:', filterInvestors);
-    
 
-    // Update bulk equity data
+    // Update bulk equity data in Firebase
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
     const newKey = newRef.key;
     console.log(newKey);
@@ -1047,7 +1034,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const response = {
       count: filterInvestors.length,
-      investors:filterInvestors,
+      investors: filterInvestors,
       message: 'Bulk equity data updated successfully.',
       savedData
     };
