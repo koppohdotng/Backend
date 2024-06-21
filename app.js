@@ -1046,7 +1046,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
-
+ 
 
 
 
