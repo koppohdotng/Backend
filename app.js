@@ -1107,9 +1107,9 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
       // Send emails using Postmark
       for (const email of emails) {
         await postmarkClient.sendEmail({
-          From: 'your-email@example.com',
+          From: 'info@koppoh.com',
           To: email,
-          Subject: 'Your Subject Here',
+          Subject: 'StartUP',
           HtmlBody: 'Your HTML body content here',
           Attachments: [attachment]
         });
