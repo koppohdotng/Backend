@@ -1011,12 +1011,13 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const filterInvestors = investors.filter(investor => {
       return (
-        (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
-        (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-        (!InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-        (!investor.Countries.includes(Country)) 
+        (investor.BusinessSector.includes('All') || !BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+        (investor.BusinessStage.includes('All') || !BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+        (investor.InvestmentType.includes('All') || !InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
+        (investor.Countries.includes('All') || !Country || investor.Countries.includes(Country))
       );
     });
+    
 
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
