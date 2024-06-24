@@ -1500,5 +1500,35 @@ router.get('/bulkEquity', async (req, res) => {
 });
 
 
+app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+  const userId = req.params.userId;
+  const bulkEquityId = req.params.bulkEquityId;
+  console.log(`Received request for userId: ${userId}, bulkEquityId: ${bulkEquityId}`);
+  
+  try {
+    // Fetch user bulk equity data
+    const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      return res.status(404).json({ message: `Bulk equity data with ID ${bulkEquityId} for user ${userId} not found.` });
+    }
+
+    // Add the bulkEquityId to the retrieved data
+    bulkEquityData.bulkEquityId = bulkEquityId;
+
+    const response = {
+      message: 'Bulk equity data retrieved successfully.',
+      bulkEquityData
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error retrieving bulk equity data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
   module.exports = router;
