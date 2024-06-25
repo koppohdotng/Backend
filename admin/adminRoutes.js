@@ -1500,7 +1500,7 @@ router.get('/bulkEquity', async (req, res) => {
 });
 
 
-app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+router.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
   const bulkEquityId = req.params.bulkEquityId;
   console.log(`Received request for userId: ${userId}, bulkEquityId: ${bulkEquityId}`);
