@@ -249,7 +249,7 @@ router.post('/confirm-email', (req, res) => {
 
   // Check if email and token are provided
   if (!email || !token) {
-      return res.status(400).json({ error: 'Email and token are required' });
+      return res.status(400).json({ error: 'Email  and token are required' });
   }
 
   console.log('Email:', email);
