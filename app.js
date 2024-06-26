@@ -932,7 +932,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     UVP,
     businessstage,
     totalRevenue,
-    stage,
+    InvestmentStage,
     equityAmount,
     fundingType,
     currency,
@@ -941,6 +941,11 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   } = req.body;
 
   try {
+
+    if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
+      equityAmount = debtAmount;
+ }
+ 
     // Handle file uploads
     const files = req.files;
     const fileUrls = {};
@@ -976,8 +981,10 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const BusinessSector = userData.businessSector;
     const BusinessStage = businessstage; 
-    const Country = userData.country || '';
-    const InvestmentType = stage; 
+    
+    const InvestmentType =InvestmentStage; 
+
+    const FundingType = fundingType;
 
     // Create a createdAt timestamp in ISO 8601 format
     const createdAt = new Date().toISOString();
@@ -1014,7 +1021,9 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         (investor.BusinessSector.includes('All') || !BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
         (investor.BusinessStage.includes('All') || !BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
         (investor.InvestmentType.includes('All') || !InvestmentType || investor.InvestmentType.includes(InvestmentType)) &&
-        (investor.Countries.includes('All') || !Country || investor.Countries.includes(Country))
+        (investor.FundingType.includes('All') || !FundingType || investor.FundingType.includes(FundingType)) &&
+        (investor.MinInvestment.includes('All') || equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment)    
+       
       );
     });
     
