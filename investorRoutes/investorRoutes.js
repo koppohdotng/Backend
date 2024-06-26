@@ -648,7 +648,7 @@ router.put('/updateInvestorProfileIndividual/:uid', upload.single('logo'), (req,
   let logoFileName = '';
 
   if (req.file) {
-    console.log("Uploading image...");
+    console.log("Uploading image...,");
 
     logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
