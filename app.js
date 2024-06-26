@@ -1540,7 +1540,6 @@ const storagex = admin.storage();
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
-
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -1550,16 +1549,27 @@ app.get('/storeTeaser-pdf', async (req, res) => {
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // Add this flag
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
       ],
     });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
-    // Generate PDF with A4 size, no margins, and include background color
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 }); // Timeout set to 60 seconds
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      printBackground: true, // Include background color
+      printBackground: true,
     });
 
     await browser.close();
@@ -1569,22 +1579,18 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     const fileName = `${userId}${randomNumber}.pdf`;
 
-    // Upload the PDF directly from memory to Firebase Storage
     const bucket = storagex.bucket();
     const file = bucket.file(`pdfs/${fileName}`);
     await file.save(pdfBuffer, {
       metadata: { contentType: 'application/pdf' },
     });
 
-    // Get the signed URL for the uploaded PDF
     const [signedUrl] = await file.getSignedUrl({
       action: 'read',
-      expires: '03-09-2491', // Replace with an appropriate expiration date
+      expires: '03-09-2491',
     });
 
-    // Update the teaser data in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
-
     const teaserData = {
       pdfUrl: signedUrl,
       storageDate: new Date().toISOString(),
@@ -1602,6 +1608,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', error });
   }
 });
+
 
 
 
