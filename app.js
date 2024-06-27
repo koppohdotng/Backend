@@ -922,7 +922,7 @@ app.post('/loanRequest/:userId', upload.fields([
 // });
 
 
-app.post('/', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
+app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
   const userId = req.params.userId;
   console.log(`Received request for userId: ${userId}`);
   
