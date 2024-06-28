@@ -274,48 +274,50 @@ router.get('/getFundingRequests/:investorId/:interestStatus', (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve funding requests.' });
   });
 });
-
 router.post('/sendPasswordResetEmail', async (req, res) => {
-    const email = req.body.email;
-  
-    try {
-  
-      const userRecord = await admin.auth().getUserByEmail(email);
-        
-        // Get the userId from the userRecord
-        const firstName = userRecord.firstName;
-      // Generate a password reset link
-      const reset = await admin.auth().generatePasswordResetLink(email);
-      console.log(reset);
-  
-      // Configure email data
-      
-      client.sendEmailWithTemplate({
-        From: 'info@koppoh.com',
-        To: email,
-        TemplateId: '34126584',
-        TemplateModel: {
-          reset,
-          firstName 
-        },
-      })
-      .then((response) => {
-        console.log('Verified  successfully:', response);
-        res.status(201).json({ message: 'Verified successful',});
-      })
-      .catch((error) => {
-        console.error('Email sending error:', error);
-        res.status(500).json({ error: 'Email sending error' });
-      });
-  
-     
-    }
-     catch (error) {
+  const email = req.body.email;
+
+  try {
+    // Attempt to retrieve the user by email
+    const userRecord = await admin.auth().getUserByEmail(email);
+
+    // Extract the first name from the user record
+    const firstName = userRecord.firstName;
+
+    // Generate a password reset link
+    const reset = await admin.auth().generatePasswordResetLink(email);
+    console.log(reset);
+
+    // Send the email with the reset link and user's first name
+    client.sendEmailWithTemplate({
+      From: 'info@koppoh.com',
+      To: email,
+      TemplateId: '34126584',
+      TemplateModel: {
+        reset,
+        firstName 
+      },
+    })
+    .then((response) => {
+      console.log('Verified successfully:', response);
+      res.status(201).json({ message: 'Verification email sent successfully' });
+    })
+    .catch((error) => {
+      console.error('Email sending error:', error);
+      res.status(500).json({ error: 'Email sending error' });
+    });
+
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      console.error('Password reset link generation error: User not found');
+      res.status(404).json({ error: 'User not found' });
+    } else {
       console.error('Password reset link generation error:', error);
       res.status(400).json({ error: 'Password reset link generation failed' });
     }
-  
-  });
+  }
+});
+
 
   router.get('/user-details', (req, res) => {
     const { userId } = req.query;
