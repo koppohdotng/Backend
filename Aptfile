@@ -17,3 +17,5 @@ libgtk-3-0
 libx11-xcb1
 libxrender1
 libxtst6
+chromium-browser
+chromium-chromedriver
