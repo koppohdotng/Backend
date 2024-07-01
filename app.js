@@ -1748,7 +1748,9 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType } = req.body;
+     fundingType,
+    businessModel
+   } = req.body;
 
   // Check if date and type are provided (compulsory fields)
   if (!date || !type) {
@@ -1776,7 +1778,8 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType 
+     fundingType ,
+    businessModel
     
     // Initialize the receiptURL field
   };
@@ -1832,33 +1835,36 @@ const storagex = admin.storage();
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
+
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
-  try {
-    // Launch Puppeteer
+  try { 
     const browser = await puppeteer.launch({
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
       ],
     });
-
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    // Generate PDF from the page
-    const pdfBuffer = await page.pdf();
+    // Generate PDF with A4 size, no margins, and include background color
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      printBackground: true, // Include background color
+    });
+
     await browser.close();
 
-    // Generate a random number for the file name
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
     console.log(randomNumber);
 
     const fileName = `${userId}${randomNumber}.pdf`;
 
-    // Upload the PDF directly to Firebase Storage
+    // Upload the PDF directly from memory to Firebase Storage
     const bucket = storagex.bucket();
     const file = bucket.file(`pdfs/${fileName}`);
     await file.save(pdfBuffer, {
@@ -1873,6 +1879,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     // Update the teaser data in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
+
     const teaserData = {
       pdfUrl: signedUrl,
       storageDate: new Date().toISOString(),
@@ -1887,7 +1894,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    res.status(500).json({ error: 'Internal server error', error });
   }
 });
 
