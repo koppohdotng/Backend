@@ -1748,9 +1748,7 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType,
-    businessModel
-   } = req.body;
+     fundingType } = req.body;
 
   // Check if date and type are provided (compulsory fields)
   if (!date || !type) {
@@ -1778,8 +1776,7 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType ,
-    businessModel
+     fundingType 
     
     // Initialize the receiptURL field
   };
@@ -1833,14 +1830,14 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
 const storagex = admin.storage();
 
 app.get('/storeTeaser-pdf', async (req, res) => {
-  const { userId, fundingRequestId, url } = req.query;
 
+  const { userId, fundingRequestId, url } = req.query;
 
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
-  try { 
+  try {
     const browser = await puppeteer.launch({
       args: [
         '--no-sandbox',
@@ -1850,19 +1847,14 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    // Generate PDF with A4 size, no margins, and include background color
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      printBackground: true, // Include background color
-    });
-
+    const pdfBuffer = await page.pdf();
     await browser.close();
 
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    console.log(randomNumber);
+      console.log(randomNumber);
 
-    const fileName = `${userId}${randomNumber}.pdf`;
+
+    const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
 
     // Upload the PDF directly from memory to Firebase Storage
     const bucket = storagex.bucket();
@@ -1897,8 +1889,6 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal server error', error });
   }
 });
-
-
 
 
 
