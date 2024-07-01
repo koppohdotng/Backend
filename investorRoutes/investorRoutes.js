@@ -317,7 +317,7 @@ router.post('/sendPasswordResetEmail', async (req, res) => {
     }
   }
 });
-
+  
 
   router.get('/user-details', (req, res) => {
     const { userId } = req.query;
