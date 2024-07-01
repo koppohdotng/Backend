@@ -311,7 +311,7 @@ router.post('/resendVerification', async (req, res) => {
       .then((userRecord) => {
           // If user exists, resend verification email
           const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
-          const verificationLink = `https://koppohstaging-070b5668de51.herokuapp.com/confirm-verification?email=${email}&token=${verificationToken}`;
+          const verificationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
           console.log(verificationLink)
           sendVerificationEmail(email, userRecord.firstName, verificationLink);
 
