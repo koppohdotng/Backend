@@ -1830,7 +1830,6 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
 const storagex = admin.storage();
 
 app.get('/storeTeaser-pdf', async (req, res) => {
-
   const { userId, fundingRequestId, url } = req.query;
 
   if (!userId || !url) {
@@ -1838,25 +1837,28 @@ app.get('/storeTeaser-pdf', async (req, res) => {
   }
 
   try {
+    // Launch Puppeteer
     const browser = await puppeteer.launch({
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
       ],
     });
+
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
+    // Generate PDF from the page
     const pdfBuffer = await page.pdf();
     await browser.close();
 
+    // Generate a random number for the file name
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-      console.log(randomNumber);
+    console.log(randomNumber);
 
+    const fileName = `${userId}${randomNumber}.pdf`;
 
-    const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
-
-    // Upload the PDF directly from memory to Firebase Storage
+    // Upload the PDF directly to Firebase Storage
     const bucket = storagex.bucket();
     const file = bucket.file(`pdfs/${fileName}`);
     await file.save(pdfBuffer, {
@@ -1871,7 +1873,6 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     // Update the teaser data in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
-
     const teaserData = {
       pdfUrl: signedUrl,
       storageDate: new Date().toISOString(),
@@ -1886,9 +1887,11 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error', error });
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
+
 
 
 
