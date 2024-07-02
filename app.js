@@ -1886,6 +1886,8 @@ const storagex = admin.storage();
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
+  console.log(url)
+
 
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
