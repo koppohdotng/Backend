@@ -312,7 +312,7 @@ router.post('/resendVerification', async (req, res) => {
           // If user exists, resend verification email
           const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
           const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
-          console.log(verificationLink)
+          console.log(confirmationLink)
           sendVerificationEmail(email, userRecord.firstName, confirmationLink);
 
           // Update verification token in user data
