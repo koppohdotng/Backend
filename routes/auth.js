@@ -311,9 +311,9 @@ router.post('/resendVerification', async (req, res) => {
       .then((userRecord) => {
           // If user exists, resend verification email
           const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
-          const verificationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
+          const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
           console.log(verificationLink)
-          sendVerificationEmail(email, userRecord.firstName, verificationLink);
+          sendVerificationEmail(email, userRecord.firstName, confirmationLink);
 
           // Update verification token in user data
           const db = admin.database();
@@ -338,13 +338,13 @@ router.post('/resendVerification', async (req, res) => {
       });
 });
 
-function sendVerificationEmail(email, firstName, verificationLink) {
+function sendVerificationEmail(email, firstName, confirmationLink) {
   client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
       To: email,
       TemplateId: '33232370',
       TemplateModel: {
-          verificationLink,
+        confirmationLink,
           firstName
       },
   })
