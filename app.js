@@ -921,12 +921,11 @@ app.post('/loanRequest/:userId', upload.fields([
 //     });
 // });
 
-
 app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
   const userId = req.params.userId;
   console.log(`Received request for userId: ${userId}`);
   
-  const {
+  let {
     problem,
     solution,
     UVP,
@@ -937,14 +936,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     fundingType,
     currency,
     debtAmount
-
   } = req.body;
 
   try {
-
     if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
       equityAmount = debtAmount;
- }
+    }
  
     // Handle file uploads
     const files = req.files;
@@ -981,12 +978,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const BusinessSector = userData.businessSector;
     const BusinessStage = businessstage; 
-    
-    const InvestmentType =InvestmentStage; 
-
+    const InvestmentType = InvestmentStage; 
     const FundingType = fundingType;
-
-    // Create a createdAt timestamp in ISO 8601 format
     const createdAt = new Date().toISOString();
 
     const bulkEquityData = {
@@ -1024,11 +1017,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         (investor.FundingType.includes('All') || !FundingType || investor.FundingType.includes(FundingType)) &&
         (investor.MinInvestment.includes('All') || equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) &&
         (investor.RevenueThreshold.includes('All') || totalRevenue > investor.RevenueThreshold)
-            
-       
       );
     });
-    
 
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
@@ -1058,7 +1048,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
- 
+
 
 
 
