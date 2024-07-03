@@ -304,13 +304,13 @@ router.post('/confirm-email', (req, res) => {
 
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
-
+  const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
   admin
       .auth()
       .getUserByEmail(email)
       .then((userRecord) => {
           // If user exists, resend verification email
-          const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
+          
           const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
           console.log(confirmationLink)
           var firstName = userRecord.firstName
