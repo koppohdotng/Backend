@@ -1886,14 +1886,13 @@ const storagex = admin.storage();
 app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
-  console.log(url)
-
+  console.log(url);
 
   if (!userId || !url) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
-  try { 
+  try {
     const browser = await puppeteer.launch({
       args: [
         '--no-sandbox',
@@ -1901,7 +1900,9 @@ app.get('/storeTeaser-pdf', async (req, res) => {
       ],
     });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    // Increase the navigation timeout to 60 seconds
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
