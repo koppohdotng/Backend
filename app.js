@@ -1889,6 +1889,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
   console.log(url);
 
   if (!userId || !url) {
+    console.error('Missing required parameters: userId or url');
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
@@ -1914,7 +1915,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     await browser.close();
 
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    console.log(randomNumber);
+    console.log(`Generated random number: ${randomNumber}`);
 
     const fileName = `${userId}${randomNumber}.pdf`;
 
@@ -1925,11 +1926,15 @@ app.get('/storeTeaser-pdf', async (req, res) => {
       metadata: { contentType: 'application/pdf' },
     });
 
+    console.log(`PDF saved to Firebase Storage with filename: ${fileName}`);
+
     // Get the signed URL for the uploaded PDF
     const [signedUrl] = await file.getSignedUrl({
       action: 'read',
       expires: '03-09-2491', // Replace with an appropriate expiration date
     });
+
+    console.log(`Generated signed URL: ${signedUrl}`);
 
     // Update the teaser data in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
@@ -1945,12 +1950,29 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     await ref.push(teaserData);
 
+    console.log('Teaser data pushed to Realtime Database:', teaserData);
+
     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error', error });
+    console.error('Error occurred:', error);
+
+    // Specific error logging
+    if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+      console.error('DNS resolution error:', error.message);
+    } else if (error.message.includes('net::ERR_CONNECTION_TIMED_OUT')) {
+      console.error('Connection timed out:', error.message);
+    } else if (error.message.includes('TimeoutError')) {
+      console.error('Navigation timeout:', error.message);
+    } else if (error.message.includes('NoSuchBucket')) {
+      console.error('Bucket not found:', error.message);
+    } else {
+      console.error('Unexpected error:', error.message);
+    }
+
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
 
 
 
