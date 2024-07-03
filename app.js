@@ -710,20 +710,28 @@ app.post('/loanRequest/:userId', upload.fields([
     currency,
     fundingAmount,
     reviewstage,
-    businessModel,                                                                                                                                                                                                                                                                                                                                                  
-    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+    businessModel,
+    useOfFunds = {}, // Default to an empty object if not provided
     financials,
   } = req.body;
 
+  const {
+    product,
+    saleAndMarketing,
+    researchAndDevelopment,
+    capitalExpenditure,
+    operation,
+    other,
+  } = useOfFunds;
+
   const otherValue = other !== undefined ? other : '';
+
   // Handle file uploads
   const files = req.files;
   const uploadPromises = [];
   const fileUrls = {};
-  console.log("odebe")
-  if (files) {
 
-    console.log("odebe 1")
+  if (files) {
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
       const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
@@ -764,7 +772,6 @@ app.post('/loanRequest/:userId', upload.fields([
   // Wait for all file uploads to complete
   Promise.all(uploadPromises)
     .then(() => {
-      console.log("odebe 2")
       // Create a loan request data object with the provided fields and file URLs
       const fundingRequest = {
         date,
@@ -774,55 +781,48 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel , 
+        businessModel,
         useOfFunds: {
-          product,
-          saleAndMarketing,
-          researchAndDevelopment,
-          capitalExpenditure,
-          operation,
+          product: product || '',
+          saleAndMarketing: saleAndMarketing || '',
+          researchAndDevelopment: researchAndDevelopment || '',
+          capitalExpenditure: capitalExpenditure || '',
+          operation: operation || '',
           other: otherValue,
-          
-          
         },
-       
-        fundingType:"Debt" ,
+        fundingType: "Debt",
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
         cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
         financialFileUrl: fileUrls.financialFile || '',
       };
-      console.log("odebe 4")
+
       // Update the loan request data
       const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
-        console.log("odebe 3")
         if (error) {
-          console.log("obede 5"+error)
-          res.status(500).json({ error: 'Failed to update loan request data.'});
+          res.status(500).json({ error: 'Failed to update loan request data.' });
         } else {
           const newKey = newRef.key;
 
-    // Retrieve the saved data using the correct key
-    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-      const savedData = snapshot.val();
-      savedData.fundingRequestId = newKey;
-      console.log(savedData);
-      res.status(200).json({
-        message: 'Loan request data updated successfully.',
-        savedData: savedData
-       
-      });
-    });
-                
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+            savedData.fundingRequestId = newKey;
+
+            res.status(200).json({
+              message: 'Loan request data updated successfully.',
+              savedData: savedData,
+            });
+          });
         }
       });
     })
     .catch(error => {
-      console.log(error)
       res.status(500).json({ error });
     });
 });
+
 
 // app.post('/bulkEquity/:userId', upload.fields([
 //   { name: 'pitchDeckFile', maxCount: 1 },
