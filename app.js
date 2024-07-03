@@ -1126,7 +1126,7 @@ app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
 
 
 
-app.post('/equityRequest/:userId', upload.fields([  
+app.post('/equityRequest/:userId', upload.fields([
   { name: 'pitchdeck', maxCount: 1 },
   { name: 'valuation', maxCount: 1 },
   { name: 'captable', maxCount: 1 },
@@ -1145,9 +1145,19 @@ app.post('/equityRequest/:userId', upload.fields([
     fundingAmount,
     businessModel,
     reviewstage,
-    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+    useOfFunds = {}, // Default to an empty object if not provided
     financials,
   } = req.body;
+  
+  const {
+    product,
+    saleAndMarketing,
+    researchAndDevelopment,
+    capitalExpenditure,
+    operation,
+    other,
+  } = useOfFunds;
+
   const otherValue = other !== undefined ? other : '';
 
   // Handle file uploads
@@ -1208,17 +1218,15 @@ app.post('/equityRequest/:userId', upload.fields([
         reviewstage,
         businessModel,
         useOfFunds: {
-          product,
-          saleAndMarketing,
-          researchAndDevelopment,
-          capitalExpenditure,
-          operation,
+          product: product || '',
+          saleAndMarketing: saleAndMarketing || '',
+          researchAndDevelopment: researchAndDevelopment || '',
+          capitalExpenditure: capitalExpenditure || '',
+          operation: operation || '',
           other: otherValue,
         },
         financials,
-        
-       
-        fundingType: "Equity" ,
+        fundingType: "Equity",
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
@@ -1226,37 +1234,32 @@ app.post('/equityRequest/:userId', upload.fields([
         founderagreementUrl: fileUrls.founderagreement || '',
         taxclearanceUrl: fileUrls.taxclearance || '',
       };
-     
-      // Update the equity request data
-      const newRef =  dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
-        if (error) {
-          console.log(error)
-          res.status(500).json({ error: 'Failed to update equity request data.'});
-        } else {
 
+      // Update the equity request data
+      const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update equity request data.' });
+        } else {
           const newKey = newRef.key;
 
-    // Retrieve the saved data using the correct key
-    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-      const savedData = snapshot.val();
-       
-      savedData.fundingRequestId = newKey;
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+            savedData.fundingRequestId = newKey;
 
-      console.log(savedData);
-      res.status(200).json({
-        message: 'Equity request data updated successfully.',
-        savedData: savedData
-      });
-    });
-          
+            res.status(200).json({
+              message: 'Equity request data updated successfully.',
+              savedData: savedData,
+            });
+          });
         }
       });
     })
     .catch(error => {
-      console.log(error)
       res.status(500).json({ error });
     });
 });
+
 
 app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
