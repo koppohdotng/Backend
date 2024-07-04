@@ -417,16 +417,11 @@ app.put('/api/update-user/:uid', (req, res) => {
 app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
   const { refNumber } = req.body;
-  
+
   const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
-  const RefNumber = refNumber;
-  console.log(refNumber)
-
   try {
-    const response = await axios.post(`https://api.paystack.co/transaction/verify/{RefNumber}`, {
-      
-    }, {
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
         'Content-Type': 'application/json'
@@ -437,7 +432,6 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
 
     // Save payment data under bulkEquity for the user
     const paymentData = {
-      
       transactionReference: data,
       status: 'initialized',
       createdAt: new Date().toISOString()
