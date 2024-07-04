@@ -986,7 +986,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       problem,
       solution,
       UVP,
-      totalRevenue,
+      // totalRevenue,
       InvestmentType,
       businessstage,
       equityAmount,
