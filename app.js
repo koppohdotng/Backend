@@ -986,12 +986,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       problem,
       solution,
       UVP,
-      // totalRevenue,
+      totalRevenue : totalRevenue || "",
       InvestmentType,
       businessstage,
-      equityAmount,
-      fundingType,
-      currency,
+      equityAmount : equityAmount || "",
+      fundingType : fundingType || "",
+      currency : currency || "",
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
       investorEmails: [], // Initialize investorEmails array
       createdAt // Store the current timestamp in ISO 8601 format
