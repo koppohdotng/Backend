@@ -421,6 +421,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
   const RefNumber = refNumber;
+  console.log(refNumber)
 
   try {
     const response = await axios.post(`https://api.paystack.co/transaction/verify/{RefNumber}`, {
@@ -983,9 +984,9 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const createdAt = new Date().toISOString();
 
     const bulkEquityData = {
-      problem,
-      solution,
-      UVP,
+      problem: problem || "",
+      solution: solution || "",
+      UVP : UVP|| "",
       totalRevenue : totalRevenue || "",
       InvestmentType,
       businessstage,
@@ -993,7 +994,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       fundingType : fundingType || "",
       currency : currency || "",
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      investorEmails: [], // Initialize investorEmails array
+      investorsMatch: [], // Initialize investorEmails array
       createdAt // Store the current timestamp in ISO 8601 format
     };
 
@@ -1024,7 +1025,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     console.log(`Found ${filterInvestors.length} matching investors.`);
     console.log(`Found ${filterInvestors} matching investors.`);
 
-    bulkEquityData.investorEmails = filterInvestors.map(investor => investor.CompanyEmail);
+    bulkEquityData.investorsMatch = filterInvestors;
 
     // Update bulk equity data in Firebase
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
