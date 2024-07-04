@@ -1017,6 +1017,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         (investor.FundingType.includes('All') || !FundingType || investor.FundingType.includes(FundingType)) &&
         (investor.MinInvestment.includes('All') || equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) &&
         (investor.RevenueThreshold.includes('All') || totalRevenue > investor.RevenueThreshold)
+        
       );
     });
 
