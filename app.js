@@ -1023,6 +1023,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
+    Console.log(filterInvestors)
+
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
 
     // Update bulk equity data in Firebase
