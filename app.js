@@ -1022,8 +1022,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     });
 
     console.log(`Found ${filterInvestors.length} matching investors.`);
-
-    Console.log(`Found ${filterInvestors} matching investors.`)
+    console.log(`Found ${filterInvestors} matching investors.`);
 
     bulkEquityData.investorEmails = filterInvestors.map(investor => investor.CompanyEmail);
 
