@@ -1025,7 +1025,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     Console.log(filterInvestors)
 
-    bulkEquityData.investorEmails = filterInvestors.map(investor => investor.Email);
+    bulkEquityData.investorEmails = filterInvestors.map(investor => investor.CompanyEmail);
 
     // Update bulk equity data in Firebase
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
