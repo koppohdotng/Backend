@@ -1010,14 +1010,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         (investor.BusinessStage.includes('All') || !BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
         (investor.InvestmentStage.includes('All') || !InvestmentType || investor.InvestmentStage.includes(InvestmentType)) &&
         (investor.FundingType.includes('All') || !FundingType || investor.FundingType.includes(FundingType)) &&
-        (investor.MinInvestment.includes('All') || equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) &&
-        (investor.RevenueThreshold.includes('All') || totalRevenue > investor.RevenueThreshold)
-        
+        (investor.MinInvestment == 'All' || (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment)) &&
+        (investor.RevenueThreshold == 'All' || totalRevenue > investor.RevenueThreshold)
       );
     });
 
     console.log(`Found ${filterInvestors.length} matching investors.`);
-    console.log(`Found ${filterInvestors} matching investors.`);
 
     bulkEquityData.investorsMatch = filterInvestors;
 
@@ -1045,6 +1043,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
