@@ -416,7 +416,7 @@ app.put('/api/update-user/:uid', (req, res) => {
 
 app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
-  const { refNumber } = req.body;
+  const  refNumber  = req.body;
 
   const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
