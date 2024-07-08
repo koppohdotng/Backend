@@ -940,7 +940,7 @@ app.post('/loanRequest/:userId', upload.fields([
 //     .catch(error => {
 //       console.log(error);
 //       res.status(500).json({ error });
-//     });
+//     });nnn
 // });
 
 app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
