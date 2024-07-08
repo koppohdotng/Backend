@@ -416,13 +416,12 @@ app.put('/api/update-user/:uid', (req, res) => {
 
 app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
-  const  refNumber  = req.body;
-
-  console.log(refNumber)
+  const { refNumber, count } = req.body;
 
   const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
   try {
+    // Verify the transaction
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
@@ -441,7 +440,33 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
 
     await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).push(paymentData);
 
-    res.json(data);
+    // Retrieve the bulkEquity data
+    const bulkEquitySnapshot = await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      return res.status(404).json({ error: 'Bulk equity data not found' });
+    }
+
+    // Get the current count of investors processed
+    const currentCount = bulkEquityData.count || 0;
+    const newCount = currentCount + count;
+
+    // Get the list of investors and slice it based on the count
+    const investors = bulkEquityData.investorsMatch || [];
+    const investorsToReturn = investors.slice(currentCount, newCount);
+
+    // Update the count in the bulkEquity data
+    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).update({ count: newCount });
+
+    const responsePayload = {
+      transactionData: data,
+      investors: investorsToReturn,
+      totalCount: investors.length,
+      currentCount: newCount
+    };
+
+    res.json(responsePayload);
   } catch (error) {
     console.error('Error initializing transaction:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Failed to initialize transaction' });
