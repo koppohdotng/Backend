@@ -371,7 +371,7 @@ app.put('/api/update-user/:uid', (req, res) => {
   if (lastName) {
     updatedUserData.lastName = lastName;
   }
-  if (country) {
+  if (nationality) {
     updatedUserData.nationality = nationality;
   }
   if (phoneNumber) {
