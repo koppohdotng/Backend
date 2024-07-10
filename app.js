@@ -67,6 +67,45 @@ app.use(function onError(err, req, res, next) {
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
+
+app.get('/addModeToFundingRequests', async (req, res) => {
+  const db = admin.database();
+  const dataRef = db.ref('/users');
+  try {
+    // Fetch all user data
+    const userSnapshot = await dataRef.once('value');
+    const users = userSnapshot.val();
+
+    if (!users) {
+      return res.status(404).json({ message: 'No users found' });
+    }
+
+    // Iterate through each user and add mode: "guidedApp" to their fundingRequest
+    const updatePromises = Object.keys(users).map(async (userId) => {
+      const userFundingRequestRef = dataRef.child(`${userId}/fundingRequest`);
+      const fundingRequestSnapshot = await userFundingRequestRef.once('value');
+      const fundingRequests = fundingRequestSnapshot.val();
+
+      if (fundingRequests) {
+        const fundingRequestUpdatePromises = Object.keys(fundingRequests).map(async (fundingRequestId) => {
+          const fundingRequestRef = userFundingRequestRef.child(fundingRequestId);
+          await fundingRequestRef.update({ mode: "guidedApp" });
+        });
+
+        await Promise.all(fundingRequestUpdatePromises);
+      }
+    });
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({ message: 'Mode "guidedApp" added to all fundingRequests successfully.' });
+  } catch (error) {
+    console.error('Error adding mode to fundingRequests:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 app.get('/addModeToBulkEquity', async (req, res) => {
   const db = admin.database();
   const dataRef = db.ref('/users');
