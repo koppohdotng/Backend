@@ -1410,6 +1410,7 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
     useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
     financials,
   } = req.body;
+  console.log(financials)
 
   // Handle file updates
   const files = req.files;
