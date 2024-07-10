@@ -1089,9 +1089,33 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+  const userId = req.params.userId;
+  const bulkEquityId = req.params.bulkEquityId;
+  console.log(`Received request for userId: ${userId} and bulkEquityId: ${bulkEquityId}`);
 
+  try {
+    // Fetch the bulkEquityData
+    const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
 
+    if (!bulkEquityData) {
+      throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
+    }
 
+    // Prepare the response
+    const response = {
+      bulkEquityData,
+      message: 'Bulk equity data retrieved successfully.'
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error retrieving bulk equity data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
