@@ -68,80 +68,7 @@ app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
 
-app.get('/addModeToFundingRequests', async (req, res) => {
-  const db = admin.database();
-  const dataRef = db.ref('/users');
-  try {
-    // Fetch all user data
-    const userSnapshot = await dataRef.once('value');
-    const users = userSnapshot.val();
 
-    if (!users) {
-      return res.status(404).json({ message: 'No users found' });
-    }
-
-    // Iterate through each user and add mode: "guidedApp" to their fundingRequest
-    const updatePromises = Object.keys(users).map(async (userId) => {
-      const userFundingRequestRef = dataRef.child(`${userId}/fundingRequest`);
-      const fundingRequestSnapshot = await userFundingRequestRef.once('value');
-      const fundingRequests = fundingRequestSnapshot.val();
-
-      if (fundingRequests) {
-        const fundingRequestUpdatePromises = Object.keys(fundingRequests).map(async (fundingRequestId) => {
-          const fundingRequestRef = userFundingRequestRef.child(fundingRequestId);
-          await fundingRequestRef.update({ mode: "guidedApp" });
-        });
-
-        await Promise.all(fundingRequestUpdatePromises);
-      }
-    });
-
-    await Promise.all(updatePromises);
-
-    res.status(200).json({ message: 'Mode "guidedApp" added to all fundingRequests successfully.' });
-  } catch (error) {
-    console.error('Error adding mode to fundingRequests:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-app.get('/addModeToBulkEquity', async (req, res) => {
-  const db = admin.database();
-  const dataRef = db.ref('/users');
-    try {
-      // Fetch all user data
-      const userSnapshot = await dataRef.once('value');
-      const users = userSnapshot.val();
-  
-      if (!users) {
-        return res.status(404).json({ message: 'No users found' });
-      }
-  
-      // Iterate through each user and add mode: "bulkApp" to their bulkEquityData
-      const updatePromises = Object.keys(users).map(async (userId) => {
-        const userBulkEquityRef = dataRef.child(`${userId}/bulkEquity`);
-        const bulkEquitySnapshot = await userBulkEquityRef.once('value');
-        const bulkEquities = bulkEquitySnapshot.val();
-  
-        if (bulkEquities) {
-          const bulkEquityUpdatePromises = Object.keys(bulkEquities).map(async (bulkEquityId) => {
-            const bulkEquityRef = userBulkEquityRef.child(bulkEquityId);
-            await bulkEquityRef.update({ mode: "bulkApp" });
-          });
-  
-          await Promise.all(bulkEquityUpdatePromises);
-        }
-      });
-  
-      await Promise.all(updatePromises);
-  
-      res.status(200).json({ message: 'Mode "bulkApp" added to all bulkEquityData successfully.' });
-    } catch (error) {
-      console.error('Error adding mode to bulkEquityData:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
 
 
 app.get('/storeInvestorList', (req, res) => {
@@ -429,12 +356,13 @@ app.use('/investorRoutes',investorRoutes);
 
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
-  const { firstName, lastName, country, phoneNumber, role, linkedIn, gender } = req.body;
-
+  const { firstName, lastName, nationality, phoneNumber, role, linkedIn, gender } = req.body;
+    console.log(gender);
+    
   // Check if the provided data is available for update
   const updatedUserData = {};
 
-  if (firstName) {
+  if (firstName) { 
     updatedUserData.firstName = firstName;
   }
   if (gender) {
@@ -444,7 +372,7 @@ app.put('/api/update-user/:uid', (req, res) => {
     updatedUserData.lastName = lastName;
   }
   if (country) {
-    updatedUserData.country = country;
+    updatedUserData.nationality = nationality;
   }
   if (phoneNumber) {
     updatedUserData.phoneNumber = phoneNumber;
@@ -469,7 +397,7 @@ app.put('/api/update-user/:uid', (req, res) => {
 
       if (updatedUserData.firstName) count++;
       if (updatedUserData.lastName) count++;
-      if (updatedUserData.country) count++;
+      if (updatedUserData.nationality) count++;
       if (updatedUserData.phoneNumber) count++;
       if (updatedUserData.role) count++;
       if (updatedUserData.linkedIn) count++;
@@ -652,6 +580,9 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     businessSector,
     genderComposition,
     targetAudience,
+    regionH,
+    countryHq
+
   } = req.body;
 
   // Handle image upload and generate a download URL
@@ -687,6 +618,9 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
             ...(businessSector && { businessSector }),
             ...(genderComposition && {genderComposition }),
             ...(targetAudience && {targetAudience}),
+            ...(countryHq && {regionHq}),
+
+    
             
             logoUrl: imageUrl, // Always include the logo URL
           };
