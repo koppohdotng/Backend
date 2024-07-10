@@ -1188,7 +1188,7 @@ app.post('/equityRequest/:userId', upload.fields([
     businessModel,
     reviewstage,
     useOfFunds = {}, // Default to an empty object if not provided
-    financials,
+    financials = [],
   } = req.body;
   console.log(financials)
   
