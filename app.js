@@ -813,6 +813,7 @@ app.post('/loanRequest/:userId', upload.fields([
           other: otherValue,
         },
         fundingType: "Debt",
+        mode:"guidedApp",
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
@@ -960,6 +961,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     debtAmount
   } = req.body;
 
+
+  
   try {
     if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
       equityAmount = debtAmount;
@@ -1015,6 +1018,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       fundingType : fundingType || "",
       currency : currency || "",
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+      mode:"bulkApp",
       investorsMatch: [], // Initialize investorEmails array
       createdAt // Store the current timestamp in ISO 8601 format
     };
@@ -1250,6 +1254,7 @@ app.post('/equityRequest/:userId', upload.fields([
         },
         financials,
         fundingType: "Equity",
+        mode:"guidedApp",
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
