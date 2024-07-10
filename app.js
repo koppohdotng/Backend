@@ -584,7 +584,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     countryHq
 
   } = req.body;
-  console.log(genderComposition,targetAudience,)
+  console.log(genderComposition,targetAudience,regionHq,countryHq)
 
   // Handle image upload and generate a download URL
   let logoFileName = '';
