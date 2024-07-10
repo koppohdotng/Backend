@@ -366,7 +366,7 @@ app.put('/api/update-user/:uid', (req, res) => {
     updatedUserData.firstName = firstName;
   }
   if (gender) {
-    updatedUserData.firstName = gender;
+    updatedUserData.gender = gender;
   }
   if (lastName) {
     updatedUserData.lastName = lastName;
@@ -660,9 +660,9 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
       ...(yearOfIncorporation && { yearOfIncorporation }),
       ...(businessSector && { businessSector }),
       ...(genderComposition && {genderComposition }),
-            ...(targetAudience && {targetAudience}),
-            ...(regionHq && {regionHq}),
-            ...( countryHq && {countryHq}),
+    ...(targetAudience && {targetAudience}),
+       ...(regionHq && {regionHq}),
+      ...( countryHq && {countryHq}),
     };
 
     // Include the logo URL if it already exists in the database
