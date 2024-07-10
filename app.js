@@ -580,7 +580,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     businessSector,
     genderComposition,
     targetAudience,
-    regionH,
+    regionHq,
     countryHq
 
   } = req.body;
@@ -620,6 +620,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
             ...(genderComposition && {genderComposition }),
             ...(targetAudience && {targetAudience}),
             ...(regionHq && {regionHq}),
+            ...( countryHq && {countryHq}),
 
     
             
@@ -658,6 +659,10 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
       ...(businessRCNumber && { businessRCNumber }),
       ...(yearOfIncorporation && { yearOfIncorporation }),
       ...(businessSector && { businessSector }),
+      ...(genderComposition && {genderComposition }),
+            ...(targetAudience && {targetAudience}),
+            ...(regionHq && {regionHq}),
+            ...( countryHq && {countryHq}),
     };
 
     // Include the logo URL if it already exists in the database
