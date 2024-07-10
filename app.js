@@ -358,7 +358,7 @@ app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
   const { firstName, lastName, nationality, phoneNumber, role, linkedIn, gender } = req.body;
     console.log(gender);
-    
+
   // Check if the provided data is available for update
   const updatedUserData = {};
 
@@ -584,6 +584,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     countryHq
 
   } = req.body;
+  console.log(genderComposition,targetAudience,)
 
   // Handle image upload and generate a download URL
   let logoFileName = '';
@@ -618,7 +619,7 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
             ...(businessSector && { businessSector }),
             ...(genderComposition && {genderComposition }),
             ...(targetAudience && {targetAudience}),
-            ...(countryHq && {regionHq}),
+            ...(regionHq && {regionHq}),
 
     
             
