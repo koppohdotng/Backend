@@ -67,6 +67,42 @@ app.use(function onError(err, req, res, next) {
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
+app.get('/addModeToBulkEquity', async (req, res) => {
+  const db = admin.database();
+  const dataRef = db.ref('/users');
+    try {
+      // Fetch all user data
+      const userSnapshot = await dataRef.once('value');
+      const users = userSnapshot.val();
+  
+      if (!users) {
+        return res.status(404).json({ message: 'No users found' });
+      }
+  
+      // Iterate through each user and add mode: "bulkApp" to their bulkEquityData
+      const updatePromises = Object.keys(users).map(async (userId) => {
+        const userBulkEquityRef = dataRef.child(`${userId}/bulkEquity`);
+        const bulkEquitySnapshot = await userBulkEquityRef.once('value');
+        const bulkEquities = bulkEquitySnapshot.val();
+  
+        if (bulkEquities) {
+          const bulkEquityUpdatePromises = Object.keys(bulkEquities).map(async (bulkEquityId) => {
+            const bulkEquityRef = userBulkEquityRef.child(bulkEquityId);
+            await bulkEquityRef.update({ mode: "bulkApp" });
+          });
+  
+          await Promise.all(bulkEquityUpdatePromises);
+        }
+      });
+  
+      await Promise.all(updatePromises);
+  
+      res.status(200).json({ message: 'Mode "bulkApp" added to all bulkEquityData successfully.' });
+    } catch (error) {
+      console.error('Error adding mode to bulkEquityData:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 
 app.get('/storeInvestorList', (req, res) => {
