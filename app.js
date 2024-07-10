@@ -748,7 +748,7 @@ app.post('/loanRequest/:userId', upload.fields([
     fundingAmount,
     reviewstage,
     businessModel,
-    useOfFunds = {}, // Default to an empty object if not provided
+    useOfFunds = [], // Default to an empty object if not provided
     financials,
   } = req.body;
 
@@ -1187,7 +1187,7 @@ app.post('/equityRequest/:userId', upload.fields([
     fundingAmount,
     businessModel,
     reviewstage,
-    useOfFunds = {}, // Default to an empty object if not provided
+    useOfFunds = [], // Default to an empty object if not provided
     financials,
   } = req.body;
   
