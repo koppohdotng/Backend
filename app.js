@@ -2079,7 +2079,7 @@ app.get('/api/latestBlogPost/:number', async (req, res) => {
     res.json({ latestBlogPosts });
   } catch (error) {
     console.error('Error fetching blog posts:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal S erver Error' });
   }
 });
 
