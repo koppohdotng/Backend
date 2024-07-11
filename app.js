@@ -952,7 +952,7 @@ app.post('/loanRequest/:userId', upload.fields([
 //           });
 //         }
 //       }); 
-//     })
+//     })x
 //     .catch(error => {
 //       console.log(error);
 //       res.status(500).json({ error });
