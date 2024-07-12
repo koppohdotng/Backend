@@ -4,7 +4,23 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 // const client = new OAuth2Client('118360199442016913320');
+
 // var postmark = require("postmark");
+
+require('dotenv').config();
+
+const serviceAccount = {
+  type: process.env.FIREBASE_TYPE,
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_CLIENT_ID,
+  auth_uri: process.env.FIREBASE_AUTH_URI,
+  token_uri: process.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
+};
 
 // const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
 
@@ -12,8 +28,7 @@ var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
-// Initialize Firebase Admin SDK with your service account key
-const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
+// Adjust the path as needed
 const { error } = require('console');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
