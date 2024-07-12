@@ -13,23 +13,23 @@ var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
 // Initialize Firebase Admin SDK with your service account key
-// const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
-// const { error } = require('console');
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-//   storageBucket: 'gs://koppoh-4e5fb.appspot.com',
-//    // Replace with your Firebase project's Realtime Database URL
-// });
-
-const serviceAccount = require('../staging.json'); // Adjust the path as needed
+const serviceAccount = require('../serviceAccountKey.json'); // Adjust the path as needed
 const { error } = require('console');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-362da.appspot.com',
+  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
+  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
    // Replace with your Firebase project's Realtime Database URL
 });
+
+// const serviceAccount = require('../staging.json'); // Adjust the path as needed
+// const { error } = require('console');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
+//   storageBucket: 'gs://koppoh-362da.appspot.com',
+//    // Replace with your Firebase project's Realtime Database URL
+// });
 
 
 
@@ -117,24 +117,26 @@ admin.initializeApp({
 //         }
 //       });
       
-//       client.sendEmailWithTemplate({
-//         From: 'info@koppoh.com',
-//         To: email,
-//         TemplateId: '33232370',
-//         TemplateModel: {
-//           firstName,
-//           verifyNumber: randomNumber,
-//         },
-//       })
-//     //   .then((response) => {
-//     //     console.log('Email sent successfully:', response);
-//     //     res.status(201).json({ message: 'Signup successful',});
-//     //   })
-//     //   .catch((error) => {
-//     //     console.error('Email sending error:');
-//     //     res.status(500).json({ error: 'Email sending error'});
-//     //     return; // Add this line to stop the function execution
-//     // })
+
+      client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: email,
+        TemplateId: '36197708',
+        TemplateModel: {
+          firstName,
+          verifyNumber: randomNumber,
+        },
+      })
+    //   .then((response) => {
+    //     console.log('Email sent successfully:', response);
+    //     res.status(201).json({ message: 'Signup successful',});
+    //   })
+    //   .catch((error) => {
+    //     console.error('Email sending error:');
+    //     res.status(500).json({ error: 'Email sending error'});
+    //     return; // Add this line to stop the function execution
+    // })
+
 
 
 // });
@@ -344,7 +346,7 @@ function sendVerificationEmail(email, firstName, confirmationLink) {
   client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
       To: email,
-      TemplateId: '33232370',
+      TemplateId: '36197708',
       TemplateModel: {
         confirmationLink,
           firstName
@@ -478,6 +480,7 @@ router.post('/assist', (req, res) => {
       return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 });
+
 
 
 router.post('/Message', (req, res) => {
