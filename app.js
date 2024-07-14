@@ -13,7 +13,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
 
-const key = require('./serviceAccountKey.json');
+
 
 
 const investorList = require('./investorList.json');
