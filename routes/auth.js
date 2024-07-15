@@ -30,21 +30,21 @@ var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 // Adjust the path as needed
 const { error } = require('console');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
-   // Replace with your Firebase project's Realtime Database URL
-});
-
-// const serviceAccount = require('../staging.json'); // Adjust the path as needed
-// const { error } = require('console');
 // admin.initializeApp({
 //   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
-//   storageBucket: 'gs://koppoh-362da.appspot.com',
+//   databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
+//   storageBucket: 'gs://koppoh-4e5fb.appspot.com',
 //    // Replace with your Firebase project's Realtime Database URL
 // });
+
+const serviceAccount = require('../staging.json'); // Adjust the path as needed
+const { error } = require('console');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
+  storageBucket: 'gs://koppoh-362da.appspot.com',
+   // Replace with your Firebase project's Realtime Database URL
+});
 
 
 
@@ -188,7 +188,7 @@ router.post('/signup', (req, res) => {
             const emailVerification = false;
             const firstTime = true;
             const currentDate = new Date();
-            const dateInSeconds = Math.floor(currentDate.getTime() / 1000);
+            const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
 
             const userData = {
               firstName,
