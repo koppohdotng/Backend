@@ -1023,6 +1023,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const FundingType = fundingType;
     const createdAt = new Date().toISOString();
 
+  console.log(BusinessSector,BusinessStage,InvestmentType,fundingType);
+
     const bulkEquityData = {
       problem: problem || "",
       solution: solution || "",
@@ -2056,7 +2058,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
 
     // Increase the navigation timeout to 60 seconds
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 6000000 });
 
     // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
