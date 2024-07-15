@@ -133,15 +133,15 @@ admin.initializeApp({
 //       });
       
 
-      client.sendEmailWithTemplate({
-        From: 'info@koppoh.com',
-        To: email,
-        TemplateId: '36197708',
-        TemplateModel: {
-          firstName,
-          verifyNumber: randomNumber,
-        },
-      })
+      // client.sendEmailWithTemplate({
+      //   From: 'info@koppoh.com',
+      //   To: email,
+      //   TemplateId: '36197708',
+      //   TemplateModel: {
+      //     firstName,
+      //     verifyNumber: randomNumber,
+      //   },
+      // })
     //   .then((response) => {
     //     console.log('Email sent successfully:', response);
     //     res.status(201).json({ message: 'Signup successful',});
