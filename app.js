@@ -12,7 +12,7 @@ const multer = require('multer');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
-
+app.use(express.json());
 
 
 
