@@ -127,7 +127,7 @@ admin.initializeApp({
 //             });
 //         } else {
 //           // Handle other errors that may occur while checking the email
-//           console.error('Email check error:', getUserError);
+//           console.error('Email check error:', getUserErrord);
 //           res.status(500).json({ error: 'Server error' });
 //         }
 //       });
