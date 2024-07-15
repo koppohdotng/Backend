@@ -188,7 +188,7 @@ router.post('/signup', (req, res) => {
             const emailVerification = false;
             const firstTime = true;
             const currentDate = new Date();
-            const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
+            const dateInSeconds = Math.floor(currentDate.getTime() / 1000);
 
             const userData = {
               firstName,
