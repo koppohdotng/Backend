@@ -188,7 +188,8 @@ router.post('/signup', (req, res) => {
             const emailVerification = false;
             const firstTime = true;
             const currentDate = new Date();
-            const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
+            
+            var signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
              
             const userData = {
               firstName,
@@ -199,7 +200,7 @@ router.post('/signup', (req, res) => {
               firstTime,
               refFrom,
               Date: currentDate.toISOString(),
-              signupdate: dateInSeconds,
+              signupdate,
               verifyToken: verificationToken, // Add verification token to user data
             };
 
