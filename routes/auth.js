@@ -201,7 +201,7 @@ router.post('/signup', (req, res) => {
               refFrom,
               Date: currentDate.toISOString(),
               signupdate,
-              verifyToken: verificationToken, // Add verification token to user data
+              verificationToken, // Add verification token to user data
             };
 
             console.log(userData)
