@@ -341,6 +341,7 @@ router.post('/resendVerification', async (req, res) => {
           const investorsRef = db.ref('users');
           const currentDate = new Date();
           const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
+          console.log(signupdate)
           investorsRef.child(userRecord.uid).update({ verificationToken });
 
           investorsRef.child(userRecord.uid).update({ signupdate });
