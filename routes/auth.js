@@ -189,7 +189,7 @@ router.post('/signup', (req, res) => {
             const firstTime = true;
             const currentDate = new Date();
             const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
-             console.log(dateInSeconds)
+             
             const userData = {
               firstName,
               lastName,
@@ -203,6 +203,7 @@ router.post('/signup', (req, res) => {
               verifyToken: verificationToken, // Add verification token to user data
             };
 
+            console.log(userData)
             // Store user data in Firebase Realtime Database (or Firestore)
             const db = admin.database();
             const usersRef = db.ref('users');
