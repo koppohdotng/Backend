@@ -189,7 +189,7 @@ router.post('/signup', (req, res) => {
             const firstTime = true;
             const currentDate = new Date();
             const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
-
+             console.log(dateInSeconds)
             const userData = {
               firstName,
               lastName,
