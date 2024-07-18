@@ -747,7 +747,7 @@ app.post('/loanRequest/:userId', upload.fields([
     currency,
     fundingAmount,
     reviewstage,
-    businessModel,
+  
     useOfFunds = {}, // Default to an empty object if not provided
     financials,
     
@@ -819,7 +819,7 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel,
+        
         useOfFunds: {
           product: product || '',
           saleAndMarketing: saleAndMarketing || '',
@@ -1213,7 +1213,6 @@ app.post('/equityRequest/:userId', upload.fields([
     currency,
     fundingAmount,
 
-    businessModel,
     reviewstage,
     useOfFunds = {}, // Default to an empty object if not provided
     financials = [],
@@ -1287,7 +1286,7 @@ app.post('/equityRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel,
+       
         useOfFunds: {
           product: product || '',
           saleAndMarketing: saleAndMarketing || '',
