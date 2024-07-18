@@ -1023,7 +1023,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const FundingType = fundingType;
     const createdAt = new Date().toISOString();
 
-  console.log(BusinessSector,BusinessStage,InvestmentType,fundingType);
+  console.log(BusinessSector,BusinessStage,InvestmentType,fundingType);F
 
     const bulkEquityData = {
       problem: problem || "",
@@ -1583,6 +1583,31 @@ app.post('/store-subscription', (req, res) => {
     }
   });
 });
+
+
+
+app.post('/store-email', (req, res) => {
+  // Assuming the user is already authenticated and you have obtained their UID
+ 
+
+
+  const { email} = req.body;
+
+  // Create a reference to the database path where you want to store the subscription information under the user's data
+  const userRef = db.ref(`email`);
+
+  
+  userRef.push({ plan, paymentDate, endDate }, (error) => {
+    if (error) {
+      res.status(500).send('Error storing email information');
+    } else {
+      res.status(200).send('email information stored successfully');
+    }
+  });
+});
+
+
+
 
 app.get('/check-subscription-status', (req, res) => {
   // Assuming the user is already authenticated and you have obtained their UID
