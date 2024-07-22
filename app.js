@@ -136,7 +136,10 @@ app.get('/storeInvestorList', (req, res) => {
 // });
 
 
-app.use(cors());
+
+app.use(cors({
+  origin: 'https://staging.koppoh.ng' // Replace with your allowed domain
+}));
 
 
 app.use(bodyParser.json());
