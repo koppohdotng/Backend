@@ -1054,17 +1054,30 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    const filterInvestors = investors.filter(investor => {
+    const directMatchInvestors = investors.filter(investor => {
       return (
-        (investor.BusinessSector.includes('All') || !BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
-        (investor.BusinessStage.includes('All') || !BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-        (investor.InvestmentStage.includes('All') || !InvestmentType || investor.InvestmentStage.includes(InvestmentType)) &&
-        (investor.FundingType.includes('All') || !FundingType || investor.FundingType.includes(FundingType)) &&
-        (investor.MinInvestment == 'All' || (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment)) &&
-        (investor.RevenueThreshold == 'All' || totalRevenue > investor.RevenueThreshold)
+        (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
+        (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
+        (!InvestmentType || investor.InvestmentStage.includes(InvestmentType)) &&
+        (!FundingType || investor.FundingType.includes(FundingType)) &&
+        (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) &&
+        totalRevenue > investor.RevenueThreshold
       );
     });
-
+    
+    const allMatchInvestors = investors.filter(investor => {
+      return (
+        investor.BusinessSector.includes('All') ||
+        investor.BusinessStage.includes('All') ||
+        investor.InvestmentStage.includes('All') ||
+        investor.FundingType.includes('All') ||
+        investor.MinInvestment == 'All' ||
+        investor.RevenueThreshold == 'All'
+      );
+    });
+    
+    const filterInvestors = [...directMatchInvestors, ...allMatchInvestors];
+    
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
     bulkEquityData.investorsMatch = filterInvestors;
