@@ -256,7 +256,14 @@ router.post('/check-email', async (req, res) => {
   console.log(email);
 
   try {
-    const emailCheckResult = await checkEmailExistence(email);
+    let emailCheckResult;
+    try {
+      emailCheckResult = await checkEmailExistence(email);
+    } catch (error) {
+      console.error('Error checking email existence:', error);
+      res.status(500).json({ message: 'An error occurred while checking email existence. Please try again later.' });
+      return; // Exit early since there was an error
+    }
 
     if (emailCheckResult.exists) {
       res.status(200).json({ message: emailCheckResult.message });
@@ -264,8 +271,8 @@ router.post('/check-email', async (req, res) => {
       res.status(404).json({ message: emailCheckResult.message });
     }
   } catch (error) {
-    console.error('Error checking email existence:', error);
-    res.status(500).json({ message: 'An error occurred while checking email existence. Please try again later.' });
+    console.error('Unexpected error:', error);
+    res.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
   }
 });
 
