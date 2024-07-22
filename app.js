@@ -977,8 +977,6 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     debtAmount
   } = req.body;
 
-
-  
   try {
     if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
       equityAmount = debtAmount;
@@ -1023,12 +1021,12 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const FundingType = fundingType;
     const createdAt = new Date().toISOString();
 
-  console.log(BusinessSector,BusinessStage,InvestmentType,fundingType);F
+    console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
 
     const bulkEquityData = {
       problem: problem || "",
       solution: solution || "",
-      UVP : UVP|| "",
+      UVP : UVP || "",
       totalRevenue : totalRevenue || "",
       InvestmentType,
       businessstage,
@@ -1092,6 +1090,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
   const bulkEquityId = req.params.bulkEquityId;
