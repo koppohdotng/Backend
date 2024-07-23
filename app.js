@@ -137,7 +137,6 @@ app.get('/storeInvestorList', (req, res) => {
 
 
 
-const cors = require('cors'); 
 app.use(cors({
   origin:'*' // Replace with your allowed domain
 }));
