@@ -135,10 +135,18 @@ app.get('/storeInvestorList', (req, res) => {
 //   });
 // });
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://staging.koppoh.ng");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
+});
 
 
 app.use(cors({
-  origin:'https://staging.koppoh.ng' // Replace with your allowed domain
+          origin:'https://staging.koppoh.ng',
+          optionsSuccessStatus: 200
+  // Replace with your allowed domain
 }));
 
 
