@@ -149,6 +149,7 @@ app.use(cors({
   // Replace with yssour allowed domain
 }));
 
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
