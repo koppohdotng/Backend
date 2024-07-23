@@ -549,39 +549,7 @@ router.post('/Message', (req, res) => {
 
 
 
-router.get('/login', (req, res) => {
-    res.send('It is working');
-  });
 
-
-  
-  // Example usage in an Express.js route
-  router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-        // Check Firebase authentication
-        const userRecord = await admin.auth().getUserByEmail(email);
-        
-        // Get the userId from the userRecord
-        const userId = userRecord.uid;
-
-        // Assuming you have a 'users' node in your Realtime Database
-        const userSnapshot = await admin.database().ref('/users/' + userId).once('value');
-        const userData = userSnapshot.val();
-
-        if (userData) {
-            // Respond with user data
-            res.status(200).json({ message: "Login successful", user: userData });
-        } else {
-            res.status(404).json({ error: 'User data not found' });
-        }
-
-    } catch (error) {
-        console.error('Firebase authentication error:', error);
-        res.status(401).json({ error: 'Invalid credentials' });
-    }
-});
 
 
 
