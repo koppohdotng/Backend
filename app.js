@@ -144,9 +144,9 @@ app.use((req, res, next) => {
 
 
 app.use(cors({
-          origin:'https://staging.koppoh.ng',
-          optionsSuccessStatus: 200
-  // Replace with your allowed domain
+  origin:'https://staging.koppoh.ng',
+  optionsSuccessStatus: 200
+  // Replace with yssour allowed domain
 }));
 
 
