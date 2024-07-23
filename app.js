@@ -138,7 +138,7 @@ app.get('/storeInvestorList', (req, res) => {
 
 
 app.use(cors({
-  origin:'*' // Replace with your allowed domain
+  origin:'https://staging.koppoh.ng' // Replace with your allowed domain
 }));
 
 
