@@ -269,22 +269,29 @@ const checkEmailExistence = async (email) => {
     }
   } catch (error) {
     console.error('Check email existence error:', error);
-    return { exists: false, message: 'Error checking email existence' };
+    return { exists: false, message: 'Error checking email existence', error: error.message };
   }
 };
 
 // Example usage in an Express.js route
-router.post('/check-email', async (req, res) => {
+router.post('/auth/check-email', async (req, res) => {
   const { email } = req.body;
- console.log(email)
-  const emailCheckResult = await checkEmailExistence(email);
+  console.log('Checking email:', email);
 
-  if (emailCheckResult.exists) {
-    res.status(200).json({ message: emailCheckResult.message });
-  } else {
-    res.status(404).json({ message: emailCheckResult.message });
+  try {
+    const emailCheckResult = await checkEmailExistence(email);
+
+    if (emailCheckResult.exists) {
+      res.status(200).json({ message: emailCheckResult.message });
+    } else {
+      res.status(404).json({ message: emailCheckResult.message });
+    }
+  } catch (error) {
+    console.error('Route error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
+
 
 
 
