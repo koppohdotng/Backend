@@ -671,17 +671,7 @@ router.post('/Message', (req, res) => {
   };
   
   // Example usage in an Express.js route
-  router.post('/check-email', async (req, res) => {
-    const { email } = req.body;
-   console.log(email)
-    const emailCheckResult = await checkEmailExistence(email);
-  
-    if (emailCheckResult.exists) {
-      res.status(200).json({ message: emailCheckResult.message });
-    } else {
-      res.status(404).json({ message: emailCheckResult.message });
-    }
-  });
+ 
   
   
 
