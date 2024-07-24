@@ -176,7 +176,7 @@ router.post('/signup', (req, res) => {
       res.status(400).json({ error: 'Email already exists' });
     })
     .catch((getUserError) => {
-      if (getUserError.code === 'auth/user-not-found ') {
+      if (getUserError.code === 'auth/user-not-found') {
         // If the email does not exist, create a new user in Firebase Authentication
         admin
           .auth()
