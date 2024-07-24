@@ -3,10 +3,8 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+app.use(cors());
 
-app.use(cors({
-  origin:'https://staging.koppoh.ng' // Replace with your allowed domain
-}));
 
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
