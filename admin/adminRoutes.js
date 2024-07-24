@@ -1530,7 +1530,9 @@ router.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
 
     const response = {
       message: 'Bulk equity data retrieved successfully.',
-      bulkEquityData
+      bulkEquityData,
+      investorsMatchCount: bulkEquityData.investorsMatch ? bulkEquityData.investorsMatch.length : 0 
+
     };
 
     res.status(200).json(response);
