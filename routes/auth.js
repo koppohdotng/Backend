@@ -254,28 +254,18 @@ router.post('/signup', (req, res) => {
 
 router.post('/check-email', async (req, res) => {
   const { email } = req.body;
-  console.log(email);
+ console.log(email)
+  const emailCheckResult = await checkEmailExistence(email);
 
-  try {
-    let emailCheckResult;
-    try {
-      emailCheckResult = await checkEmailExistence(email);
-    } catch (error) {
-      console.error('Error checking email existence:', error);
-      res.status(500).json({ message: 'An error occurred while checking email existence. Please try again later.' });
-      return; // Exit early since there was an error
-    }
-
-    if (emailCheckResult.exists) {
-      res.status(200).json({ message: emailCheckResult.message });
-    } else {
-      res.status(404).json({ message: emailCheckResult.message });
-    }
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    res.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
+  if (emailCheckResult.exists) {
+    res.status(200).json({ message: emailCheckResult.message });
+  } else {
+    res.status(404).json({ message: emailCheckResult.message });
   }
 });
+
+
+
 
 router.post('/confirm-email', (req, res) => {
   const { email, token } = req.query;
