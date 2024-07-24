@@ -1531,4 +1531,7 @@ router.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
 });
 
 
+
+
+
   module.exports = router;
