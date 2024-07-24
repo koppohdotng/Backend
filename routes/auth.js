@@ -252,37 +252,37 @@ router.post('/signup', (req, res) => {
     });
 });
 
-function validateEmailFormat(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-// API endpoint to check email existence
-router.post('/check-email', async (req, res) => {
+const checkEmailExistence = async (email) => {
   try {
-    const { email } = req.body;
-    console.log(email);
-
-    // // Validate email format
-    // if (!email || !validateEmailFormat(email)) {
-    //   return res.status(400).json({ message: 'Invalid email format' });
-    // }
-
-    // Check email existence in Firebase
-    const userRef = admin.database().ref('users');
-    const snapshot = await userRef.orderByChild('email').equalTo(email).once('value');
+    // Check if the email exists in the database
+    const snapshot = await admin
+      .database()
+      .ref('users')
+      .orderByChild('email')
+      .equalTo(email)
+      .once('value');
 
     if (snapshot.exists()) {
-      res.status(200).json({ message: 'Email exists' });
+      return { exists: true, message: 'Email already exists' };
     } else {
-      res.status(404).json({ message: 'Email does not exist' });
+      return { exists: false, message: 'Email does not exist' };
     }
   } catch (error) {
-    console.error('Error in /check-email route:', error); // Enhanced logging
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error('Check email existence error:', error);
+    return { exists: false, message: 'Error checking email existence' };
+  }
+};
 
- 
- 
+// Example usage in an Express.js route
+router.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+ console.log(email)
+  const emailCheckResult = await checkEmailExistence(email);
+
+  if (emailCheckResult.exists) {
+    res.status(200).json({ message: emailCheckResult.message });
+  } else {
+    res.status(404).json({ message: emailCheckResult.message });
   }
 });
 
@@ -590,30 +590,6 @@ router.post('/Message', (req, res) => {
   
   
   // Define the route for sending password reset emails
-  
-  
-
-  const checkEmailExistence = async (email) => {
-    try {
-      // Check if the email exists in the database
-      const snapshot = await admin
-        .database()
-        .ref('users')
-        .orderByChild('email')
-        .equalTo(email)
-        .once('value');
-  
-      if (snapshot.exists()) {
-        return { exists: true, message: 'Email already exists' };
-      } else {
-        return { exists: false, message: 'Email does not exist' };
-      }
-    } catch (error) {
-      console.error('Check email existence error:', error);
-      return { exists: false, message: 'Error checking email existence' };
-    }
-  };
-  
   // Example usage in an Express.js route
  
   
