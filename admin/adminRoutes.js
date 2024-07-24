@@ -1457,12 +1457,22 @@ router.get('/bulkEquity', async (req, res) => {
     // Iterate through all users and collect their bulk equity data
     for (const userId in usersData) {
       if (usersData.hasOwnProperty(userId)) {
+        const user = usersData[userId];
+        const businessName = user.businessName; // Fetch the businessName
+
         const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity`).once('value');
         const bulkEquityData = bulkEquitySnapshot.val();
 
         if (bulkEquityData) {
           const bulkEquityArray = Object.keys(bulkEquityData).map(key => {
-            return { ...bulkEquityData[key], bulkEquityId: key, userId };
+            const equityData = bulkEquityData[key];
+            return { 
+              ...equityData, 
+              bulkEquityId: key, 
+              userId, 
+              businessName, // Attach businessName to each bulkEquityData
+              investorsMatchCount: equityData.investorsMatch ? equityData.investorsMatch.length : 0 // Add investorsMatchCount
+            };
           });
           allBulkEquityData.push(...bulkEquityArray);
         }
@@ -1498,6 +1508,7 @@ router.get('/bulkEquity', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 router.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
