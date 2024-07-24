@@ -3,6 +3,11 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+
+app.use(cors({
+  origin:'https://staging.koppoh.ng' // Replace with your allowed domain
+}));
+
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./admin/adminRoutes');
@@ -136,10 +141,6 @@ app.get('/storeInvestorList', (req, res) => {
 // });
 
 
-
-app.use(cors({
-  origin:'https://staging.koppoh.ng' // Replace with your allowed domain
-}));
 
 
 app.use(bodyParser.json());
