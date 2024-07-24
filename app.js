@@ -1065,7 +1065,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         totalRevenue > investor.RevenueThreshold
       );
     });
-    
+    console.log(directMatchInvestors);
     // const allMatchInvestors = investors.filter(investor => {
     //   return (
     //     investor.BusinessSector.includes('All') ||
