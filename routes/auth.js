@@ -252,6 +252,12 @@ router.post('/signup', (req, res) => {
     });
 });
 
+function validateEmailFormat(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// API endpoint to check email existence
 router.post('/check-email', async (req, res) => {
   try {
     const { email } = req.body;
@@ -262,25 +268,20 @@ router.post('/check-email', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    const emailCheckResult = await checkEmailExistence(email);
+    // Check email existence in Firebase
+    const userRef = admin.database().ref('users');
+    const snapshot = await userRef.orderByChild('email').equalTo(email).once('value');
 
-    if (emailCheckResult.exists) {
-      res.status(200).json({ message: emailCheckResult.message });
+    if (snapshot.exists()) {
+      res.status(200).json({ message: 'Email exists' });
     } else {
-      res.status(404).json({ message: emailCheckResult.message });
+      res.status(404).json({ message: 'Email does not exist' });
     }
   } catch (error) {
     console.error('Error in /check-email route:', error); // Enhanced logging
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
-// Example function to validate email format
-function validateEmailFormat(email) {
-  // Basic email format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
 
 
 
