@@ -188,59 +188,6 @@ client.sendEmailWithTemplate({
 });
 
 
-app.get('/bulkEquity/noCreatedAt', async (req, res) => {
-  console.log('Searching and deleting bulk equity data without createdAt');
-
-  try {
-    // Fetch all users' data
-    const usersSnapshot = await dataRef.once('value');
-    const usersData = usersSnapshot.val();
-    
-    if (!usersData) {
-      return res.status(404).json({ message: 'No users found.' });
-    }
-
-    let entriesToDelete = [];
-
-    // Iterate through all users and collect their bulk equity data without createdAt
-    for (const userId in usersData) {
-      if (usersData.hasOwnProperty(userId)) {
-        const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity`).once('value');
-        const bulkEquityData = bulkEquitySnapshot.val();
-
-        if (bulkEquityData) {
-          for (const key in bulkEquityData) {
-            if (bulkEquityData[key] && !bulkEquityData[key].hasOwnProperty('createdAt')) {
-              entriesToDelete.push({ userId, bulkEquityId: key });
-            }
-          }
-        }
-      }
-    }
-
-    if (entriesToDelete.length === 0) {
-      return res.status(404).json({ message: 'No bulk equity data without createdAt found.' });
-    }
-
-    // Delete entries without createdAt
-    for (const entry of entriesToDelete) {
-      await dataRef.child(`${entry.userId}/bulkEquity/${entry.bulkEquityId}`).remove();
-    }
-
-    const response = {
-      message: 'Bulk equity data without createdAt deleted successfully.',
-      deletedEntries: entriesToDelete,
-      totalDeleted: entriesToDelete.length
-    };
-
-    res.status(200).json(response);
-
-  } catch (error) {
-    console.error('Error deleting bulk equity data without createdAt:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 
 
 
@@ -1119,18 +1066,18 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       );
     });
     
-    const allMatchInvestors = investors.filter(investor => {
-      return (
-        investor.BusinessSector.includes('All') ||
-        investor.BusinessStage.includes('All') ||
-        investor.InvestmentStage.includes('All') ||
-        investor.FundingType.includes('All') ||
-        investor.MinInvestment == 'All' ||
-        investor.RevenueThreshold == 'All'
-      );
-    });
+    // const allMatchInvestors = investors.filter(investor => {
+    //   return (
+    //     investor.BusinessSector.includes('All') ||
+    //     investor.BusinessStage.includes('All') ||
+    //     investor.InvestmentStage.includes('All') ||
+    //     investor.FundingType.includes('All') ||
+    //     investor.MinInvestment == 'All' ||
+    //     investor.RevenueThreshold == 'All'
+    //   );
+    // });
     
-    const filterInvestors = [...directMatchInvestors, ...allMatchInvestors];
+    const filterInvestors = [...directMatchInvestors];
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
