@@ -1060,9 +1060,10 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
         (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
         (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
         (!InvestmentType || investor.InvestmentStage.includes(InvestmentType)) &&
-        (!FundingType || investor.FundingType.includes(FundingType)) &&
-        (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) &&
-        totalRevenue > investor.RevenueThreshold
+        (!FundingType || investor.FundingType.includes(FundingType)) 
+        
+      //   (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold
+      // 
       );
     });
     console.log(directMatchInvestors);
