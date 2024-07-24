@@ -263,10 +263,10 @@ router.post('/check-email', async (req, res) => {
     const { email } = req.body;
     console.log(email);
 
-    // Validate email format
-    if (!email || !validateEmailFormat(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
+    // // Validate email format
+    // if (!email || !validateEmailFormat(email)) {
+    //   return res.status(400).json({ message: 'Invalid email format' });
+    // }
 
     // Check email existence in Firebase
     const userRef = admin.database().ref('users');
@@ -280,6 +280,9 @@ router.post('/check-email', async (req, res) => {
   } catch (error) {
     console.error('Error in /check-email route:', error); // Enhanced logging
     res.status(500).json({ message: 'Internal Server Error' });
+
+ 
+ 
   }
 });
 
