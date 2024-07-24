@@ -188,7 +188,7 @@ client.sendEmailWithTemplate({
 });
 
 
-router.delete('/bulkEquity/noCreatedAt', async (req, res) => {
+app.delete('/bulkEquity/noCreatedAt', async (req, res) => {
   console.log('Searching and deleting bulk equity data without createdAt');
 
   try {
