@@ -38,6 +38,7 @@ var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 // });
 const serviceAccount = require('../staging.json'); // Adjust the path as needed
 const { error } = require('console');
+console.log(error)
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
