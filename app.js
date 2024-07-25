@@ -5,11 +5,6 @@ const app = express();
 const cors = require('cors');
 app.use(cors());
 
-const corsOptions = {
-  origin: 'staging.koppoh.ng', // Replace with your website's URL
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-};
 
 app.use(cors(corsOptions));
 
