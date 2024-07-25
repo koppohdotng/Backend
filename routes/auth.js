@@ -274,7 +274,7 @@ const checkEmailExistence = async (email) => {
 };
 
 // Example usage in an Express.js route
-router.post('/auth/check-email', async (req, res) => {
+router.post('/check-email', async (req, res) => {
   const { email } = req.body;
   console.log('Checking email:', email);
 
