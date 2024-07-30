@@ -429,6 +429,9 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
   const userId = req.params.userId;
   const { transactionId, fundingType } = req.body;
 
+  console.log(userId,transactionId, fundingType)
+
+
   if (!transactionId) {
     return res.status(400).json({ error: 'Transaction ID is required.' });
   }
