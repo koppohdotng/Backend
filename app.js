@@ -448,6 +448,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
+    console.log(response)
 
     const transactionData = response.data.data;
 
