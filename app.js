@@ -427,10 +427,9 @@ const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985'; 
 
 app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
   const userId = req.params.userId;
-  const { transactionId, fundingType } = req.body;
+  const { transactionId, fundingType, paymentFor } = req.body;
 
-  console.log(userId,transactionId, fundingType)
-
+  console.log(userId, transactionId, fundingType, paymentFor);
 
   if (!transactionId) {
     return res.status(400).json({ error: 'Transaction ID is required.' });
@@ -438,6 +437,10 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
 
   if (!fundingType) {
     return res.status(400).json({ error: 'Funding Type is required.' });
+  }
+
+  if (!paymentFor) {
+    return res.status(400).json({ error: 'Payment For is required.' });
   }
 
   try {
@@ -448,19 +451,13 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
-    console.log(response)
+    console.log(response);
 
-    const transactionData = response.data.data;
+    const transactionData = response.data;
 
     if (transactionData.status === 'success') {
       // Create funding request if transaction is successful
       const fundingRequest = {
-        transactionId: transactionData.id,
-        amount: transactionData.amount,
-        email: transactionData.email,
-        status: transactionData.status,
-        paidAt: transactionData.paid_at,
-        currency: transactionData.currency,
         fundingType: fundingType, // Use the fundingType from the request body
         mode: 'guidedApp',
       };
@@ -468,6 +465,20 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       // Store the funding request
       const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest);
       const newKey = newRef.key;
+
+      // Create payments object
+      const paymentData = {
+        transactionId: transactionData.id,
+        amount: transactionData.amount,
+        email: transactionData.email,
+        status: transactionData.status,
+        paidAt: transactionData.paid_at,
+        currency: transactionData.currency,
+        paymentFor: paymentFor // Add paymentFor from the request body
+      };
+
+      // Store the payment data under the newly created funding request
+      await dataRef.child(`${userId}/fundingRequest/${newKey}/payments`).set(paymentData);
 
       // Retrieve and return the saved data
       dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
@@ -508,16 +519,21 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
       }
     });
 
-    const { data } = response;
+    const transactionData = response.data;
+
 
     // Save payment data under bulkEquity for the user
     const paymentData = {
-      transactionReference: data,
-      status: 'initialized',
-      createdAt: new Date().toISOString()
+      transactionId: transactionData.id,
+      amount: transactionData.amount,
+      email: transactionData.email,
+      status: transactionData.status,
+      paidAt: transactionData.paid_at,
+      currency: transactionData.currency,
+      paymentFor: "Smartmatch" // Add paymentFor from the request body
     };
 
-    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).push(paymentData);
+    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).set(paymentData);
 
     // Retrieve the bulkEquity data
     const bulkEquitySnapshot = await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
