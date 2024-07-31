@@ -1560,6 +1560,93 @@ router.get('/onebulkEquity/:userId/:bulkEquityId', async (req, res) => {
 });
 
 
+router.get('/allPayments/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const statusFilter = req.query.status;
+  const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+  const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+
+  // Validate status filter
+  if (statusFilter && !['failed', 'success'].includes(statusFilter)) {
+    return res.status(400).json({ error: 'Invalid status filter. Permitted values are "failed" and "success".' });
+  }
+
+  try {
+    // Retrieve payments from bulkEquity
+    const bulkEquitySnapshot = await db.ref(`users/${userId}/bulkEquity`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+    const bulkEquityPayments = [];
+
+    if (bulkEquityData) {
+      for (const bulkEquityId in bulkEquityData) {
+        if (bulkEquityData.hasOwnProperty(bulkEquityId)) {
+          const paymentsSnapshot = await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).once('value');
+          const paymentData = paymentsSnapshot.val();
+          if (paymentData) {
+            paymentData.createdAt = bulkEquityData[bulkEquityId].createdAt;
+            bulkEquityPayments.push(paymentData);
+          }
+        }
+      }
+    }
+
+    // Retrieve payments from fundingRequest
+    const fundingRequestSnapshot = await db.ref(`users/${userId}/fundingRequest`).once('value');
+    const fundingRequestData = fundingRequestSnapshot.val();
+    const fundingRequestPayments = [];
+
+    if (fundingRequestData) {
+      for (const fundingRequestId in fundingRequestData) {
+        if (fundingRequestData.hasOwnProperty(fundingRequestId)) {
+          const paymentsSnapshot = await db.ref(`users/${userId}/fundingRequest/${fundingRequestId}/payments`).once('value');
+          const paymentData = paymentsSnapshot.val();
+          if (paymentData) {
+            paymentData.createdAt = fundingRequestData[fundingRequestId].createdAt;
+            fundingRequestPayments.push(paymentData);
+          }
+        }
+      }
+    }
+
+    // Combine payments
+    let allPayments = [...bulkEquityPayments, ...fundingRequestPayments];
+
+    // Filter by status if provided
+    if (statusFilter) {
+      allPayments = allPayments.filter(payment => payment.status === statusFilter);
+    }
+
+    // Filter by date range if provided
+    if (startDate) {
+      allPayments = allPayments.filter(payment => new Date(payment.createdAt) >= startDate);
+    }
+    if (endDate) {
+      allPayments = allPayments.filter(payment => new Date(payment.createdAt) <= endDate);
+    }
+
+    // Sort by createdAt in descending order
+    allPayments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedPayments = allPayments.slice(startIndex, endIndex);
+
+    res.status(200).json({
+      currentPage: page,
+      totalPages: Math.ceil(allPayments.length / limit),
+      totalPayments: allPayments.length,
+      payments: paginatedPayments
+    });
+  } catch (error) {
+    console.error('Error retrieving payments:', error);
+    res.status(500).json({ error: 'Failed to retrieve payments' });
+  }
+});
+
+
 
 
 
