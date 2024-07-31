@@ -454,12 +454,14 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
     console.log(response);
 
     const transactionData = response.data;
+    const createdAt = new Date().toISOString();
 
     if (transactionData.status === 'success') {
       // Create funding request if transaction is successful
       const fundingRequest = {
         fundingType: fundingType, // Use the fundingType from the request body
         mode: 'guidedApp',
+        createdAt: createdAt
       };
 
       // Store the funding request

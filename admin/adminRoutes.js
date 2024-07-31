@@ -730,9 +730,9 @@ router.post('/sendNotification', async (req, res) => {
 
         // Filter and calculate values for each user
         const formattedUsers = paginatedUsers.map(user => {
-            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid } = user;
+            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid,businessName } = user;
 
-            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid };
+            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid,businessName };
         });
 
         res.json({
@@ -1443,6 +1443,9 @@ router.get('/bulkEquity', async (req, res) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
 
+  const fundingTypeFilter = req.query.fundingType || null;
+  const createdAtFilter = req.query.createdAt ? new Date(req.query.createdAt).toISOString() : null;
+
   try {
     // Fetch all users' data
     const usersSnapshot = await dataRef.once('value');
@@ -1483,6 +1486,18 @@ router.get('/bulkEquity', async (req, res) => {
       return res.status(404).json({ message: 'No bulk equity data found.' });
     }
 
+    // Apply filters
+    if (fundingTypeFilter) {
+      allBulkEquityData = allBulkEquityData.filter(item => item.fundingType === fundingTypeFilter);
+    }
+
+    if (createdAtFilter) {
+      allBulkEquityData = allBulkEquityData.filter(item => {
+        const itemCreatedAt = new Date(item.createdAt).toISOString();
+        return itemCreatedAt >= createdAtFilter;
+      });
+    }
+
     // Sort by createdAt timestamp in descending order
     allBulkEquityData.sort((a, b) => {
       const dateA = new Date(a.createdAt);
@@ -1508,6 +1523,7 @@ router.get('/bulkEquity', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
