@@ -158,98 +158,76 @@ admin.initializeApp({
 // });
 
 
-router.post('/signup', (req, res) => {
+
+// Signup endpoint
+router.post('/signup', async (req, res) => {
   const { firstName, lastName, email, password, refFrom } = req.body;
+function generateRandomNumber() {
+  return Math.floor(Math.random() * 900000) + 100000;
+}
 
-  function generateRandomNumber() {
-    return Math.floor(Math.random() * 900000) + 100000;
-  }
-
-  // Generate a unique verification token
-  const verificationToken = generateRandomNumber()
-
-  admin
-    .auth()
-    .getUserByEmail(email)
-    .then(() => {
-      // If the email already exists, return an error response
-      res.status(400).json({ error: 'Email already exists' });
-    })
-    .catch((getUserError) => {
+  try {
+      // Check if the user already exists
+      await admin.auth().getUserByEmail(email);
+      // If the user exists, return an error response
+      return res.status(400).json({ error: 'Email already exists' });
+  } catch (getUserError) {
       if (getUserError.code === 'auth/user-not-found') {
-        // If the email does not exist, create a new user in Firebase Authentication
-        admin
-          .auth()
-          .createUser({
-            email,
-            password,
-          })
-          .then((userRecord) => {
-            // User signed up successfully
-            const emailVerification = false;
-            const firstTime = true;
-            const currentDate = new Date();
-            
-            var signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
-             
-            const userData = {
-              firstName,
-              lastName,
-              email,
-              uid: userRecord.uid,
-              emailVerification,
-              firstTime,
-              refFrom,
-              Date: currentDate.toISOString(),
-              signupdate,
-              verificationToken, // Add verification token to user data
-            };
+          try {
+              // Create a new user in Firebase Authentication
+              const userRecord = await admin.auth().createUser({ email, password });
+              
+              // Generate a verification token
+              const verificationToken = generateRandomNumber();
+              const currentDate = new Date();
+              const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
 
-            console.log(userData)
-            // Store user data in Firebase Realtime Database (or Firestore)
-            const db = admin.database();
-            const usersRef = db.ref('users');
+              // Prepare user data
+              const userData = {
+                  firstName,
+                  lastName,
+                  email,
+                  uid: userRecord.uid,
+                  emailVerification: false,
+                  firstTime: true,
+                  refFrom,
+                  Date: currentDate.toISOString(),
+                  signupdate,
+                  verificationToken // Add verification token to user data
+              };
 
-            usersRef.child(userRecord.uid).set(userData, (error) => {
-              if (error) {
-                // Handle database error
-                console.error('Database error:', error);
-                res.status(500).json({ error: 'Database error' });
-              } else {
-                // Send email with confirmation link
-                const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
-                client.sendEmailWithTemplate({
+              // Store user data in Firebase Realtime Database
+              const db = admin.database();
+              const usersRef = db.ref('users');
+              await usersRef.child(userRecord.uid).set(userData);
+
+              // Generate confirmation link
+              const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
+
+              // Send verification email
+              await client.sendEmailWithTemplate({
                   From: 'info@koppoh.com',
                   To: email,
                   TemplateId: '33232370', // Your template ID
                   TemplateModel: {
-                    firstName,
-                    confirmationLink,
+                      firstName,
+                      confirmationLink
                   },
-                })
-                .then(() => {
-                  // Email sent successfully
-                  res.status(201).json({ message: 'Signup successful', user: userData });
-                })
-                .catch((emailError) => {
-                  // Handle email sending error
-                  console.error('Email sending error:', emailError);
-                  res.status(500).json({ error: 'Email sending error' });
-                });
-              }
-            });
-          })
-          .catch((signupError) => {
-            // Handle signup errors
-            console.error('Signup error:', signupError);
-            res.status(400).json({ error: 'Signup failed' });
-          });
+              });
+
+              // Respond with success
+              res.status(201).json({ message: 'Signup successful, please check your email to verify your account', user: userData });
+          } catch (signupError) {
+              // Handle errors related to user creation or database issues
+              console.error('Signup error:', signupError);
+              res.status(400).json({ error: 'Signup failed' });
+          }
       } else {
-        // Handle other errors that may occur while checking the email
-        console.error('Email check error:', getUserError);
-        res.status(500).json({ error: 'Server error' });
+          // Handle other errors that may occur while checking the email
+          console.error('Email check error:', getUserError);
+          res.status(500).json({ error: 'Server error' });
       }
-    });
+  }
 });
 
 const checkEmailExistence = async (email) => {
