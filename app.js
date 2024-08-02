@@ -457,7 +457,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
     const createdAt = new Date().toISOString();
     console.log(transactionData.status)
 
-    if (transactionData.status === 'success') {
+    if (transactionData.data.status === 'success') {
       // Create funding request if transaction is successful
       const fundingRequest = {
         fundingType: fundingType, // Use the fundingType from the request body
