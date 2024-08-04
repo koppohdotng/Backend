@@ -522,7 +522,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
       }
     });
 
-    const transactionData = response.data;
+    const transactionData = response.data.data;
 
 
     // Save payment data under bulkEquity for the user
