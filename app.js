@@ -529,7 +529,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
     const paymentData = {
       transactionId: transactionData.id,
       amount: transactionData.amount,
-      email: transactionData.email,
+      
       status: transactionData.status,
       paidAt: transactionData.paid_at,
       currency: transactionData.currency,
@@ -1701,10 +1701,10 @@ app.post('/store-email', (req, res) => {
   const { email} = req.body;
 
   // Create a reference to the database path where you want to store the subscription information under the user's data
-  const userRef = db.ref(`email`);
+  const userRef = db.ref(`emails`);
 
   
-  userRef.push({ plan, paymentDate, endDate }, (error) => {
+  userRef.push({ email}, (error) => {
     if (error) {
       res.status(500).send('Error storing email information');
     } else {
