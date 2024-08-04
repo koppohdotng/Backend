@@ -473,7 +473,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       const paymentData = {
         transactionId: transactionData.id,
         amount: transactionData.amount,
-        email: transactionData.email,
+        
         status: transactionData.status,
         paidAt: transactionData.paid_at,
         currency: transactionData.currency,
