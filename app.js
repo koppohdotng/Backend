@@ -1693,7 +1693,7 @@ app.post('/store-subscription', (req, res) => {
 
 
 app.post('/store-email', (req, res) => {
-  console.log('Request body:', req.body); // Log the request body to check its content
+  console.log('Request  body:', req.body); // Log the request body to check its content
 
   const { email } = req.body;
 
