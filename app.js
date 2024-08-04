@@ -1692,23 +1692,22 @@ app.post('/store-subscription', (req, res) => {
 });
 
 
-
 app.post('/store-email', (req, res) => {
-  // Assuming the user is already authenticated and you have obtained their UID
- 
+  console.log('Request body:', req.body); // Log the request body to check its content
 
+  const { email } = req.body;
 
-  const { email} = req.body;
+  if (!email) {
+    return res.status(400).send('Email is required');
+  }
 
-  // Create a reference to the database path where you want to store the subscription information under the user's data
-  const userRef = db.ref(`emails`);
+  const userRef = db.ref('emails');
 
-  
-  userRef.push({ email}, (error) => {
+  userRef.push({ email }, (error) => {
     if (error) {
       res.status(500).send('Error storing email information');
     } else {
-      res.status(200).send('email information stored successfully');
+      res.status(200).send('Email information stored successfully');
     }
   });
 });
