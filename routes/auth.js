@@ -47,13 +47,8 @@ admin.initializeApp({
 });
 
 
-
-
-
-
 router.post('/signup', async (req, res) => {
   const { firstName, lastName, email, password, refFrom } = req.body;
-
 
   try {
       // Check if the user already exists
@@ -68,7 +63,6 @@ router.post('/signup', async (req, res) => {
               
               // Generate a verification token
               const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
-  
               const currentDate = new Date();
               const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
 
@@ -82,8 +76,8 @@ router.post('/signup', async (req, res) => {
                   firstTime: true,
                   refFrom,
                   Date: currentDate.toISOString(),
-                  signupdate,
-                  verificationToken // Add verification token to user data
+                  signupdate : signupdate,
+                  verificationToken: verificationToken  // Add verification token to user data
               };
 
               // Store user data in Firebase Realtime Database
@@ -167,7 +161,6 @@ router.post('/check-email', async (req, res) => {
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
   const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
-
   admin
       .auth()
       .getUserByEmail(email)
@@ -385,7 +378,69 @@ router.post('/Message', (req, res) => {
 
 
 
-
+  router.get('/google', async (req, res) => {
+    const { token } = req.query;
+  
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID,
+      });
+  
+      const payload = ticket.getPayload();
+      const userId = payload['sub'];
+  
+      // Check if user already exists in Firebase Authentication
+      const userRecord = await admin.auth().getUser(userId);
+  
+      // If user doesn't exist, create a new Firebase user
+      if (!userRecord) {
+        const newUser = await admin.auth().createUser({
+          uid: userId,
+          email: payload.email,
+          displayName: payload.name,
+          // You can set more user properties here
+          firstName: payload.given_name, // Get the first name from Google
+          lastName: payload.family_name, // Get the last name from Google
+          emailVerification: true,
+          firstTime: true,
+          currentDate: new Date().toISOString(),
+        });
+      }
+  
+      // Generate a Firebase custom token for the user
+      const customToken = await admin.auth().createCustomToken(userId);
+  
+      res.json({ customToken });
+    } catch (error) {
+      console.error('Error verifying Google ID token:', error);
+      res.status(500).json({ error: 'Authentication failed' });
+    }
+  });
+  
+  const isAuthenticated = (req, res, next) => {
+    // Check if the request contains a valid Firebase ID token
+    const idToken = req.header('Authorization');
+    if (!idToken) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  
+    // Verify the ID token
+    admin
+      .auth()
+      .verifyIdToken(idToken)
+      .then((decodedToken) => {
+        // Authentication successful, the decoded token contains user information
+        req.user = decodedToken;
+        next(); // Continue to the next middleware or route handler
+      })
+      .catch((error) => {
+        // Authentication failed
+        console.error('Authentication error:', error);
+        res.status(401).json({ error: 'Unauthorized' });
+      });
+  };
+  
   // Example API endpoint that requires authentication
   router.get('/api/user', isAuthenticated, (req, res) => {
     // You can access user information from req.user
