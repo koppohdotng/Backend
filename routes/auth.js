@@ -168,7 +168,13 @@ router.get('/confirm-email', async (req, res) => {
 
     if (!userData) {
       return res.status(400).json({ error: 'User not found' });
+     
+      
+     
     }
+    
+      const storeFirstname = userData.firstName;
+      const storeemail = userData.email
 
     // Check if the token matches
     if (userData.verificationToken !== parseInt(token)) {
@@ -185,6 +191,15 @@ router.get('/confirm-email', async (req, res) => {
 
     // Update the user's email verification status
     await usersRef.child(userRecord.uid).update({ emailVerification: true });
+    client.sendEmailWithTemplate({
+      From: 'info@koppoh.com',
+      To: storeemail,
+      TemplateId: '34126600',
+      TemplateModel: {
+        storeFirstname   
+      },
+    })
+
 
     // Respond with success
     res.status(200).json({ message: 'Email verified successfully' });
