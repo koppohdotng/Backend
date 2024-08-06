@@ -168,6 +168,8 @@ router.get('/confirm-email', async (req, res) => {
     const userData = userSnapshot.val();
 
     if (!userData) {
+      
+      console.log('User not found')
       return res.status(400).json({ error: 'User not found' });
      
       
