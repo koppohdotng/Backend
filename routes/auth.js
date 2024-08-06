@@ -157,6 +157,7 @@ router.post('/check-email', async (req, res) => {
 
 router.get('/confirm-email', async (req, res) => {
   const { email, token } = req.query;
+  console.log(email,token)
 
   try {
     // Fetch the user by email
@@ -170,7 +171,6 @@ router.get('/confirm-email', async (req, res) => {
       return res.status(400).json({ error: 'User not found' });
      
       
-     
     }
     
       const storeFirstname = userData.firstName;
