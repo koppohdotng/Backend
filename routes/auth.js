@@ -49,122 +49,11 @@ admin.initializeApp({
 
 
 
-// Define a route for user signup
-// router.post('/signup', (req, res) => {
-//   const { firstName, lastName, email, password, refFrom } = req.body;
-//   // Function to generate a random 6-digit number
-// function generateRandomNumber() {
-//   return Math.floor(Math.random() * 900000) + 100000;
-// }
-// // Call the function to generate a random 6-digit number
-// var randomNumber = generateRandomNumber();
-
-// // Output the result
-// console.log(randomNumber);
-//   admin
-//       .auth()
-//       .getUserByEmail(email)
-//       .then(() => {
-//         // If the email already exists, return an error response
-//         res.status(400).json({ error: 'Email already exists' });
-//       })
-//       .catch((getUserError) => {
-//         if (getUserError.code === 'auth/user-not-found') {
-//             // const signupDate= new Date();
-//           // If the email does not exist, create a new user in Firebase Authentication
-//           admin
-//             .auth()
-//             .createUser({
-//               email,
-//               password,
-//             })
-//             .then((userRecord) => {
-//               // User signed up successfully
-//               const emailVerification = false;
-//               const firstTime = true;
-//               let currentDate = new Date();
-                    
-
-//                     const dateInSeconds = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000)
-              
-//               const userData = {
-//                 firstName,
-//                 lastName,
-//                 email,
-//                 uid: userRecord.uid,
-//                 emailVerification,
-//                 firstTime,
-//                 refFrom,
-//                 Date: currentDate.toISOString(),
-//                 signupdate : dateInSeconds,
-//                 verifyNumber: randomNumber
-//               };
-  
-//               // Store user data in Firebase Realtime Database (or Firsestore)
-//               const db = admin.database();
-//               const usersRef = db.ref('users');
-
-//               try {
-//                 usersRef.child(userRecord.uid).set(userData, (error) => {
-//                   if (error) {
-//                     // Handle database error
-//                     console.error('Database error:', error);
-//                     res.status(500).json({ error: 'Database error' },error);
-//                   } else {
-//                     // Data stored successfully
-//                     res.status(201).json({ message: 'Signup successful', user: userData });
-//                   }
-//                 });
-//               } catch (databaseError) {
-//                 // Handle any unexpected database error
-//                 console.error('Unexpected database error:', databaseError);
-//                 res.status(500).json({ error: 'Server error' });
-//               }
-//             })
-//             .catch((signupError) => {
-//               // Handle signup errors
-//               console.error('Signup error:', signupError);
-//               res.status(400).json({ error: 'Signup failed' }), signupError;
-//             });
-//         } else {
-//           // Handle other errors that may occur while checking the email
-//           console.error('Email check error:', getUserErrord);
-//           res.status(500).json({ error: 'Server error' });
-//         }
-//       });
-      
-
-      // client.sendEmailWithTemplate({
-      //   From: 'info@koppoh.com',
-      //   To: email,
-      //   TemplateId: '36197708',
-      //   TemplateModel: {
-      //     firstName,
-      //     verifyNumber: randomNumber,
-      //   },
-      // })
-    //   .then((response) => {
-    //     console.log('Email sent successfully:', response);
-    //     res.status(201).json({ message: 'Signup successful',});
-    //   })
-    //   .catch((error) => {
-    //     console.error('Email sending error:');
-    //     res.status(500).json({ error: 'Email sending error'});
-    //     return; // Add this line to stop the function execution
-    // })
 
 
-
-// });
-
-
-
-// Signup endpoint
 router.post('/signup', async (req, res) => {
   const { firstName, lastName, email, password, refFrom } = req.body;
-function generateRandomNumber() {
-  return Math.floor(Math.random() * 900000) + 100000;
-}
+
 
   try {
       // Check if the user already exists
@@ -178,7 +67,8 @@ function generateRandomNumber() {
               const userRecord = await admin.auth().createUser({ email, password });
               
               // Generate a verification token
-              const verificationToken = generateRandomNumber();
+              const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
+  
               const currentDate = new Date();
               const signupdate = Math.floor(new Date(currentDate.toISOString()).getTime() / 1000);
 
@@ -277,6 +167,7 @@ router.post('/check-email', async (req, res) => {
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
   const verificationToken = Math.floor(Math.random() * 900000) + 100000; // Generate new verification token
+
   admin
       .auth()
       .getUserByEmail(email)
@@ -494,69 +385,7 @@ router.post('/Message', (req, res) => {
 
 
 
-  router.get('/google', async (req, res) => {
-    const { token } = req.query;
-  
-    try {
-      const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: CLIENT_ID,
-      });
-  
-      const payload = ticket.getPayload();
-      const userId = payload['sub'];
-  
-      // Check if user already exists in Firebase Authentication
-      const userRecord = await admin.auth().getUser(userId);
-  
-      // If user doesn't exist, create a new Firebase user
-      if (!userRecord) {
-        const newUser = await admin.auth().createUser({
-          uid: userId,
-          email: payload.email,
-          displayName: payload.name,
-          // You can set more user properties here
-          firstName: payload.given_name, // Get the first name from Google
-          lastName: payload.family_name, // Get the last name from Google
-          emailVerification: true,
-          firstTime: true,
-          currentDate: new Date().toISOString(),
-        });
-      }
-  
-      // Generate a Firebase custom token for the user
-      const customToken = await admin.auth().createCustomToken(userId);
-  
-      res.json({ customToken });
-    } catch (error) {
-      console.error('Error verifying Google ID token:', error);
-      res.status(500).json({ error: 'Authentication failed' });
-    }
-  });
-  
-  const isAuthenticated = (req, res, next) => {
-    // Check if the request contains a valid Firebase ID token
-    const idToken = req.header('Authorization');
-    if (!idToken) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  
-    // Verify the ID token
-    admin
-      .auth()
-      .verifyIdToken(idToken)
-      .then((decodedToken) => {
-        // Authentication successful, the decoded token contains user information
-        req.user = decodedToken;
-        next(); // Continue to the next middleware or route handler
-      })
-      .catch((error) => {
-        // Authentication failed
-        console.error('Authentication error:', error);
-        res.status(401).json({ error: 'Unauthorized' });
-      });
-  };
-  
+
   // Example API endpoint that requires authentication
   router.get('/api/user', isAuthenticated, (req, res) => {
     // You can access user information from req.user
