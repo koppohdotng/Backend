@@ -155,7 +155,7 @@ router.post('/check-email', async (req, res) => {
 });
 
 
-router.get('/confirm-email', async (req, res) => {
+router.post('/confirm-email', async (req, res) => {
   const { email, token } = req.query;
   console.log(email,token)
 
