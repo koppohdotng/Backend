@@ -427,7 +427,7 @@ const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985'; 
 
 app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
   const userId = req.params.userId;
-  const { transactionId, fundingType, paymentFor } = req.body;
+  const { transactionId, fundingType, paymentFor,date } = req.body;
 
   console.log(userId, transactionId, fundingType, paymentFor);
 
@@ -462,7 +462,8 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       const fundingRequest = {
         fundingType: fundingType, // Use the fundingType from the request body
         mode: 'guidedApp',
-        createdAt: createdAt
+        createdAt: createdAt,
+        date: date
       };
 
       // Store the funding request
