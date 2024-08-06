@@ -155,7 +155,44 @@ router.post('/check-email', async (req, res) => {
 });
 
 
+router.get('/confirm-email', async (req, res) => {
+  const { email, token } = req.query;
 
+  try {
+    // Fetch the user by email
+    const userRecord = await admin.auth().getUserByEmail(email);
+    const db = admin.database();
+    const usersRef = db.ref('users');
+    const userSnapshot = await usersRef.child(userRecord.uid).once('value');
+    const userData = userSnapshot.val();
+
+    if (!userData) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    // Check if the token matches
+    if (userData.verificationToken !== parseInt(token)) {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+
+    // Check if the verification is within 30 minutes
+    const currentTimeInSeconds = Math.floor(new Date().getTime() / 1000);
+    const timeDifference = currentTimeInSeconds - userData.signupdate;
+
+    if (timeDifference > 1800) { // 1800 seconds = 30 minutes
+      return res.status(400).json({ error: 'Verification link expired' });
+    }
+
+    // Update the user's email verification status
+    await usersRef.child(userRecord.uid).update({ emailVerification: true });
+
+    // Respond with success
+    res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 router.post('/resendVerification', async (req, res) => {
