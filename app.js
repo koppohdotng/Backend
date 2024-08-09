@@ -1153,8 +1153,9 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const directMatchInvestors = investors.filter(investor => {
       return (
         (!BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+        &&
+        (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
         // &&
-        // (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage))) &&
         // (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) &&
         // (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
         
