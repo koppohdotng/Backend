@@ -1113,8 +1113,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // const BusinessSector = userData.businessSector;
-    const BusinessSector = "Fintech";
+    const BusinessSector = userData.businessSector;
+  
     const BusinessStage = businessstage; 
     const InvestmentType = InvestmentStage; 
     const FundingType = fundingType;
