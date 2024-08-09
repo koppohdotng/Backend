@@ -1151,28 +1151,19 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const directMatchInvestors = investors.filter(investor => {
       return (
-        (!BusinessSector || investor.BusinessSector.includes(BusinessSector)) &&
-        (!BusinessStage || investor.BusinessStage.includes(BusinessStage)) &&
-        (!InvestmentType || investor.InvestmentStage.includes(InvestmentType)) &&
-        (!FundingType || investor.FundingType.includes(FundingType)) 
+        (!BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) &&
+        (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage))) &&
+        (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) &&
+        (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
         
-        // &&(equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold
+        // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold
       
       );
     });
+
     console.log(directMatchInvestors);
-    // const allMatchInvestors = investors.filter(investor => {
-    //   return (
-    //     investor.BusinessSector.includes('All') ||
-    //     investor.BusinessStage.includes('All') ||
-    //     investor.InvestmentStage.includes('All') ||
-    //     investor.FundingType.includes('All') ||
-    //     investor.MinInvestment == 'All' ||
-    //     investor.RevenueThreshold == 'All'
-    //   );
-    // });
     
-    const filterInvestors = [...directMatchInvestors ];
+    const filterInvestors = [...directMatchInvestors];
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
@@ -1202,6 +1193,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+
 
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
