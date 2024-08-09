@@ -512,6 +512,8 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
   const { refNumber, count } = req.body;
 
+  console.log(refNumber, count);
+
   const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
   try {
