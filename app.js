@@ -1113,7 +1113,8 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    const BusinessSector = userData.businessSector;
+    // const BusinessSector = userData.businessSector;
+    const BusinessSector = "Fintech";
     const BusinessStage = businessstage; 
     const InvestmentType = InvestmentStage; 
     const FundingType = fundingType;
@@ -1151,13 +1152,13 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const directMatchInvestors = investors.filter(investor => {
       return (
-        (!BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) &&
-        (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage))) &&
-        (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) &&
-        (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
+        (!BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+        // &&
+        // (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage))) &&
+        // (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) &&
+        // (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
         
-        // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold
-      
+        // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
       );
     });
 
