@@ -505,6 +505,67 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
 });
 
 
+app.post('/verifyAndUpdateFundingRequest/:userId/:fundingRequestId', async (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+  const { transactionId, paymentFor } = req.body;
+
+  console.log(userId, fundingRequestId, transactionId, paymentFor);
+
+  if (!transactionId) {
+    return res.status(400).json({ error: 'Transaction ID is required.' });
+  }
+
+  if (!paymentFor) {
+    return res.status(400).json({ error: 'Payment For is required.' });
+  }
+
+  try {
+    // Verify the Paystack transaction
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${transactionId}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const transactionData = response.data.data;
+    const createdAt = new Date().toISOString();
+    console.log(transactionData.status);
+
+    if (transactionData.status === 'success') {
+      // Create payment data object
+      const paymentData = {
+        transactionId: transactionData.id,
+        amount: transactionData.amount,
+        status: transactionData.status,
+        paidAt: transactionData.paid_at,
+        currency: transactionData.currency,
+        paymentFor: paymentFor, // Add paymentFor from the request body
+      };
+
+      // Store the payment data under the existing funding request
+      await dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/payments`).push(paymentData);
+
+      // Retrieve and return the saved data
+      dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).once('value', (snapshot) => {
+        const savedData = snapshot.val();
+        savedData.fundingRequestId = fundingRequestId;
+
+        res.status(200).json({
+          message: 'Payment verified and funding request updated successfully.',
+          fundingRequestId: fundingRequestId,
+          savedData: savedData,
+        });
+      });
+    } else {
+      res.status(400).json({ error: 'Transaction is not successful.' });
+    }
+  } catch (error) {
+    console.error('Error verifying transaction:', error);
+    res.status(500).json({ error: 'Failed to verify transaction.' });
+  }
+});
 
 
 
