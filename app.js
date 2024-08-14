@@ -568,7 +568,6 @@ app.post('/verifyAndUpdateFundingRequest/:userId/:fundingRequestId', async (req,
 });
 
 
-
 app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
   const { refNumber, count } = req.body;
@@ -588,12 +587,10 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
 
     const transactionData = response.data.data;
 
-
     // Save payment data under bulkEquity for the user
     const paymentData = {
       transactionId: transactionData.id,
       amount: transactionData.amount,
-      
       status: transactionData.status,
       paidAt: transactionData.paid_at,
       currency: transactionData.currency,
@@ -622,7 +619,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
     await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).update({ count: newCount });
 
     const responsePayload = {
-      transactionData: data,
+      transactionData: transactionData, // Corrected this line
       investors: investorsToReturn,
       totalCount: investors.length,
       currentCount: newCount
