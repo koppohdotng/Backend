@@ -436,7 +436,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
   }
 
   if (!fundingType) {
-    return res.status(400).json({ error: 'Funding Type is required.' });
+    return res.status(400).json({ error: 'Funding  Type is required.' });
   }
 
   if (!paymentFor) {
