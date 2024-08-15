@@ -1256,6 +1256,37 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   }
 });
 
+app.get('/deleteAllRequests', async (req, res) => {
+  try {
+    // Fetch all user IDs
+    const usersSnapshot = await dataRef.child('/').once('value');
+    const users = usersSnapshot.val();
+
+    if (!users) {
+      return res.status(404).json({ message: 'No users found.' });
+    }
+
+    // Create an array of promises to delete fundingRequests and bulkEquitys for all users
+    const deletePromises = Object.keys(users).map(async (userId) => {
+      const fundingRequestRef = dataRef.child(`${userId}/fundingRequest`);
+      const bulkEquityRef = dataRef.child(`${userId}/bulkEquity`);
+      
+      // Delete fundingRequests and bulkEquitys for the current user
+      await fundingRequestRef.remove();
+      await bulkEquityRef.remove();
+    });
+
+    // Wait for all delete operations to complete
+    await Promise.all(deletePromises);
+
+    res.status(200).json({ message: 'All funding requests and bulk equity entries have been deleted.' });
+  } catch (error) {
+    console.error('Error deleting funding requests and bulk equity entries:', error);
+    res.status(500).json({ error: 'Failed to delete funding requests and bulk equity entries.' });
+  }
+});
+
+// Start the server
 
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
