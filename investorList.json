@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "SN": "1",
+    "Investor": "Abu Dhabi Capital Group",
+    "Website": "http://www.adcg.ae",
+    "CompanyEmail": "info@abudhabicapital.ae",
+    "ContactPersonEmail": "abdul@abudhabicapital.ae",
+    "InvestorType": "Private Equity",
+    "FundingType": "Equity",
+    "BusinessStage": "High Growth Revenue, Steady Revenue, Declining Revenue, Exit",
+    "InvestmentStage": "Series B, Series C, Series D",
+    "BusinessSector": "Professional Services, Construction, Education, Financial Services, Healthcare, Manufacturing, Information Technology, Transportation and Logistics, Mining and Quarrying, Retail and Wholesale Trade, Transportation and Logistics, All",
+    "Business_Sub_sector": "Manufacturing, Consumer Products",
+    "Niche": "Positive/Stable Cashflow, Succession Issues",
+    "GeographicalFocus": "Africa",
+    "MinInvestment": "All",
+    "MaxInvestment ": "All"
+  }
+]
