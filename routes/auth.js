@@ -86,7 +86,7 @@ router.post('/signup', async (req, res) => {
               await usersRef.child(userRecord.uid).set(userData);
 
               // Generate confirmation link
-              const confirmationLink = `https://staging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
+              const confirmationLink = `https://koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
 
               // Send verification email
               await client.sendEmailWithTemplate({
