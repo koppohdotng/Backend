@@ -1256,7 +1256,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   }
 });
 
-app.get('/deleteAllRequests', async (req, res) => {
+app.get(' ', async (req, res) => {
   try {
     // Fetch all user IDs
     const usersSnapshot = await dataRef.child('/').once('value');
