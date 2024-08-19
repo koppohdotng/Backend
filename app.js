@@ -1287,7 +1287,6 @@ app.get(' ', async (req, res) => {
 });
 
 // Start the server
-
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const userId = req.params.userId;
   const bulkEquityId = req.params.bulkEquityId;
@@ -1302,10 +1301,24 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
       throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
     }
 
+    // Get the count value
+    const count = bulkEquityData.count || 0;
+
+    // Get the list of investors
+    const investors = bulkEquityData.investorsMatch || [];
+
+    // Slice the investors array based on the count value
+    const investorsToReturn = investors.slice(0, count);
+
+    // Replace the values inside investorsMatch with investorsToReturn
+    bulkEquityData.investorsMatch = investorsToReturn;
+
     // Prepare the response
     const response = {
-      bulkEquityData,
-      message: 'Bulk equity data retrieved successfully.'
+      ...bulkEquityData,
+      message: 'Bulk equity data retrieved successfully.',
+      totalCount: investors.length, // Total number of investors
+      returnedCount: investorsToReturn.length // Number of investors returned
     };
 
     res.status(200).json(response);
