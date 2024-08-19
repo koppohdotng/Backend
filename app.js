@@ -427,16 +427,16 @@ const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985'; 
 
 app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
   const userId = req.params.userId;
-  const { transactionId, fundingType, paymentFor,date } = req.body;
+  const { transactionId, fundingType, paymentFor, date } = req.body;
 
   console.log(userId, transactionId, fundingType, paymentFor);
 
   if (!transactionId) {
     return res.status(400).json({ error: 'Transaction ID is required.' });
   }
-//reeeee
+
   if (!fundingType) {
-    return res.status(400).json({ error: 'Funding  Type is required.' });
+    return res.status(400).json({ error: 'Funding Type is required.' });
   }
 
   if (!paymentFor) {
@@ -451,11 +451,10 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
-    //console.log(response);
 
     const transactionData = response.data.data;
     const createdAt = new Date().toISOString();
-    console.log(transactionData.status)
+    console.log(transactionData.status);
 
     if (transactionData.status === 'success') {
       // Create funding request if transaction is successful
@@ -474,7 +473,6 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       const paymentData = {
         transactionId: transactionData.id,
         amount: transactionData.amount,
-        
         status: transactionData.status,
         paidAt: transactionData.paid_at,
         currency: transactionData.currency,
@@ -483,6 +481,31 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
 
       // Store the payment data under the newly created funding request
       await dataRef.child(`${userId}/fundingRequest/${newKey}/payments`).set(paymentData);
+
+      // Retrieve the user data to get the firstName
+      const userSnapshot = await dataRef.child(`${userId}/user`).once('value');
+      const userData = userSnapshot.val();
+      const firstName = userData.firstName;
+
+      // Prepare the email data
+      const emailData = {
+        From: 'info@koppoh.com', // Replace with your sender email address
+        To: "info@koppoh.com", // Assuming user's email is stored in user data
+        TemplateId: 34496413,
+        TemplateModel: {
+          firstName: firstName,
+          fundingRequesttype: 'Guided',
+          date: date
+        }
+      };
+
+      // Send the email using Postmark
+      await axios.post('https://api.postmarkapp.com/email/withTemplate', emailData, {
+        headers: {
+          'X-Postmark-Server-Token': POSTMARK_SERVER_TOKEN, // Replace with your Postmark server token
+          'Content-Type': 'application/json'
+        }
+      });
 
       // Retrieve and return the saved data
       dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
@@ -503,6 +526,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to verify transaction.' });
   }
 });
+
 
 
 app.post('/verifyAndUpdateFundingRequest/:userId/:fundingRequestId', async (req, res) => {
@@ -594,7 +618,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
       status: transactionData.status,
       paidAt: transactionData.paid_at,
       currency: transactionData.currency,
-      paymentFor: "Smartmatch" // Add paymentFor from the request body
+      paymentFor: "Smartmatch" // Set paymentFor as "Smartmatch"
     };
 
     await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).set(paymentData);
@@ -619,11 +643,38 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
     await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).update({ count: newCount });
 
     const responsePayload = {
-      transactionData: transactionData, // Corrected this line
+      transactionData: transactionData,
       investors: investorsToReturn,
       totalCount: investors.length,
       currentCount: newCount
     };
+
+    // Sending email using Postmark if the transaction is successful
+    if (transactionData.status === 'success') {
+      // Retrieve user data to get the firstName and email
+      const userSnapshot = await db.ref(`users/${userId}`).once('value');
+      const userData = userSnapshot.val();
+      
+      if (!userData || !userData.email) {
+        return res.status(400).json({ error: 'User email not found.' });
+      }
+
+      const firstName = userData.firstName;
+      const email = userData.email;
+      const date = new Date().toISOString(); // Using current date
+      
+      // Send the email
+      await client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: email,
+        TemplateId: '34496413', // Use your actual template ID here
+        TemplateModel: {
+          firstName: firstName,
+          fundingRequesttype: "Smartmatch", // Set fundingRequesttype as "Smartmatch"
+          date: date
+        },
+      });
+    }
 
     res.json(responsePayload);
   } catch (error) {
@@ -631,6 +682,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
     res.status(500).json({ error: 'Failed to initialize transaction' });
   }
 });
+
 
 
 
