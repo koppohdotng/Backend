@@ -1302,23 +1302,28 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
     }
 
     // Get the count value
-    const count = bulkEquityData.count || 0;
+    const count = bulkEquityData.count;
 
-    // Get the list of investors
-    const investors = bulkEquityData.investorsMatch || [];
+    if (count !== undefined && count !== null) {
+      // Get the list of investors
+      const investors = bulkEquityData.investorsMatch || [];
 
-    // Slice the investors array based on the count value
-    const investorsToReturn = investors.slice(0, count);
+      // Slice the investors array based on the count value
+      const investorsToReturn = investors.slice(0, count);
 
-    // Replace the values inside investorsMatch with investorsToReturn
-    bulkEquityData.investorsMatch = investorsToReturn;
+      // Replace the values inside investorsMatch with investorsToReturn
+      bulkEquityData.investorsMatch = investorsToReturn;
+    } else {
+      // If count does not exist, set investorsMatch to null
+      bulkEquityData.investorsMatch = null;
+    }
 
     // Prepare the response
     const response = {
       ...bulkEquityData,
       message: 'Bulk equity data retrieved successfully.',
-      totalCount: investors.length, // Total number of investors
-      returnedCount: investorsToReturn.length // Number of investors returned
+      totalCount: bulkEquityData.investorsMatch ? bulkEquityData.investorsMatch.length : 0,
+      returnedCount: count || 0 // Number of investors returned or 0 if count doesn't exist
     };
 
     res.status(200).json(response);
