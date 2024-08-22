@@ -201,7 +201,12 @@ app.get('/api/user/:userId', (req, res) => {
   userRef.once('value', (snapshot) => {
     const user = snapshot.val();
     if (user) {
-      res.status(200).json({ message: 'Authentication successful', user });
+      // Check if emailVerification exists and is set to true
+      if (user.emailVerification && user.emailVerification === true) {
+        res.status(200).json({ message: 'Authentication successful', user });
+      } else {
+        res.status(403).json({ error: 'Email verification not true' });
+      }
     } else {
       res.status(404).json({ error: 'User not found' });
     }
@@ -707,12 +712,13 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 
   // Generate a unique filename for the image (e.g., using a timestamp)
   const timestamp = Date.now();
-  const imageName = `${timestamp}_${req.file.originalname}`;
+  const imageName = `${timestamp}_${req.file ? req.file.originalname : ''}`;
 
   // Create a new teammate object
   const newTeammate = {
     name,
-    role, gender,
+    role,
+    gender,
     experience,
     imageURL: '', // Initialize the imageURL field
   };
@@ -720,9 +726,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
   // If an image is provided, store it in Firebase Storage and add its download URL to the teammate object
   if (req.file) {
     const bucket = admin.storage().bucket();
-
     const imageBuffer = req.file.buffer;
-
     const file = bucket.file(imageName); // Use the generated filename
 
     const blobStream = file.createWriteStream({
@@ -745,12 +749,19 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
         newTeammate.imageURL = downloadUrl;
 
         // Add the new teammate to the database under the specified user ID
-        teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error) => {
+        teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error, ref) => {
           if (error) {
             return res.status(500).json({ error: 'Error adding teammate to the database.' });
           }
 
-          return res.status(200).json({ message: 'Teammate added successfully.' });
+          // Return the stored teammate data, including the imageURL
+          res.status(200).json({
+            message: 'Teammate added successfully.',
+            teammate: {
+              id: ref.key,
+              ...newTeammate
+            }
+          });
         });
       });
     });
@@ -758,15 +769,23 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
     blobStream.end(imageBuffer);
   } else {
     // If no image is provided, add the teammate object to the database directly
-    teammatesRef.child(userId).push(newTeammate, (error) => {
+    teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error, ref) => {
       if (error) {
         return res.status(500).json({ error: 'Error adding teammate to the database.' });
       }
 
-      return res.status(200).json({ message: 'Teammate added successfully.' });
+      // Return the stored teammate data
+      res.status(200).json({
+        message: 'Teammate added successfully.',
+        teammate: {
+          id: ref.key,
+          ...newTeammate
+        }
+      });
     });
   }
 });
+
 
 
 
@@ -2045,7 +2064,11 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
               return res.status(500).json({ error: 'Error updating teammate in the database.' });
             }
 
-            return res.status(200).json({ message: 'Teammate updated successfully.' });
+            // Return the updated teammate data
+            return res.status(200).json({
+              message: 'Teammate updated successfully.',
+              teammate: updatedTeammate
+            });
           });
         });
       });
@@ -2059,11 +2082,16 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
           return res.status(500).json({ error: 'Error updating teammate in the database.' });
         }
 
-        return res.status(200).json({ message: 'Teammate updated successfully.' });
+        // Return the updated teammate data
+        return res.status(200).json({
+          message: 'Teammate updated successfully.',
+          teammate: updatedTeammate
+        });
       });
     }
   });
 });
+
 
 
 
