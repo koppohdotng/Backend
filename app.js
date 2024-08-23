@@ -2468,7 +2468,12 @@ app.get('/api/latestBlogPost/:number', async (req, res) => {
     const snapshot = await database.ref('blogPosts').orderByKey().limitToLast(Number(number)).once('value');
     const blogPosts = snapshot.val();
 
-    // Extract the latest blog post with BlogPostId
+    // Check if blogPosts is null or undefined
+    if (!blogPosts) {
+      return res.status(404).json({ error: 'No blog posts found' });
+    }
+
+    // Extract the latest blog posts with BlogPostId
     const latestBlogPostKeys = Object.keys(blogPosts);
     const latestBlogPosts = latestBlogPostKeys.map(key => ({
       BlogPostId: key,
@@ -2478,9 +2483,10 @@ app.get('/api/latestBlogPost/:number', async (req, res) => {
     res.json({ latestBlogPosts });
   } catch (error) {
     console.error('Error fetching blog posts:', error.message);
-    res.status(500).json({ error: 'Internal S erver Error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 app.get('/api/blogPost/:postId', async (req, res) => {
