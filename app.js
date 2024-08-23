@@ -2461,31 +2461,36 @@ app.delete('/deleteFundingRequest/:userId/:fundingRequestId', (req, res) => {
 });
 
 app.get('/api/latestBlogPost/:number', async (req, res) => {
-  const { number } = req.params;
+  const number = parseInt(req.params.number);
+
+  if (isNaN(number) || number < 1) {
+    return res.status(400).json({ error: 'Invalid number parameter' });
+  }
 
   try {
-    const database = admin.database();
-    const snapshot = await database.ref('blogPosts').orderByKey().limitToLast(Number(number)).once('value');
-    const blogPosts = snapshot.val();
+    const blogPostsRef = db.ref('blogPosts');
+    const snapshot = await blogPostsRef.orderByKey().limitToLast(number).once('value');
 
-    // Check if blogPosts is null or undefined
-    if (!blogPosts) {
-      return res.status(404).json({ error: 'No blog posts found' });
+    const posts = [];
+    snapshot.forEach(childSnapshot => {
+      posts.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
+    });
+
+    posts.reverse(); // Reverse to get the most recent posts first
+
+    if (number > posts.length) {
+      return res.status(404).json({ error: 'Number exceeds the available blog posts' });
     }
 
-    // Extract the latest blog posts with BlogPostId
-    const latestBlogPostKeys = Object.keys(blogPosts);
-    const latestBlogPosts = latestBlogPostKeys.map(key => ({
-      BlogPostId: key,
-      ...blogPosts[key]
-    }));
-
-    res.json({ latestBlogPosts });
+    res.json(posts[number - 1]);
   } catch (error) {
-    console.error('Error fetching blog posts:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Failed to retrieve blog posts', details: error.message });
   }
 });
+
 
 
 
