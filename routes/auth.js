@@ -22,7 +22,7 @@ require('dotenv').config();
 //   client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
 // };
 
-// const postmarkClient = new ServerClient('612112983714455199b01164f8a9cb33');
+// const postmarkClient = new ServerClient('612112983714455199b01164f8a9chhb33');
 
 var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
