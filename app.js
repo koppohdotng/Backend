@@ -757,10 +757,7 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
           // Return the stored teammate data, including the imageURL
           res.status(200).json({
             message: 'Teammate added successfully.',
-            teammate: {
-              id: ref.key,
-              ...newTeammate
-            }
+            ...newTeammate
           });
         });
       });
