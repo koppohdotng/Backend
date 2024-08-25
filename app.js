@@ -209,6 +209,34 @@ app.get('/api/user/:userId', (req, res) => {
 });
 
 
+
+app.get('/api/user/:userId/emailVerification', (req, res) => {
+  const userId = req.params.userId;
+
+  // Query the database to retrieve user information using the userId
+  const userRef = admin.database().ref(`/users/${userId}`);
+
+  userRef.once('value', (snapshot) => {
+    const user = snapshot.val();
+    if (user) {
+      // Check if emailVerification exists and is true
+      if (user.emailVerification === true) {
+        res.status(200).json({ message: 'Email is verified' });
+      } else {
+        res.status(403).json({ error: 'Email verification not true' });
+      }
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  });
+});
+
+
+
+
+
+
+
 app.post('/google-signin', async (req, res) => {
     const { idToken } = req.body;
   
