@@ -36,15 +36,15 @@ admin.initializeApp({
   storageBucket: 'gs://koppoh-4e5fb.appspot.com',
    // Replace with your Firebase project's Realtime Database URL
 });
-const serviceAccount = require('../staging.json'); // Adjust the path as needed
-const { error } = require('console');
-console.log(error)
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-362da.appspot.com',
-   // Replace with your Firebase project's Realtime Database URL
-});
+// const serviceAccount = require('../staging.json'); // Adjust the path as needed
+// const { error } = require('console');
+// console.log(error)
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
+//   storageBucket: 'gs://koppoh-362da.appspot.com',
+//    // Replace with your Firebase project's Realtime Database URL
+// });
 
 
 router.post('/signup', async (req, res) => {
