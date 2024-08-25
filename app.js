@@ -201,12 +201,7 @@ app.get('/api/user/:userId', (req, res) => {
   userRef.once('value', (snapshot) => {
     const user = snapshot.val();
     if (user) {
-      // Check if emailVerification exists and is set to true
-      if (user.emailVerification && user.emailVerification === true) {
-        res.status(200).json({ message: 'Authentication successful', user });
-      } else {
-        res.status(403).json({ error: 'Email verification not true' });
-      }
+      res.status(200).json({ message: 'Authentication successful', user });
     } else {
       res.status(404).json({ error: 'User not found' });
     }
