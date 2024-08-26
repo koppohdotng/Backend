@@ -511,7 +511,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       await dataRef.child(`${userId}/fundingRequest/${newKey}/payments`).set(paymentData);
 
       // Retrieve the user data to get the firstName
-      const userSnapshot = await dataRef.child(`${userId}/user`).once('value');
+      const userSnapshot = await dataRef.child(`${userId}`).once('value');
       const userData = userSnapshot.val();
       console.log(userData)
       const firstName = userData.firstName;
