@@ -156,7 +156,7 @@ app.get('/a', (req, res) => {
   res.send('Welcome to Koppoh, Express yourself!');
  
   
-
+  
  
 // client.sendEmail({
 //   "From": "info@koppoh.com",
@@ -518,7 +518,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       // Prepare the email data
       const emailData = {
         From: 'info@koppoh.com', // Replace with your sender email address
-        To: "info@koppoh.com", // Assuming user's email is stored in user data
+        To: "koppohstagetest@yopmail.com", // Assuming user's email is stored in user data
         TemplateId: 34496413,
         TemplateModel: {
           firstName: firstName,
@@ -694,7 +694,7 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
       // Send the email
       await client.sendEmailWithTemplate({
         From: 'info@koppoh.com',
-        To: email,
+        To: "koppohstagetest@yopmail.com",
         TemplateId: '34496413', // Use your actual template ID here
         TemplateModel: {
           firstName: firstName,
