@@ -513,6 +513,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       // Retrieve the user data to get the firstName
       const userSnapshot = await dataRef.child(`${userId}/user`).once('value');
       const userData = userSnapshot.val();
+      console.log(userData)
       const firstName = userData.firstName;
 
       // Prepare the email data
