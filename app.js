@@ -517,7 +517,7 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       const firstName = userData.firstName;
 
       // Prepare the email data
-      const emailData = {
+      await client.sendEmailWithTemplate({
         From: 'info@koppoh.com', // Replace with your sender email address
         To: "koppohstagetest@yopmail.com", // Assuming user's email is stored in user data
         TemplateId: 34496413,
@@ -525,17 +525,11 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
           firstName: firstName,
           fundingRequesttype: 'Guided',
           date: date
-        }
-      };
-
-      // Send the email using Postmark
-      await axios.post('https://api.postmarkapp.com/email/withTemplate', emailData, {
-        headers: {
-          'X-Postmark-Server-Token': POSTMARK_SERVER_TOKEN, // Replace with your Postmark server token
-          'Content-Type': 'application/json'
-        }
+        },
       });
 
+      // Send the email using Postmark
+     
       // Retrieve and return the saved data
       dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
         const savedData = snapshot.val();
@@ -704,6 +698,8 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
           date: date
         },
       });
+
+
     }
 
     res.json(responsePayload);
