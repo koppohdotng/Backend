@@ -515,6 +515,9 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
       const userData = userSnapshot.val();
       console.log(userData)
       const firstName = userData.firstName;
+      const lastName = userData. email;
+      const userEmailx = userData.lastName;
+
 
       // Prepare the email data
       await client.sendEmailWithTemplate({
@@ -523,6 +526,8 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         TemplateId: 34496413,
         TemplateModel: {
           firstName: firstName,
+           lastName: lastName,
+           Email :  userEmailx,
           fundingRequesttype: 'Guided',
           date: date
         },
@@ -679,6 +684,8 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
       const userSnapshot = await db.ref(`users/${userId}`).once('value');
       const userData = userSnapshot.val();
       
+      const lastName = userData. email;
+      const userEmailx = userData.lastName;
       if (!userData || !userData.email) {
         return res.status(400).json({ error: 'User email not found.' });
       }
@@ -694,6 +701,8 @@ app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
         TemplateId: '34496413', // Use your actual template ID here
         TemplateModel: {
           firstName: firstName,
+           lastName: lastName,
+           Email :  userEmailx,
           fundingRequesttype: "Smartmatch", // Set fundingRequesttype as "Smartmatch"
           date: date
         },
