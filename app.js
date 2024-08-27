@@ -2098,7 +2098,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       teammateRef.update(updatedTeammate, (error) => {
         if (error) {
           console.error('Error updating teammate in the database:', error);
-          return res.status(500).json({ error: 'Error updating teammate in the database.' });
+          return res.status(500).json({ error: 'Error updating teammate s in the database.' });
         }
 
         // Return the updated teammate data
