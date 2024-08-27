@@ -753,6 +753,21 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
     imageURL: '', // Initialize the imageURL field
   };
 
+  const addTeammateToDB = (teammateData) => {
+    const newTeammateRef = teammatesRef.child(`${userId}/Teammate`).push(teammateData, (error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error adding teammate to the database.' });
+      }
+
+      // Return the stored teammate data, including the new teammate ID and imageURL
+      res.status(200).json({
+        message: 'Teammate added successfully.',
+        teammateId: newTeammateRef.key, // Return the new teammate ID
+        ...teammateData,
+      });
+    });
+  };
+
   // If an image is provided, store it in Firebase Storage and add its download URL to the teammate object
   if (req.file) {
     const bucket = admin.storage().bucket();
@@ -778,38 +793,15 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 
         newTeammate.imageURL = downloadUrl;
 
-        // Add the new teammate to the database under the specified user ID
-        teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error, ref) => {
-          if (error) {
-            return res.status(500).json({ error: 'Error adding teammate to the database.' });
-          }
-
-          // Return the stored teammate data, including the imageURL
-          res.status(200).json({
-            message: 'Teammate added successfully.',
-            ...newTeammate
-          });
-        });
+        // Add the new teammate to the database
+        addTeammateToDB(newTeammate);
       });
     });
 
     blobStream.end(imageBuffer);
   } else {
     // If no image is provided, add the teammate object to the database directly
-    teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error, ref) => {
-      if (error) {
-        return res.status(500).json({ error: 'Error adding teammate to the database.' });
-      }
-
-      // Return the stored teammate data
-      res.status(200).json({
-        message: 'Teammate added successfully.',
-        teammate: {
-          
-          ...newTeammate
-        }
-      });
-    });
+    addTeammateToDB(newTeammate);
   }
 });
 
@@ -2112,7 +2104,8 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
         // Return the updated teammate data
         return res.status(200).json({
           message: 'Teammate updated successfully.',
-          teammate: updatedTeammate
+          teammate: updatedTeammate,
+          teammateId : teammateId
         });
       });
     }
