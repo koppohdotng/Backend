@@ -582,7 +582,6 @@ router.get('/filteredReviewstage', async (req, res) => {
   }
 });
 
-
 router.get('/filteredFundingRequests', async (req, res) => {
   try {
       const pageSize = 10;
@@ -614,10 +613,11 @@ router.get('/filteredFundingRequests', async (req, res) => {
                   if (withinTimeRange && matchFundingType && matchReviewStage) {
                       filteredFundingRequests.push({
                           firstName: user.firstName,
-                          lastName:  user.lastName,
+                          lastName: user.lastName,
                           logoUrl: user.logoUrl,
                           businessName: user.businessName,
                           fundingRequestId: fundingRequestId,
+                          requestTimestamp: requestTimestamp,  // Add this to sort later
                           ...request
                       });
                   }
@@ -630,6 +630,9 @@ router.get('/filteredFundingRequests', async (req, res) => {
               message: 'No funding requests found with the specified filters'
           });
       }
+
+      // Sort the filtered funding requests by requestTimestamp in descending order (latest first)
+      filteredFundingRequests.sort((a, b) => b.requestTimestamp - a.requestTimestamp);
 
       const totalFundingRequests = filteredFundingRequests.length;
       // Extract funding requests within the desired range
@@ -644,6 +647,7 @@ router.get('/filteredFundingRequests', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 router.post('/sendNotification', async (req, res) => {
