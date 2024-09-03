@@ -490,7 +490,8 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         fundingType: fundingType, // Use the fundingType from the request body
         mode: 'guidedApp',
         createdAt: createdAt,
-        date: date
+        date: date,
+        reviewstage : 'Draft'
       };
 
       // Store the funding request
