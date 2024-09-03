@@ -1441,7 +1441,8 @@ router.get('/analyticsData', async (req, res) => {
           totalFundingRequests: totalFundingRequests,
           reviewStageOccurrences: reviewStageOccurrences,
           dealStatusOccurrences: dealStatusOccurrences,
-          refFromOccurrences: refFromOccurrences
+          refFromOccurrences: refFromOccurrences,
+          totalinvestors: totalinvestors
       });
   } catch (error) {
       console.error(error);
