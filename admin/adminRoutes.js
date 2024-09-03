@@ -1394,8 +1394,8 @@ router.get('/analyticsData', async (req, res) => {
       let refFromOccurrences = {};
 
       // Calculate total number of users and number of users with profile completeness of 100%
-      totalUsers = Object.keys(investors).length;
-      totalinvestors = Object.keys(users).length;
+      totalUsers = Object.keys(users).length;
+      totalinvestors = Object.keys(investors).length;
       completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
 
       // Iterate through each user for review stage and deal status occurrences
