@@ -1372,11 +1372,18 @@ router.get('/refFromOccurrences', async (req, res) => {
 router.get('/analyticsData', async (req, res) => {
   try {
       // Get all users
+     
+      const investorsRef = db.ref('investors');
+      const snapshots = await investorsRef.once('value');
+      const investors = snapshots.val() || {};
+
       const snapshot = await usersRef.once('value');
       const users = snapshot.val() || {};
 
+
       // Initialize variables to store data for each metric
       let totalUsers = 0;
+      let totalinvestors = 0;
       let completeUsers = 0;
       let totalFundingRequests = 0;
       let reviewStageOccurrences = {};
@@ -1387,7 +1394,8 @@ router.get('/analyticsData', async (req, res) => {
       let refFromOccurrences = {};
 
       // Calculate total number of users and number of users with profile completeness of 100%
-      totalUsers = Object.keys(users).length;
+      totalUsers = Object.keys(investors).length;
+      totalinvestors = Object.keys(users).length;
       completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
 
       // Iterate through each user for review stage and deal status occurrences
