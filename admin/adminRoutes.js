@@ -1371,20 +1371,19 @@ router.get('/refFromOccurrences', async (req, res) => {
 
 router.get('/analyticsData', async (req, res) => {
   try {
-      // Get all users
-     
+      const usersRef = db.ref('users');
       const investorsRef = db.ref('investors');
+
       const snapshots = await investorsRef.once('value');
       const investors = snapshots.val() || {};
 
       const snapshot = await usersRef.once('value');
       const users = snapshot.val() || {};
 
-
       // Initialize variables to store data for each metric
-      let totalUsers = 0;
-      let totalinvestors = 0;
-      let completeUsers = 0;
+      let totalUsers = Object.keys(users).length;
+      let totalinvestors = Object.keys(investors).length;
+      let completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
       let totalFundingRequests = 0;
       let reviewStageOccurrences = {};
       let dealStatusOccurrences = {
@@ -1393,13 +1392,29 @@ router.get('/analyticsData', async (req, res) => {
       };
       let refFromOccurrences = {};
 
-      // Calculate total number of users and number of users with profile completeness of 100%
-      totalUsers = Object.keys(users).length;
-      totalinvestors = Object.keys(investors).length;
-      completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
+      // Initialize variables to track new users and growth
+      let newUserCount = 0;
+      let previousMonthUserCount = 0;
 
-      // Iterate through each user for review stage and deal status occurrences
+      // Get the current date
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+
+      // Determine the previous month and year
+      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+      // Iterate through each user for review stage and deal status occurrences, and to count new users
       Object.values(users).forEach(user => {
+          // Calculate new users registered this month and last month
+          const signupDate = new Date(user.signupdate);
+          if (signupDate.getMonth() === currentMonth && signupDate.getFullYear() === currentYear) {
+              newUserCount++;
+          } else if (signupDate.getMonth() === previousMonth && signupDate.getFullYear() === previousMonthYear) {
+              previousMonthUserCount++;
+          }
+
           if (user.fundingRequest) {
               totalFundingRequests += Object.keys(user.fundingRequest).length;
 
@@ -1432,6 +1447,11 @@ router.get('/analyticsData', async (req, res) => {
       const completePercentage = (completeUsers / totalUsers) * 100;
       const incompletePercentage = 100 - completePercentage;
 
+      // Calculate percentage growth of new users compared to last month
+      const growthPercentage = previousMonthUserCount > 0
+          ? ((newUserCount - previousMonthUserCount) / previousMonthUserCount) * 100
+          : (newUserCount > 0 ? 100 : 0); // Handle edge case for no users last month
+
       res.json({
           totalUsers: totalUsers,
           completeUsers: completeUsers,
@@ -1442,13 +1462,16 @@ router.get('/analyticsData', async (req, res) => {
           reviewStageOccurrences: reviewStageOccurrences,
           dealStatusOccurrences: dealStatusOccurrences,
           refFromOccurrences: refFromOccurrences,
-          totalinvestors: totalinvestors
+          totalinvestors: totalinvestors,
+          newUserCount: newUserCount,
+          growthPercentage: growthPercentage.toFixed(2)
       });
   } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 router.get('/bulkEquity', async (req, res) => {
