@@ -1396,22 +1396,21 @@ router.get('/analyticsData', async (req, res) => {
       let newUserCount = 0;
       let previousMonthUserCount = 0;
 
-      // Get the current date
+      // Get the current date and calculate the date 4 weeks ago and 8 weeks ago
       const currentDate = new Date();
-      const currentMonth = currentDate.getMonth();
-      const currentYear = currentDate.getFullYear();
+      const fourWeeksAgo = new Date();
+      fourWeeksAgo.setDate(currentDate.getDate() - 28); // 4 weeks ago
 
-      // Determine the previous month and year
-      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-      const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      const eightWeeksAgo = new Date();
+      eightWeeksAgo.setDate(currentDate.getDate() - 56); // 8 weeks ago
 
-      // Iterate through each user for review stage and deal status occurrences, and to count new users
+      // Iterate through each user to calculate new users for the last 4 weeks and the 4 weeks before that
       Object.values(users).forEach(user => {
-          // Calculate new users registered this month and last month
           const signupDate = new Date(user.signupdate);
-          if (signupDate.getMonth() === currentMonth && signupDate.getFullYear() === currentYear) {
+
+          if (signupDate >= fourWeeksAgo && signupDate < currentDate) {
               newUserCount++;
-          } else if (signupDate.getMonth() === previousMonth && signupDate.getFullYear() === previousMonthYear) {
+          } else if (signupDate >= eightWeeksAgo && signupDate < fourWeeksAgo) {
               previousMonthUserCount++;
           }
 
@@ -1421,6 +1420,7 @@ router.get('/analyticsData', async (req, res) => {
               Object.values(user.fundingRequest).forEach(request => {
                   const reviewStage = request.reviewstage;
                   const dealStatus = request.interested ? 'interested' : 'notInterested';
+
                   // Increment the occurrence count for the review stage
                   if (reviewStage) {
                       reviewStageOccurrences[reviewStage] = (reviewStageOccurrences[reviewStage] || 0) + 1;
@@ -1447,10 +1447,10 @@ router.get('/analyticsData', async (req, res) => {
       const completePercentage = (completeUsers / totalUsers) * 100;
       const incompletePercentage = 100 - completePercentage;
 
-      // Calculate percentage growth of new users compared to last month
+      // Calculate percentage growth of new users compared to the previous 4 weeks
       const growthPercentage = previousMonthUserCount > 0
           ? ((newUserCount - previousMonthUserCount) / previousMonthUserCount) * 100
-          : (newUserCount > 0 ? 100 : 0); // Handle edge case for no users last month
+          : (newUserCount > 0 ? 100 : 0); // Handle edge case for no users in the previous period
 
       res.json({
           totalUsers: totalUsers,
