@@ -1474,6 +1474,7 @@ router.get('/analyticsData', async (req, res) => {
 
 
 
+
 router.get('/bulkEquity', async (req, res) => {
   console.log('Fetching bulk equity data for all users');
 
