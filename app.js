@@ -2389,8 +2389,11 @@ app.get('/storeTeaser-pdf', async (req, res) => {
   
   try {
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true, // ensure headless mode
+      dumpio: true, // log Chromium output to your Heroku logs
     });
+    
     
     const page = await browser.newPage();
 
