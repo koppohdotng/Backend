@@ -479,25 +479,6 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
-   
-    // const YOUR_SECRET_KEY = "XPPUBK-def9440f6b96404982a505d90a4a169e-X" 
-
-    // const response = await axios.post('https://myxpresspay.com:6004/api/Payments/VerifyPayment', 
-    //   {
-    //       // Fake request body parameter
-    //       transactionId: `${transactionId}`, // Replace with the actual transaction ID
-    //   },
-    //   {
-    //       headers: {
-    //           Authorization: `Bearer ${YOUR_SECRET_KEY}`, // Replace with your actual secret key
-    //           'Content-Type': 'application/json'
-    //       }
-    //   });
-
-   
-
-    
-
 
     const transactionData = response.data.data;
     const createdAt = new Date().toISOString();
@@ -2415,8 +2396,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
 
     // Increase the navigation timeout to 60 seconds
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 }); // increase timeout to 2 minutes
-
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 6000000 });
 
     // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
