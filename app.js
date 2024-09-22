@@ -2386,6 +2386,7 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
+  
   try {
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox']
