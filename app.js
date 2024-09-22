@@ -479,6 +479,25 @@ app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
+   
+    // const YOUR_SECRET_KEY = "XPPUBK-def9440f6b96404982a505d90a4a169e-X" 
+
+    // const response = await axios.post('https://myxpresspay.com:6004/api/Payments/VerifyPayment', 
+    //   {
+    //       // Fake request body parameter
+    //       transactionId: `${transactionId}`, // Replace with the actual transaction ID
+    //   },
+    //   {
+    //       headers: {
+    //           Authorization: `Bearer ${YOUR_SECRET_KEY}`, // Replace with your actual secret key
+    //           'Content-Type': 'application/json'
+    //       }
+    //   });
+
+   
+
+    
+
 
     const transactionData = response.data.data;
     const createdAt = new Date().toISOString();
