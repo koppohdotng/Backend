@@ -2415,7 +2415,8 @@ app.get('/storeTeaser-pdf', async (req, res) => {
     const page = await browser.newPage();
 
     // Increase the navigation timeout to 60 seconds
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 6000000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 }); // increase timeout to 2 minutes
+
 
     // Generate PDF with A4 size, no margins, and include background color
     const pdfBuffer = await page.pdf({
