@@ -1320,6 +1320,9 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
+     var Status = false
+
+    bulkEquityData.paymentStatus = false;
     bulkEquityData.investorsMatch = filterInvestors;
 
     // Update bulk equity data in Firebase
@@ -1334,7 +1337,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const response = {
       count: filterInvestors.length,
-      investors: filterInvestors,
+      
       message: 'Bulk equity data updated successfully.',
       savedData
     };
@@ -1392,6 +1395,15 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
       throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
     }
 
+    // Check if paymentStatus is true
+    if (!bulkEquityData.paymentStatus) {
+      return res.status(403).json({
+        message: 'Access denied: Payment not completed.',
+        totalCount: 0,
+        returnedCount: 0
+      });
+    }
+
     // Get the count value
     const count = bulkEquityData.count;
 
@@ -1424,6 +1436,87 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
+  const { userId, bulkEquityId } = req.params;
+
+  try {
+      // Fetch the bulk equity data using userId and bulkEquityId
+      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
+
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
+
+      // Fetch the user data to get firstName and lastName
+      const userSnapshot = await dataRef.child(`${userId}`).once('value');
+      const userData = userSnapshot.val();
+
+      if (!userData) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { firstName, lastName } = userData;
+
+      // Generate a unique link to change the payment status
+      const paymentStatusLink = `https://staging.koppoh.ng/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}`;
+
+      // Prepare the email content
+      const emailContent = {
+          From: 'info@koppoh.com',
+          To: 'info.koppoh@gmail.com',
+          TemplateId: '37511874', // Your template ID
+          TemplateModel: {
+              firstName,
+              lastName,
+              paymentStatusLink,
+          },
+      };
+
+      // Send the email
+      await client.sendEmailWithTemplate(emailContent);
+
+      // Respond with success
+      res.status(200).json({
+          message: 'Email sent successfully with the payment status link',
+          paymentStatusLink
+      });
+  } catch (error) {
+      console.error('Error sending payment link:', error);
+      res.status(500).json({ error: 'An error occurred while sending the email' });
+  }
+});
+
+app.get('/change-payment-status', async (req, res) => {
+  const { userId, bulkEquityId } = req.query;  // Extract userId and bulkEquityId from query parameters
+
+  try {
+      // Check if the bulk equity data exists
+      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
+
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
+
+      // Update the payment status to true
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({ paymentStatus: true });
+
+      // Respond with a success message
+      res.status(200).json({
+          message: 'Payment status updated successfully',
+          bulkEquityId,
+          paymentStatus: true
+      });
+
+  } catch (error) {
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ error: 'An error occurred while updating the payment status' });
+  }
+});
+
+
 
 
 app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
@@ -2388,12 +2481,12 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
   
   try {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: true, // ensure headless mode
-      dumpio: true, // log Chromium output to your Heroku logs
-    });
-    
+   const browser = await puppeteer.launch({
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  headless: true, // ensure headless mode
+  dumpio: true, // log Chromium output to your Heroku logs
+});
+
     
     const page = await browser.newPage();
 
