@@ -1394,17 +1394,24 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
     if (!bulkEquityData) {
       throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
     }
-console.log("debe")
-    // Check if paymentStatus is true
-    if (!bulkEquityData.paymentStatus) {
-      return res.status(403).json({
-        message: 'Access denied: Payment not completed.',
-        totalCount: 0,
-        returnedCount: 0
-      });
+
+    // Check if paymentStatus is false
+    if (bulkEquityData.paymentStatus === false) {
+      // Remove the investorsMatch property
+      delete bulkEquityData.investorsMatch;
+
+      // Prepare the response without investorsMatch
+      const response = {
+        ...bulkEquityData,
+        message: 'Bulk equity data retrieved successfully, but investorsMatch is not available due to unpaid status.',
+        totalCount: 0,  // No investors returned since investorsMatch is removed
+        returnedCount: 0 // No investors due to unpaid status
+      };
+
+      return res.status(200).json(response);
     }
 
-    // Get the count value
+    // Proceed if paymentStatus is not false
     const count = bulkEquityData.count;
 
     if (count !== undefined && count !== null) {
@@ -1436,6 +1443,7 @@ console.log("debe")
     res.status(500).json({ error: error.message });
   }
 });
+
 
 app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
