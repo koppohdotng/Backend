@@ -1394,7 +1394,7 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
     if (!bulkEquityData) {
       throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
     }
-
+console.log("debe")
     // Check if paymentStatus is true
     if (!bulkEquityData.paymentStatus) {
       return res.status(403).json({
