@@ -1460,7 +1460,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
       const { firstName, lastName } = userData;
 
       // Generate a unique link to change the payment status
-      const paymentStatusLink = `https://staging.koppoh.ng/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}`;
+      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}`;
 
       // Prepare the email content
       const emailContent = {
