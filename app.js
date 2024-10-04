@@ -32,6 +32,7 @@ const { Storage } = require('@google-cloud/storage');
 
 const Sentry = require('@sentry/node');
 const { ProfilingIntegration } = require('@sentry/profiling-node');
+const { count } = require('console');
 
 
 Sentry.init({
@@ -1446,7 +1447,7 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
 
 
 app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
-  const { userId, bulkEquityId } = req.params;
+  const { userId, bulkEquityId, count } = req.params;
 
   try {
       // Fetch the bulk equity data using userId and bulkEquityId
@@ -1456,6 +1457,8 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
       if (!bulkEquityData) {
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
+      
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({ count: count });
 
       // Fetch the user data to get firstName and lastName
       const userSnapshot = await dataRef.child(`${userId}`).once('value');
@@ -1497,7 +1500,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
 });
 
 app.get('/change-payment-status', async (req, res) => {
-  const { userId, bulkEquityId } = req.query;  // Extract userId and bulkEquityId from query parameters
+  const { userId, bulkEquityId} = req.query;  // Extract userId and bulkEquityId from query parameters
 
   try {
       // Check if the bulk equity data exists
@@ -1510,6 +1513,7 @@ app.get('/change-payment-status', async (req, res) => {
 
       // Update the payment status to true
       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({ paymentStatus: true });
+
 
       // Respond with a success message
       res.status(200).json({
