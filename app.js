@@ -1488,7 +1488,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
       // Respond with success
       res.status(200).json({
           message: 'Email sent successfully with the payment status link',
-          paymentStatusLink
+        
       });
   } catch (error) {
       console.error('Error sending payment link:', error);
