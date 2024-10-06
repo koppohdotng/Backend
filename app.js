@@ -1446,7 +1446,7 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
 });
 
 
-app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
+app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
   const { userId, bulkEquityId, count } = req.params;
 
   try {
@@ -1457,7 +1457,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId', async (req, res) => {
       if (!bulkEquityData) {
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
-      
+
       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({ count: count });
 
       // Fetch the user data to get firstName and lastName
