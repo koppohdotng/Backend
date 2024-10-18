@@ -90,7 +90,7 @@ app.get('/storeInvestorList', (req, res) => {
     }
   });
 });
-
+ 
 
 
 
