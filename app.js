@@ -1300,20 +1300,52 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    const directMatchInvestors = investors.filter(investor => {
+    // const directMatchInvestors = investors.filter(investor => {
+    //   return (
+    //     (
+    //       !BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+    //     &&
+    //     (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
+    //     &&
+    //     (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) 
+    //     &&
+    //     (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
+        
+    //     // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
+    //   );
+    // });
+
+    const directMatchInvestors = investors.filter(investor => { 
       return (
         (
-          !BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+          !BusinessSector || 
+          investor.BusinessSector == "All" || 
+          (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))
+        ) 
         &&
-        (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
+        (
+          !BusinessStage || 
+          investor.BusinessStage == "All" || 
+          (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage))
+        )
         &&
-        (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) 
+        (
+          !InvestmentType || 
+          investor.InvestmentStage == "All" || 
+          (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))
+        ) 
         &&
-        (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
+        (
+          !FundingType || 
+          investor.FundingType == "All" || 
+          (investor.FundingType && investor.FundingType.includes(FundingType))
+        )
         
-        // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
+        // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold
       );
     });
+    
+
 
     console.log(directMatchInvestors);
     
