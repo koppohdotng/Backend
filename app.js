@@ -1226,9 +1226,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   } = req.body;
   console.log(totalRevenue, equityAmount)
   try {
-    if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
-      equityAmount = debtAmount;
-    }
+    
   console.log(totalRevenue, equityAmount)
     // Handle file uploads
     const files = req.files;
@@ -1278,6 +1276,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       UVP : UVP || "",
       totalRevenue : totalRevenue || "",
       InvestmentType,
+      debtAmount,
       businessstage,
       equityAmount : equityAmount || "",
       fundingType : fundingType || "",
