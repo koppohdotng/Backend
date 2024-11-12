@@ -1229,7 +1229,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
       equityAmount = debtAmount;
     }
- 
+  console.log(totalRevenue, equityAmount)
     // Handle file uploads
     const files = req.files;
     const fileUrls = {};
@@ -1315,15 +1315,15 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     //   );
     // });
 
-    const directMatchInvestors = investors.filter(investor => { 
-      return (
-        (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
-        (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
-        (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
-        (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
-      );
-    });
-    
+ const directMatchInvestors = investors.filter(investor => { 
+  return (
+    (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
+    (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
+    (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
+    (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
+  );
+});
+
 
 
     console.log(directMatchInvestors);
