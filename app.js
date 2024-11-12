@@ -1224,7 +1224,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     currency,
     debtAmount
   } = req.body;
-
+  console.log(totalRevenue, equityAmount)
   try {
     if (equityAmount !== null && equityAmount !== undefined && equityAmount !== '') {
       equityAmount = debtAmount;
