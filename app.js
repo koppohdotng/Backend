@@ -436,7 +436,7 @@ app.put('/api/update-user/:uid', (req, res) => {
      
       if (updatedUserData.gender) count++;
 
-      const profileCompleteness = (count / 7) * 100;
+      const profileCompleteness = (count / 5) * 100;
 
       // Update profile completeness in the database
       usersRef.child(userId).update({ profileCompleteness : profileCompleteness});
