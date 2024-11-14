@@ -1267,7 +1267,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     const InvestmentType = InvestmentStage; 
     const FundingType = fundingType;
     const createdAt = new Date().toISOString();
-
+    let count = 0
     console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
 
     const bulkEquityData = {
