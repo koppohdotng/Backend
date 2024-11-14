@@ -433,8 +433,7 @@ app.put('/api/update-user/:uid', (req, res) => {
       if (updatedUserData.lastName) count++;
       if (updatedUserData.nationality) count++;
       if (updatedUserData.phoneNumber) count++;
-      if (updatedUserData.role) count++;
-      if (updatedUserData.linkedIn) count++;
+     
       if (updatedUserData.gender) count++;
 
       const profileCompleteness = (count / 7) * 100;
