@@ -1480,7 +1480,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       const { firstName, lastName } = userData;
 
       // Generate a unique link to change the payment status
-      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}`;
+      const paymentStatusLink = `https://koppoh-41a7d984a436.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}`;
 
       // Prepare the email content
       const emailContent = {
@@ -1526,7 +1526,7 @@ app.get('/change-payment-status', async (req, res) => {
 
       // Respond with a success message
       res.status(200).json({
-          message: 'Payment status updated successfully',
+          message: 'change-payment-status',
           bulkEquityId,
           paymentStatus: true
       });
