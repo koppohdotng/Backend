@@ -28,23 +28,23 @@ var postmark = require("postmark");
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 
 
-const serviceAccount = require('../serviceAccountKey.json');
-const { error } = require('console');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
-  storageBucket: 'gs://koppoh-4e5fb.appspot.com',
-   // Replace with your Firebase project's Realtime Database URL
-});
-// const serviceAccount = require('../staging.json'); // Adjust the path as needed
+// const serviceAccount = require('../serviceAccountKey.json');
 // const { error } = require('console');
-// console.log(error)
 // admin.initializeApp({
 //   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
-//   storageBucket: 'gs://koppoh-362da.appspot.com',
+//   databaseURL: 'https://koppoh-4e5fb-default-rtdb.firebaseio.com',
+//   storageBucket: 'gs://koppoh-4e5fb.appspot.com',
 //    // Replace with your Firebase project's Realtime Database URL
 // });
+const serviceAccount = require('../staging.json'); // Adjust the path as needed
+const { error } = require('console');
+console.log(error)
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://koppoh-362da-default-rtdb.firebaseio.com',
+  storageBucket: 'gs://koppoh-362da.appspot.com',
+   // Replace with your Firebase project's Realtime Database URL
+});
 
 
 router.post('/signup', async (req, res) => {
@@ -86,7 +86,7 @@ router.post('/signup', async (req, res) => {
               await usersRef.child(userRecord.uid).set(userData);
 
               // Generate confirmation link
-              const confirmationLink = `https://koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
+              const confirmationLink = `https://stagging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
 
               // Send verification email
               await client.sendEmailWithTemplate({
@@ -221,7 +221,7 @@ router.post('/resendVerification', async (req, res) => {
       .then((userRecord) => {
           // If user exists, resend verification email
           
-          const confirmationLink = `https://koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
+          const confirmationLink = `https://stagging.koppoh.ng/confirm-verification?email=${email}&token=${verificationToken}`;
           console.log(confirmationLink)
           var firstName = userRecord.firstName
           
