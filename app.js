@@ -1207,6 +1207,159 @@ app.post('/loanRequest/:userId', upload.fields([
 //     });nnn
 // });
 
+// app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
+//   const userId = req.params.userId;
+//   console.log(`Received request for userId: ${userId}`);
+  
+//   let {
+//     problem,
+//     solution,
+//     UVP,
+//     businessstage,
+//     totalRevenue,
+//     InvestmentStage,
+//     equityAmount,
+//     fundingType,
+//     currency,
+//     debtAmount
+//   } = req.body;
+//   console.log(totalRevenue, equityAmount)
+//   try {
+    
+//   console.log(totalRevenue, equityAmount)
+//     // Handle file uploads
+//     const files = req.files;
+//     const fileUrls = {};
+//     if (files) {
+//       const uploadPromises = Object.keys(files).map(async (key) => {
+//         const file = files[key][0];
+//         const fileName = `${key}_${userId}_${Date.now()}a.pdf`; // Change the naming convention as needed
+//         const bucket = admin.storage().bucket();
+//         const fileRef = bucket.file(fileName);
+
+//         await fileRef.save(file.buffer, {
+//           metadata: { contentType: file.mimetype },
+//         });
+
+//         const [downloadUrl] = await fileRef.getSignedUrl({
+//           action: 'read',
+//           expires: '03-01-2500'
+//         });
+
+//         fileUrls[key] = downloadUrl;
+//       });
+
+//       await Promise.all(uploadPromises);
+//     }
+
+//     // Fetch user data
+//     const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//     const userData = userSnapshot.val();
+    
+//     if (!userData) {
+//       throw new Error(`User with ID ${userId} not found.`);
+//     }
+
+//     const BusinessSector = userData.businessSector;
+  
+//     const BusinessStage = businessstage; 
+//     const InvestmentType = InvestmentStage; 
+//     const FundingType = fundingType;
+//     const createdAt = new Date().toISOString();
+//     let count = 0
+//     console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
+
+//     const bulkEquityData = {
+//       problem: problem || "",
+//       solution: solution || "",
+//       UVP : UVP || "",
+//       totalRevenue : totalRevenue || "",
+//       InvestmentType,
+//       debtAmount : debtAmount || "",
+//       businessstage,
+//       equityAmount : equityAmount || "",
+//       fundingType : fundingType || "",
+//       currency : currency || "",
+//       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+//       mode:"bulkApp",
+//       investorsMatch: [], // Initialize investorEmails array
+//       createdAt // Store the current timestamp in ISO 8601 format
+//     };
+
+//     if (debtAmount !== undefined) {
+//       bulkEquityData.debtAmount = debtAmount;
+//     }
+
+//     // Filter investors based on criteria
+//     const snapshot = await db.ref('/InvestorList').once('value');
+//     const investors = snapshot.val();
+
+//     if (!investors) {
+//       return res.status(404).json({ message: 'No investors found' });
+//     }
+
+//     // const directMatchInvestors = investors.filter(investor => {
+//     //   return (
+//     //     (
+//     //       !BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+//     //     &&
+//     //     (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
+//     //     &&
+//     //     (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) 
+//     //     &&
+//     //     (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
+        
+//     //     // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
+//     //   );
+//     // });
+
+//  const directMatchInvestors = investors.filter(investor => { 
+//   return (
+//     (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
+//     (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
+//     (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
+//     (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
+//   );
+// });
+
+
+
+//     console.log(directMatchInvestors);
+    
+//     const filterInvestors = [...directMatchInvestors];
+    
+//     console.log(`Found ${filterInvestors.length} matching investors.`);
+
+//      var Status = false
+
+//     bulkEquityData.paymentStatus = false;
+//     bulkEquityData.investorsMatch = filterInvestors;
+
+//     // Update bulk equity data in Firebase
+//     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
+//     const newKey = newRef.key;
+//     console.log(newKey);
+
+//     // Retrieve the saved data using the correct key
+//     const savedDataSnapshot = await dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value');
+//     const savedData = savedDataSnapshot.val();
+//     savedData.bulkEquityId = newKey;
+
+//     const response = {
+//       count: filterInvestors.length,
+      
+//       message: 'Bulk equity data updated successfully.',
+//       savedData
+//     };
+
+//     res.status(200).json(response);
+
+//   } catch (error) {
+//     console.error('Error during bulk equity update:', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
 app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
   const userId = req.params.userId;
   console.log(`Received request for userId: ${userId}`);
@@ -1223,17 +1376,17 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     currency,
     debtAmount
   } = req.body;
-  console.log(totalRevenue, equityAmount)
+  
   try {
-    
-  console.log(totalRevenue, equityAmount)
+    console.log(totalRevenue, equityAmount);
+
     // Handle file uploads
     const files = req.files;
     const fileUrls = {};
     if (files) {
       const uploadPromises = Object.keys(files).map(async (key) => {
         const file = files[key][0];
-        const fileName = `${key}_${userId}_${Date.now()}a.pdf`; // Change the naming convention as needed
+        const fileName = `${key}_${userId}_${Date.now()}a.pdf`;
         const bucket = admin.storage().bucket();
         const fileRef = bucket.file(fileName);
 
@@ -1261,34 +1414,31 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     }
 
     const BusinessSector = userData.businessSector;
-  
     const BusinessStage = businessstage; 
     const InvestmentType = InvestmentStage; 
     const FundingType = fundingType;
     const createdAt = new Date().toISOString();
-    let count = 0
+    
     console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
 
     const bulkEquityData = {
       problem: problem || "",
       solution: solution || "",
-      UVP : UVP || "",
-      totalRevenue : totalRevenue || "",
+      UVP: UVP || "",
+      totalRevenue: totalRevenue || "",
       InvestmentType,
-      debtAmount : debtAmount || "",
+      debtAmount: debtAmount || "",
       businessstage,
-      equityAmount : equityAmount || "",
-      fundingType : fundingType || "",
-      currency : currency || "",
+      equityAmount: equityAmount || "",
+      fundingType: fundingType || "",
+      currency: currency || "",
       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
-      mode:"bulkApp",
-      investorsMatch: [], // Initialize investorEmails array
+      mode: "bulkApp",
+      investorsMatch: [], // Initialize investorsMatch array
+      totalInvestors: 0, // Initialize totalInvestors
+      paymentStatus: false,
       createdAt // Store the current timestamp in ISO 8601 format
     };
-
-    if (debtAmount !== undefined) {
-      bulkEquityData.debtAmount = debtAmount;
-    }
 
     // Filter investors based on criteria
     const snapshot = await db.ref('/InvestorList').once('value');
@@ -1298,42 +1448,22 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
       return res.status(404).json({ message: 'No investors found' });
     }
 
-    // const directMatchInvestors = investors.filter(investor => {
-    //   return (
-    //     (
-    //       !BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
-    //     &&
-    //     (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
-    //     &&
-    //     (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) 
-    //     &&
-    //     (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
-        
-    //     // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
-    //   );
-    // });
-
- const directMatchInvestors = investors.filter(investor => { 
-  return (
-    (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
-    (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
-    (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
-    (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
-  );
-});
-
-
+    const directMatchInvestors = investors.filter(investor => { 
+      return (
+        (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
+        (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
+        (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
+        (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
+      );
+    });
 
     console.log(directMatchInvestors);
-    
+
     const filterInvestors = [...directMatchInvestors];
-    
     console.log(`Found ${filterInvestors.length} matching investors.`);
 
-     var Status = false
-
-    bulkEquityData.paymentStatus = false;
     bulkEquityData.investorsMatch = filterInvestors;
+    bulkEquityData.totalInvestors = filterInvestors.length;
 
     // Update bulk equity data in Firebase
     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
@@ -1347,7 +1477,6 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
 
     const response = {
       count: filterInvestors.length,
-      
       message: 'Bulk equity data updated successfully.',
       savedData
     };
@@ -1359,6 +1488,56 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
     res.status(500).json({ error: error.message });
   }
 });
+
+app.post('/updateBulkEquityInvestorCounts', async (req, res) => {
+  try {
+    // Reference to the root of your Firebase database
+    const bulkEquityRef = dataRef;
+
+    // Fetch all user data
+    const allUsersSnapshot = await bulkEquityRef.once('value');
+    const allUsersData = allUsersSnapshot.val();
+
+    if (!allUsersData) {
+      return res.status(404).json({ message: 'No bulkEquityData found.' });
+    }
+
+    // Iterate through all users and their bulkEquityData
+    const updatePromises = Object.entries(allUsersData).map(async ([userId, userData]) => {
+      if (userData.bulkEquity) {
+        const bulkEquityEntries = Object.entries(userData.bulkEquity);
+
+        // Iterate through each bulkEquity entry
+        const entryUpdatePromises = bulkEquityEntries.map(async ([entryId, entryData]) => {
+          if (entryData.investorsMatch) {
+            const totalInvestors = entryData.investorsMatch.length || 0;
+
+            // Update the entry with totalInvestors
+            await bulkEquityRef.child(`${userId}/bulkEquity/${entryId}`).update({ totalInvestors });
+            return { userId, entryId, totalInvestors };
+          }
+          return null;
+        });
+
+        // Wait for all bulkEquity entries of this user to be updated
+        return Promise.all(entryUpdatePromises);
+      }
+      return null;
+    });
+
+    // Wait for all users' updates to complete
+    const updatedData = (await Promise.all(updatePromises)).flat().filter(Boolean);
+
+    res.status(200).json({
+      message: 'Successfully updated totalInvestors for all bulkEquityData.',
+      updatedEntries: updatedData,
+    });
+  } catch (error) {
+    console.error('Error updating totalInvestors:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 app.get(' ', async (req, res) => {
   try {
