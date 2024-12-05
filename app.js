@@ -1489,7 +1489,7 @@ app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount
   }
 });
 
-app.post('/updateBulkEquityInvestorCounts', async (req, res) => {
+app.get('/updateBulkEquityInvestorCounts', async (req, res) => {
   try {
     // Reference to the root of your Firebase database
     const bulkEquityRef = dataRef;
