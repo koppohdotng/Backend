@@ -114,6 +114,51 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+
+
+router.post('/signupwithgoogle', async (req, res) => {
+  const { firstName, lastName, email, refFrom } = req.body;
+
+  try {
+      // Directly create a new user in Firebase Authentication
+      const userRecord = await admin.auth().createUser({ email });
+
+      // Prepare user data
+      const currentDate = new Date();
+      const signupdate = Math.floor(currentDate.getTime() / 1000);
+
+      const userData = {
+          firstName,
+          lastName,
+          email,
+          uid: userRecord.uid,
+          emailVerification: true,
+          firstTime: true,
+          refFrom,
+          Date: currentDate.toISOString(),
+          signupdate
+      };
+
+      // Store user data in Firebase Realtime Database
+      const db = admin.database();
+      const usersRef = db.ref('users');
+      await usersRef.child(userRecord.uid).set(userData);
+
+      // Respond with success
+      res.status(201).json({
+          message: 'Signup with Google successful',
+          user: userData
+      });
+  } catch (error) {
+      console.error('Signup with Google error:', error);
+      res.status(500).json({ error: 'Signup failed' });
+  }
+});
+
+
+
+
+
 const checkEmailExistence = async (email) => {
   try {
     // Check if the email exists in the database
