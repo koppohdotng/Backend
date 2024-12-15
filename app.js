@@ -1633,7 +1633,7 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   }
 });
 
-app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
+app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => { 
   const { userId, bulkEquityId, count } = req.params;
 
   try {
@@ -1644,6 +1644,11 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       if (!bulkEquityData) {
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
+
+      // Save the count directly under bulkEquity
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+          count: Number(count),
+      });
 
       // Create metadata for the count
       const newCountEntry = {
@@ -1728,10 +1733,8 @@ app.get('/change-payment-status', async (req, res) => {
 });
 
 
-app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => {
+app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => { 
   const { userId, bulkEquityId, newcount } = req.params;
-
-  var count = newcount
 
   try {
       // Fetch the bulk equity data using userId and bulkEquityId
@@ -1742,9 +1745,18 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
 
-      // Create metadata for the count
+      // Calculate the updated count
+      const currentCount = bulkEquityData.count || 0; // Default to 0 if count is not present
+      const updatedCount = currentCount + Number(newcount);
+
+      // Update the count directly under bulkEquity
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+          count: updatedCount,
+      });
+
+      // Create metadata for the new count
       const newCountEntry = {
-          count: Number(count),
+          count: Number(newcount),
           status: false, // Default status is false
       };
 
@@ -1783,12 +1795,14 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       // Respond with success
       res.status(200).json({
           message: 'Email sent successfully with the payment status link',
+          updatedCount, // Return the updated count for confirmation
       });
   } catch (error) {
       console.error('Error sending payment link:', error);
       res.status(500).json({ error: 'An error occurred while sending the email' });
   }
 });
+
 
 
 
