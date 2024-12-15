@@ -1646,10 +1646,8 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       }
 
       // Create metadata for the count
-      const currentDate = new Date().toISOString();
       const newCountEntry = {
           count: Number(count),
-          date: currentDate,
           status: false, // Default status is false
       };
 
@@ -1667,8 +1665,8 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
 
       const { firstName, lastName } = userData;
 
-      // Generate a unique link to change the payment status, including the date
-      const paymentStatusLink = `https://koppoh-41a7d984a436.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}&date=${encodeURIComponent(currentDate)}`;
+      // Generate a unique link to change the payment status, including the new count key
+      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
 
       // Prepare the email content
       const emailContent = {
@@ -1695,50 +1693,48 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
   }
 });
 
+
 app.get('/change-payment-status', async (req, res) => {
-  const { userId, bulkEquityId, countId, date } = req.query;
+  const { userId, bulkEquityId, countId } = req.query;
 
   try {
-      // Validate input parameters
-      if (!userId || !bulkEquityId || !countId || !date) {
+      // Validate the input parameters
+      if (!userId || !bulkEquityId || !countId) {
           return res.status(400).json({ error: 'Missing required query parameters' });
       }
 
-      // Fetch the specific count entry
+      // Get the reference to the specific count entry
       const countRef = dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts/${countId}`);
+
+      // Fetch the count entry to ensure it exists
       const countSnapshot = await countRef.once('value');
       const countData = countSnapshot.val();
 
-      // Check if the count entry exists
       if (!countData) {
           return res.status(404).json({ error: 'Count entry not found' });
-      }
-
-      // Verify the date matches the entry
-      if (countData.date !== date) {
-          return res.status(400).json({ error: 'Date does not match the count entry' });
       }
 
       // Update the status to true
       await countRef.update({ status: true });
 
       // Respond with success
-      res.status(200).json({ message: 'Payment status confirmed successfully' });
+      res.status(200).json({
+          message: 'Payment status updated successfully',
+      });
   } catch (error) {
-      console.error('Error confirming payment status:', error);
-      res.status(500).json({ error: 'An error occurred while confirming the payment status' });
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ error: 'An error occurred while updating payment status' });
   }
 });
 
 
+app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => {
+  const { userId, bulkEquityId, newcount } = req.params;
 
-
-
-app.post('/NewListpayment/:userId/:bulkEquityId/:newCount', async (req, res) => {
-  const { userId, bulkEquityId, newCount } = req.params;
+  var count = newcount
 
   try {
-      // Fetch bulk equity data using userId and bulkEquityId
+      // Fetch the bulk equity data using userId and bulkEquityId
       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
       const bulkEquityData = bulkEquitySnapshot.val();
 
@@ -1746,9 +1742,17 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newCount', async (req, res) => 
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
 
-      const currentCount = parseInt(bulkEquityData.count || 0);
+      // Create metadata for the count
+      const newCountEntry = {
+          count: Number(count),
+          status: false, // Default status is false
+      };
 
-      // Fetch the user data for firstName and lastName
+      // Push the new count entry under "counts" and get the unique key
+      const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+      const newCountKey = newCountRef.key;
+
+      // Fetch the user data to get firstName and lastName
       const userSnapshot = await dataRef.child(`${userId}`).once('value');
       const userData = userSnapshot.val();
 
@@ -1758,8 +1762,8 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newCount', async (req, res) => 
 
       const { firstName, lastName } = userData;
 
-      // Generate confirmation link
-      const confirmationLink = `https://stagging.koppoh-41a7d984a436.herokuapp.com/confirmPaymentCount?userId=${userId}&bulkEquityId=${bulkEquityId}&currentCount=${currentCount}&newCount=${newCount}`;
+      // Generate a unique link to change the payment status, including the new count key
+      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
 
       // Prepare the email content
       const emailContent = {
@@ -1769,7 +1773,7 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newCount', async (req, res) => 
           TemplateModel: {
               firstName,
               lastName,
-              confirmationLink,
+              paymentStatusLink,
           },
       };
 
@@ -1778,51 +1782,14 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newCount', async (req, res) => 
 
       // Respond with success
       res.status(200).json({
-          message: 'Confirmation email sent successfully with the link',
+          message: 'Email sent successfully with the payment status link',
       });
   } catch (error) {
-      console.error('Error sending confirmation link:', error);
+      console.error('Error sending payment link:', error);
       res.status(500).json({ error: 'An error occurred while sending the email' });
   }
 });
 
-// API to update the count using the confirmation link info
-app.get('/confirmPaymentNewlist', async (req, res) => {
-  const { userId, bulkEquityId, newCount } = req.query;
-
-  try {
-    // Validate the input values
-    const parsedNewCount = parseInt(newCount);
-
-    if (isNaN(parsedNewCount)) {
-      return res.status(400).json({ error: 'Invalid new count value provided' });
-    }
-
-    // Fetch the bulk equity data to ensure the record exists
-    const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
-    const bulkEquityData = bulkEquitySnapshot.val();
-
-    if (!bulkEquityData) {
-      return res.status(404).json({ error: 'Bulk equity data not found' });
-    }
-
-    // Update the count to the new value
-    await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
-      count: parsedNewCount,
-      paymentStatus: true, // Optional: Mark as payment confirmed
-    });
-
-    // Respond with success
-    res.status(200).json({
-      message: 'Count updated successfully',
-      bulkEquityId,
-      updatedCount: parsedNewCount,
-    });
-  } catch (error) {
-    console.error('Error updating the count:', error);
-    res.status(500).json({ error: 'An error occurred while updating the count' });
-  }
-});
 
 
 
