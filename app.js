@@ -1633,7 +1633,72 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   }
 });
 
-app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => { 
+// app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => { 
+//   const { userId, bulkEquityId, count } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data using userId and bulkEquityId
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Save the count directly under bulkEquity
+//       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+//           count: Number(count),
+//       });
+
+//       // Create metadata for the count
+//       const newCountEntry = {
+//           count: Number(count),
+//           status: false, // Default status is false
+//       };
+
+//       // Push the new count entry under "counts" and get the unique key
+//       const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+//       const newCountKey = newCountRef.key;
+
+//       // Fetch the user data to get firstName and lastName
+//       const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//       const userData = userSnapshot.val();
+
+//       if (!userData) {
+//           return res.status(404).json({ error: 'User not found' });
+//       }
+
+//       const { firstName, lastName } = userData;
+
+//       // Generate a unique link to change the payment status, including the new count key
+//       const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
+
+//       // Prepare the email content
+//       const emailContent = {
+//           From: 'info@koppoh.com',
+//           To: 'info.koppoh@gmail.com',
+//           TemplateId: '37511874', // Your template ID
+//           TemplateModel: {
+//               firstName,
+//               lastName,
+//               paymentStatusLink,
+//           },
+//       };
+
+//       // Send the email
+//       await client.sendEmailWithTemplate(emailContent);
+
+//       // Respond with success
+//       res.status(200).json({
+//           message: 'Email sent successfully with the payment status link',
+//       });
+//   } catch (error) {
+//       console.error('Error sending payment link:', error);
+//       res.status(500).json({ error: 'An error occurred while sending the email' });
+//   }
+// });
+
+app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
   const { userId, bulkEquityId, count } = req.params;
 
   try {
@@ -1650,9 +1715,14 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
           count: Number(count),
       });
 
-      // Create metadata for the count
+      // Fetch investors from investorsMatch
+      const investorsMatch = bulkEquityData.investorsMatch || [];
+      const selectedInvestors = investorsMatch.slice(0, Number(count));
+
+      // Create metadata for the count, including selected investors
       const newCountEntry = {
           count: Number(count),
+          selectedInvestors, // Store the selected investors
           status: false, // Default status is false
       };
 
@@ -1691,6 +1761,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       // Respond with success
       res.status(200).json({
           message: 'Email sent successfully with the payment status link',
+          selectedInvestors,
       });
   } catch (error) {
       console.error('Error sending payment link:', error);
@@ -1733,6 +1804,76 @@ app.get('/change-payment-status', async (req, res) => {
 });
 
 
+// app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => { 
+//   const { userId, bulkEquityId, newcount } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data using userId and bulkEquityId
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Calculate the updated count
+//       const currentCount = bulkEquityData.count || 0; // Default to 0 if count is not present
+//       const updatedCount = currentCount + Number(newcount);
+
+//       // Update the count directly under bulkEquity
+//       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+//           count: updatedCount,
+//       });
+
+//       // Create metadata for the new count
+//       const newCountEntry = {
+//           count: Number(newcount),
+//           status: false, // Default status is false
+//       };
+
+//       // Push the new count entry under "counts" and get the unique key
+//       const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+//       const newCountKey = newCountRef.key;
+
+//       // Fetch the user data to get firstName and lastName
+//       const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//       const userData = userSnapshot.val();
+
+//       if (!userData) {
+//           return res.status(404).json({ error: 'User not found' });
+//       }
+
+//       const { firstName, lastName } = userData;
+
+//       // Generate a unique link to change the payment status, including the new count key
+//       const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
+
+//       // Prepare the email content
+//       const emailContent = {
+//           From: 'info@koppoh.com',
+//           To: 'info.koppoh@gmail.com',
+//           TemplateId: '37511874', // Your template ID
+//           TemplateModel: {
+//               firstName,
+//               lastName,
+//               paymentStatusLink,
+//           },
+//       };
+
+//       // Send the email
+//       await client.sendEmailWithTemplate(emailContent);
+
+//       // Respond with success
+//       res.status(200).json({
+//           message: 'Email sent successfully with the payment status link',
+//           updatedCount, // Return the updated count for confirmation
+//       });
+//   } catch (error) {
+//       console.error('Error sending payment link:', error);
+//       res.status(500).json({ error: 'An error occurred while sending the email' });
+//   }
+// });
+
 app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => { 
   const { userId, bulkEquityId, newcount } = req.params;
 
@@ -1745,19 +1886,26 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
 
-      // Calculate the updated count
+      // Calculate the starting and ending indices for investorsMatch
       const currentCount = bulkEquityData.count || 0; // Default to 0 if count is not present
-      const updatedCount = currentCount + Number(newcount);
+      const startIndex = currentCount;
+      const endIndex = currentCount + Number(newcount);
 
       // Update the count directly under bulkEquity
+      const updatedCount = endIndex;
       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
           count: updatedCount,
       });
+
+      // Fetch the relevant investors from investorsMatch
+      const investorsMatch = bulkEquityData.investorsMatch || [];
+      const selectedInvestors = investorsMatch.slice(startIndex, endIndex);
 
       // Create metadata for the new count
       const newCountEntry = {
           count: Number(newcount),
           status: false, // Default status is false
+          investors: selectedInvestors, // Store the selected investors
       };
 
       // Push the new count entry under "counts" and get the unique key
@@ -1796,13 +1944,13 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       res.status(200).json({
           message: 'Email sent successfully with the payment status link',
           updatedCount, // Return the updated count for confirmation
+          selectedInvestors, // Include selected investors in the response
       });
   } catch (error) {
       console.error('Error sending payment link:', error);
       res.status(500).json({ error: 'An error occurred while sending the email' });
   }
 });
-
 
 
 
