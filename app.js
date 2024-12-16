@@ -1719,11 +1719,12 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       const investorsMatch = bulkEquityData.investorsMatch || [];
       const selectedInvestors = investorsMatch.slice(0, Number(count));
 
-      // Create metadata for the count, including selected investors
+      // Create metadata for the count, including selected investors and date
       const newCountEntry = {
           count: Number(count),
           selectedInvestors, // Store the selected investors
           status: false, // Default status is false
+          date: new Date().toISOString(), // Current timestamp
       };
 
       // Push the new count entry under "counts" and get the unique key
@@ -1768,6 +1769,7 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
       res.status(500).json({ error: 'An error occurred while sending the email' });
   }
 });
+
 
 
 app.get('/change-payment-status', async (req, res) => {
@@ -1901,11 +1903,12 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       const investorsMatch = bulkEquityData.investorsMatch || [];
       const selectedInvestors = investorsMatch.slice(startIndex, endIndex);
 
-      // Create metadata for the new count
+      // Create metadata for the new count, including the date
       const newCountEntry = {
           count: Number(newcount),
           status: false, // Default status is false
           investors: selectedInvestors, // Store the selected investors
+          date: new Date().toISOString(), // Current timestamp
       };
 
       // Push the new count entry under "counts" and get the unique key
@@ -1951,6 +1954,7 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       res.status(500).json({ error: 'An error occurred while sending the email' });
   }
 });
+
 
 
 
