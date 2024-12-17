@@ -193,20 +193,65 @@ client.sendEmailWithTemplate({
 
 
 
-app.get('/api/user/:userId', (req, res) => {
+// app.get('/api/user/:userId', (req, res) => {
+//   const userId = req.params.userId;
+
+//   // Query the database to retrieve user information using the userId
+//   const userRef = admin.database().ref(`/users/${userId}`);
+
+//   userRef.once('value', (snapshot) => {
+//     const user = snapshot.val();
+//     if (user) {
+//       res.status(200).json({ message: 'Authentication successful', user });
+//     } else {
+//       res.status(404).json({ error: 'User not found' });
+//     }
+//   });
+// });
+
+app.get('/api/user/:userId', async (req, res) => {
   const userId = req.params.userId;
 
-  // Query the database to retrieve user information using the userId
-  const userRef = admin.database().ref(`/users/${userId}`);
+  try {
+    // Reference to the user data
+    const userRef = admin.database().ref(`/users/${userId}`);
 
-  userRef.once('value', (snapshot) => {
-    const user = snapshot.val();
-    if (user) {
-      res.status(200).json({ message: 'Authentication successful', user });
-    } else {
-      res.status(404).json({ error: 'User not found' });
+    // Fetch the user data
+    const userSnapshot = await userRef.once('value');
+    const user = userSnapshot.val();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-  });
+
+    // Reference to the user's bulkEquity
+    const bulkEquityRef = admin.database().ref(`/users/${userId}/bulkEquity`);
+    const bulkEquitySnapshot = await bulkEquityRef.once('value');
+    const bulkEquity = bulkEquitySnapshot.val();
+
+    if (bulkEquity) {
+      // Iterate through each bulkEquity entry
+      for (const [bulkEquityId, equityData] of Object.entries(bulkEquity)) {
+        if (equityData.counts) {
+          // Iterate through each count and remove investors where status is false
+          for (const [countId, countData] of Object.entries(equityData.counts)) {
+            if (countData.status === false) {
+              delete countData.selectedInvestors; // Remove investors
+            }
+          }
+        }
+      }
+
+      // Attach the updated bulkEquity to the user object
+      user.bulkEquity = bulkEquity;
+    }
+
+    // Respond with the filtered user data
+    res.status(200).json({ message: 'Authentication successful', user });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the user data' });
+  }
 });
 
 
@@ -1952,6 +1997,37 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
   } catch (error) {
       console.error('Error sending payment link:', error);
       res.status(500).json({ error: 'An error occurred while sending the email' });
+  }
+});
+
+app.get('/bulkEquitytData/:userId/:bulkEquityId/:countId', async (req, res) => {
+  const { userId, bulkEquityId, countId } = req.params;
+
+  try {
+    // Fetch the count data using userId, bulkEquityId, and countId
+    const countSnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts/${countId}`).once('value');
+    const countData = countSnapshot.val();
+
+    if (!countData) {
+      return res.status(404).json({ error: 'Count data not found' });
+    }
+
+    // Check the status of the count entry
+    if (countData.status === true) {
+      // If status is true, return the count data
+      return res.status(200).json({
+        message: 'Payment verified',
+        countData,
+      });
+    } else {
+      // If status is false, return pending verification message
+      return res.status(200).json({
+        message: 'Payment pending verification',
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching count data:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the count data' });
   }
 });
 
