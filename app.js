@@ -1952,7 +1952,7 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       const newCountEntry = {
           count: Number(newcount),
           status: false, // Default status is false
-          investors: selectedInvestors, // Store the selected investors
+          selectedInvestors: selectedInvestors, // Store the selected investors
           date: new Date().toISOString(), // Current timestamp
       };
 
