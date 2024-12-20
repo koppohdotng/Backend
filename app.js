@@ -1616,65 +1616,37 @@ app.get(' ', async (req, res) => {
 
 // Start the server
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
-  const userId = req.params.userId;
-  const bulkEquityId = req.params.bulkEquityId;
-  console.log(`Received request for userId: ${userId} and bulkEquityId: ${bulkEquityId}`);
+  const { userId, bulkEquityId } = req.params;
 
   try {
-    // Fetch the bulkEquityData
-    const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
-    const bulkEquityData = bulkEquitySnapshot.val();
+      // Fetch the bulk equity data
+      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
 
-    if (!bulkEquityData) {
-      throw new Error(`Bulk equity data with ID ${bulkEquityId} not found for user ${userId}.`);
-    }
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
 
-    // Check if paymentStatus is false
-    if (bulkEquityData.paymentStatus === false) {
-      // Remove the investorsMatch property
-      delete bulkEquityData.investorsMatch;
+      // Check if there are counts with status `false`
+      if (bulkEquityData.counts) {
+          const counts = Object.entries(bulkEquityData.counts).reduce((acc, [key, countData]) => {
+              // Remove selectedInvestors if status is false
+              if (countData.status === false) {
+                  acc[key] = { ...countData, investors: undefined };
+              } else {
+                  acc[key] = countData;
+              }
+              return acc;
+          }, {});
 
-      // Prepare the response without investorsMatch
-      const response = {
-        ...bulkEquityData,
-        message: 'Bulk equity data retrieved successfully, but investorsMatch is not available due to unpaid status.',
-        totalCount: 0,  // No investors returned since investorsMatch is removed
-        returnedCount: 0 // No investors due to unpaid status
-      };
+          // Replace counts in bulkEquityData with the filtered version
+          bulkEquityData.counts = counts;
+      }
 
-      return res.status(200).json(response);
-    }
-
-    // Proceed if paymentStatus is not false
-    const count = bulkEquityData.count;
-
-    if (count !== undefined && count !== null) {
-      // Get the list of investors
-      const investors = bulkEquityData.investorsMatch || [];
-
-      // Slice the investors array based on the count value
-      const investorsToReturn = investors.slice(0, count);
-
-      // Replace the values inside investorsMatch with investorsToReturn
-      bulkEquityData.investorsMatch = investorsToReturn;
-    } else {
-      // If count does not exist, set investorsMatch to null
-      bulkEquityData.investorsMatch = null;
-    }
-
-    // Prepare the response
-    const response = {
-      ...bulkEquityData,
-      message: 'Bulk equity data retrieved successfully.',
-      totalCount: bulkEquityData.investorsMatch ? bulkEquityData.investorsMatch.length : 0,
-      returnedCount: count || 0 // Number of investors returned or 0 if count doesn't exist
-    };
-
-    res.status(200).json(response);
-
+      res.status(200).json(bulkEquityData);
   } catch (error) {
-    console.error('Error retrieving bulk equity data:', error);
-    res.status(500).json({ error: error.message });
+      console.error('Error fetching bulk equity data:', error);
+      res.status(500).json({ error: 'An error occurred while fetching bulk equity data' });
   }
 });
 
