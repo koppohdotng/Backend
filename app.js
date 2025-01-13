@@ -1615,32 +1615,60 @@ app.get(' ', async (req, res) => {
 });
 
 // Start the server
+// app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+//   const { userId, bulkEquityId } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Check if there are counts with status `false`
+//       if (bulkEquityData.counts) {
+//           const counts = Object.entries(bulkEquityData.counts).reduce((acc, [key, countData]) => {
+//               // Remove selectedInvestors if status is false
+//               if (countData.status === false) {
+//                   acc[key] = { ...countData, investors: undefined };
+//               } else {
+//                   acc[key] = countData;
+//               }
+//               return acc;
+//           }, {});
+
+//           // Replace counts in bulkEquityData with the filtered version
+//           bulkEquityData.counts = counts;
+//       }
+
+//       res.status(200).json(bulkEquityData);
+//   } catch (error) {
+//       console.error('Error fetching bulk equity data:', error);
+//       res.status(500).json({ error: 'An error occurred while fetching bulk equity data' });
+//   }
+// });
+
 app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
   const { userId, bulkEquityId } = req.params;
 
   try {
       // Fetch the bulk equity data
-      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquitySnapshot = await admin.database().ref(`/users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
       const bulkEquityData = bulkEquitySnapshot.val();
 
       if (!bulkEquityData) {
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
 
-      // Check if there are counts with status `false`
+      // Iterate through counts and hide selectedInvestors if status is false
       if (bulkEquityData.counts) {
-          const counts = Object.entries(bulkEquityData.counts).reduce((acc, [key, countData]) => {
-              // Remove selectedInvestors if status is false
+          for (const [countId, countData] of Object.entries(bulkEquityData.counts)) {
               if (countData.status === false) {
-                  acc[key] = { ...countData, investors: undefined };
-              } else {
-                  acc[key] = countData;
+                  delete countData.selectedInvestors; // Remove selectedInvestors
               }
-              return acc;
-          }, {});
-
-          // Replace counts in bulkEquityData with the filtered version
-          bulkEquityData.counts = counts;
+          }
       }
 
       res.status(200).json(bulkEquityData);
@@ -1649,6 +1677,7 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
       res.status(500).json({ error: 'An error occurred while fetching bulk equity data' });
   }
 });
+
 
 // app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => { 
 //   const { userId, bulkEquityId, count } = req.params;
