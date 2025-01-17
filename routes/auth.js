@@ -116,46 +116,91 @@ router.post('/signup', async (req, res) => {
 
 
 
+// router.post('/signupwithgoogle', async (req, res) => {
+//   const { firstName, lastName, email, } = req.body;
+
+//   try {
+//       // Directly create a new user in Firebase Authentication
+//       const userRecord = await admin.auth().createUser({ email });
+
+//       // Prepare user data
+//       const currentDate = new Date();
+//       const signupdate = Math.floor(currentDate.getTime() / 1000);
+
+//       const userData = {
+//           firstName,
+//           lastName,
+//           email,
+//           uid: userRecord.uid,
+//           emailVerification: true,
+//           firstTime: true,
+         
+//           Date: currentDate.toISOString(),
+//           signupdate
+//       };
+
+//       // Store user data in Firebase Realtime Database
+//       const db = admin.database();
+//       const usersRef = db.ref('users');
+//       await usersRef.child(userRecord.uid).set(userData);
+
+//       // Respond with success
+//       res.status(201).json({
+//           message: 'Signup with Google successful',
+//           user: userData
+//       });
+//   } catch (error) {
+//       console.error('Signup with Google error:', error);
+//       res.status(500).json({ error: 'Signup failed' });
+//   }
+// });
+
+
 router.post('/signupwithgoogle', async (req, res) => {
-  const { firstName, lastName, email, } = req.body;
+  const { firstName, lastName, email } = req.body;
 
   try {
-      // Directly create a new user in Firebase Authentication
-      const userRecord = await admin.auth().createUser({ email });
+    // Check if the user exists in Firebase Authentication
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email); // Fetch the user by email
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        return res.status(404).json({ error: 'User not found in Firebase Authentication' });
+      }
+      throw error; // Re-throw any other error
+    }
 
-      // Prepare user data
-      const currentDate = new Date();
-      const signupdate = Math.floor(currentDate.getTime() / 1000);
+    // Prepare user data
+    const currentDate = new Date();
+    const signupdate = Math.floor(currentDate.getTime() / 1000);
 
-      const userData = {
-          firstName,
-          lastName,
-          email,
-          uid: userRecord.uid,
-          emailVerification: true,
-          firstTime: true,
-         
-          Date: currentDate.toISOString(),
-          signupdate
-      };
+    const userData = {
+      firstName,
+      lastName,
+      email,
+      uid: userRecord.uid,
+      emailVerification: userRecord.emailVerified || true, // Use email verification from Firebase
+      firstTime: true,
+      Date: currentDate.toISOString(),
+      signupdate
+    };
 
-      // Store user data in Firebase Realtime Database
-      const db = admin.database();
-      const usersRef = db.ref('users');
-      await usersRef.child(userRecord.uid).set(userData);
+    // Store user data in Firebase Realtime Database
+    const db = admin.database();
+    const usersRef = db.ref('users');
+    await usersRef.child(userRecord.uid).set(userData);
 
-      // Respond with success
-      res.status(201).json({
-          message: 'Signup with Google successful',
-          user: userData
-      });
+    // Respond with success
+    res.status(201).json({
+      message: 'Signup with Google successful',
+      user: userData
+    });
   } catch (error) {
-      console.error('Signup with Google error:', error);
-      res.status(500).json({ error: 'Signup failed' });
+    console.error('Signup with Google error:', error);
+    res.status(500).json({ error: 'Signup failed' });
   }
 });
-
-
 
 
 
