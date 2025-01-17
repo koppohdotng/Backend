@@ -117,7 +117,7 @@ router.post('/signup', async (req, res) => {
 
 
 router.post('/signupwithgoogle', async (req, res) => {
-  const { firstName, lastName, email, refFrom } = req.body;
+  const { firstName, lastName, email, } = req.body;
 
   try {
       // Directly create a new user in Firebase Authentication
@@ -134,7 +134,7 @@ router.post('/signupwithgoogle', async (req, res) => {
           uid: userRecord.uid,
           emailVerification: true,
           firstTime: true,
-          refFrom,
+         
           Date: currentDate.toISOString(),
           signupdate
       };
