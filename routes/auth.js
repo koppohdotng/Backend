@@ -155,22 +155,14 @@ router.post('/signup', async (req, res) => {
 //   }
 // });
 
-
 router.post('/signupwithgoogle', async (req, res) => {
-  const { firstName, lastName, email } = req.body;
+  const { userId, firstName, lastName, email } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'UserId is required' });
+  }
 
   try {
-    // Check if the user exists in Firebase Authentication
-    let userRecord;
-    try {
-      userRecord = await admin.auth().getUserByEmail(email); // Fetch the user by email
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        return res.status(404).json({ error: 'User not found in Firebase Authentication' });
-      }
-      throw error; // Re-throw any other error
-    }
-
     // Prepare user data
     const currentDate = new Date();
     const signupdate = Math.floor(currentDate.getTime() / 1000);
@@ -179,8 +171,8 @@ router.post('/signupwithgoogle', async (req, res) => {
       firstName,
       lastName,
       email,
-      uid: userRecord.uid,
-      emailVerification: userRecord.emailVerified || true, // Use email verification from Firebase
+      uid: userId, // Use the provided userId
+      emailVerification: true, // Explicitly set to true
       firstTime: true,
       Date: currentDate.toISOString(),
       signupdate
@@ -189,7 +181,7 @@ router.post('/signupwithgoogle', async (req, res) => {
     // Store user data in Firebase Realtime Database
     const db = admin.database();
     const usersRef = db.ref('users');
-    await usersRef.child(userRecord.uid).set(userData);
+    await usersRef.child(userId).set(userData);
 
     // Respond with success
     res.status(201).json({
@@ -201,6 +193,7 @@ router.post('/signupwithgoogle', async (req, res) => {
     res.status(500).json({ error: 'Signup failed' });
   }
 });
+
 
 
 
