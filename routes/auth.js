@@ -224,12 +224,23 @@ router.post('/check-email', async (req, res) => {
   console.log('Checking email:', email);
 
   try {
-    const emailCheckResult = await checkEmailExistence(email);
+    // Fetch sign-in methods for the email
+    const signInMethods = await admin.auth().getUserByEmail(email)
+      .then(userRecord => userRecord.providerData.map(provider => provider.providerId))
+      .catch(error => {
+        if (error.code === 'auth/user-not-found') {
+          return null;
+        }
+        throw error; // Rethrow other errors
+      });
 
-    if (emailCheckResult.exists) {
-      res.status(200).json({ message: emailCheckResult.message });
+    if (signInMethods) {
+      res.status(200).json({
+        message: 'Email exists',
+        signUpMethod: signInMethods, // Returns an array of sign-up methods
+      });
     } else {
-      res.status(404).json({ message: emailCheckResult.message });
+      res.status(404).json({ message: 'Email not found' });
     }
   } catch (error) {
     console.error('Route error:', error);
