@@ -195,8 +195,6 @@ router.post('/signupwithgoogle', async (req, res) => {
 });
 
 
-
-
 const checkEmailExistence = async (email) => {
   try {
     // Check if the email exists in the database
@@ -249,31 +247,35 @@ router.post('/check-email', async (req, res) => {
 });
 
 
-router.post('/confirm-email', async (req, res) => {
+router.post('/confirm-email', async (req, res) => { 
   const { email, token } = req.query;
-  console.log(email,token)
 
   try {
-    // Fetch the user by email
+    // Fetch the user by email from Firebase Authentication
     const userRecord = await admin.auth().getUserByEmail(email);
-    const db = admin.database();
-    const usersRef = db.ref('users');
-    const userSnapshot = await usersRef.child(userRecord.uid).once('value');
-    const userData = userSnapshot.val();
 
-    if (!userData) {
-      
-      console.log('User not found')
+    if (!userRecord) {
       return res.status(400).json({ error: 'User not found' });
-     
-      
     }
-    
-      const storeFirstname = userData.firstName;
-      const storeemail = userData.email
+
+    // Ensure the email is verified in Firebase Authentication
+    if (!userRecord.emailVerified) {
+      return res.status(400).json({ error: 'Email not yet verified' });
+    }
+
+    // Fetch user data from the database (assuming Firestore)
+    const db = admin.firestore();
+    const userRef = db.collection('users').doc(userRecord.uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(400).json({ error: 'User data not found' });
+    }
+
+    const userData = userDoc.data();
 
     // Check if the token matches
-    if (userData.verificationToken !== parseInt(token)) {
+    if (userData.verificationToken !== token) {
       return res.status(400).json({ error: 'Invalid token' });
     }
 
@@ -285,20 +287,19 @@ router.post('/confirm-email', async (req, res) => {
       return res.status(400).json({ error: 'Verification link expired' });
     }
 
-    // Update the user's email verification status
-    await usersRef.child(userRecord.uid).update({ emailVerification: true });
-    client.sendEmailWithTemplate({
+    // Update the email verification status in the database
+    await userRef.update({ emailVerification: true });
+
+    // Send confirmation email
+    await client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
-      To: storeemail,
+      To: userData.email,
       TemplateId: '34126600',
-      TemplateModel: {
-        storeFirstname   
-      },
-    })
+      TemplateModel: { firstName: userData.firstName },
+    });
 
-
-    // Respond with success
     res.status(200).json({ message: 'Email verified successfully' });
+
   } catch (error) {
     console.error('Verification error:', error);
     res.status(500).json({ error: 'Server error' });
