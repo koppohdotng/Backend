@@ -247,55 +247,115 @@ router.post('/check-email', async (req, res) => {
 });
 
 
-router.post('/confirm-email', async (req, res) => {
+// router.post('/confirm-email', async (req, res) => {
+//   const { email, token } = req.query;
+//   console.log(email,token)
+
+//   try {
+//     // Fetch the user by email
+//     const userRecord = await admin.auth().getUserByEmail(email);
+//     const db = admin.database();
+//     const usersRef = db.ref('users');
+//     const userSnapshot = await usersRef.child(userRecord.uid).once('value');
+//     const userData = userSnapshot.val();
+
+//     if (!userData) {
+      
+//       console.log('User not found')
+//       return res.status(400).json({ error: 'User not found' });
+     
+      
+//     }
+    
+//       const storeFirstname = userData.firstName;
+//       const storeemail = userData.email
+
+//     // Check if the token matches
+//     if (userData.verificationToken !== parseInt(token)) {
+//       return res.status(400).json({ error: 'Invalid token' });
+//     }
+
+//     // Check if the verification is within 30 minutes
+//     const currentTimeInSeconds = Math.floor(new Date().getTime() / 1000);
+//     const timeDifference = currentTimeInSeconds - userData.signupdate;
+
+//     if (timeDifference > 1800) { // 1800 seconds = 30 minutes
+//       return res.status(400).json({ error: 'Verification link expired' });
+//     }
+
+//     // Update the user's email verification status
+//     await usersRef.child(userRecord.uid).update({ emailVerification: true });
+//     client.sendEmailWithTemplate({
+//       From: 'info@koppoh.com',
+//       To: storeemail,
+//       TemplateId: '34126600',
+//       TemplateModel: {
+//         storeFirstname   
+//       },
+//     })
+
+
+//     // Respond with success
+//     res.status(200).json({ message: 'Email verified successfully' });
+//   } catch (error) {
+//     console.error('Verification error:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+router.post('/confirm-email', async (req, res) => { 
   const { email, token } = req.query;
-  console.log(email,token)
+  console.log('Received email:', email, 'Token:', token);
 
   try {
-    // Fetch the user by email
+    // Fetch the user by email from Firebase Authentication
     const userRecord = await admin.auth().getUserByEmail(email);
     const db = admin.database();
     const usersRef = db.ref('users');
+    
+    // Fetch user data from the database
     const userSnapshot = await usersRef.child(userRecord.uid).once('value');
     const userData = userSnapshot.val();
 
     if (!userData) {
-      
-      console.log('User not found')
+      console.log('User not found in the database');
       return res.status(400).json({ error: 'User not found' });
-     
-      
     }
-    
-      const storeFirstname = userData.firstName;
-      const storeemail = userData.email
 
-    // Check if the token matches
-    if (userData.verificationToken !== parseInt(token)) {
-      return res.status(400).json({ error: 'Invalid token' });
+    // Extract stored values
+    const storeFirstname = userData.firstName;
+    const storeemail = userData.email;
+
+    // Validate the token
+    if (String(token) !== String(userData.verificationToken)) {
+      return res.status(400).json({ error: 'Invalid verification token' });
     }
 
     // Check if the verification is within 30 minutes
-    const currentTimeInSeconds = Math.floor(new Date().getTime() / 1000);
+    const currentTimeInSeconds = Math.floor(Date.now() / 1000);
     const timeDifference = currentTimeInSeconds - userData.signupdate;
 
     if (timeDifference > 1800) { // 1800 seconds = 30 minutes
       return res.status(400).json({ error: 'Verification link expired' });
     }
 
-    // Update the user's email verification status
+    // Update the user's email verification status in Firebase Authentication
+    await admin.auth().updateUser(userRecord.uid, { emailVerified: true });
+
+    // Update the verification status in the database
     await usersRef.child(userRecord.uid).update({ emailVerification: true });
-    client.sendEmailWithTemplate({
+
+    // Send confirmation email
+    await client.sendEmailWithTemplate({
       From: 'info@koppoh.com',
       To: storeemail,
       TemplateId: '34126600',
       TemplateModel: {
         storeFirstname   
       },
-    })
+    });
 
-
-    // Respond with success
+    console.log('Email verified successfully for:', email);
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     console.error('Verification error:', error);
@@ -303,6 +363,49 @@ router.post('/confirm-email', async (req, res) => {
   }
 });
 
+router.get('/sync-verification-status', async (req, res) => {
+  try {
+    const db = admin.database();
+    const usersRef = db.ref('users');
+
+    // Fetch all users from the database
+    const snapshot = await usersRef.once('value');
+    const users = snapshot.val();
+
+    if (!users) {
+      return res.status(400).json({ error: 'No users found in database' });
+    }
+
+    let updatedCount = 0;
+    const updatePromises = [];
+
+    for (const userId in users) {
+      const userData = users[userId];
+
+      // Check if emailVerification is true and needs updating in Authentication
+      if (userData.emailVerification === true) {
+        updatePromises.push(
+          admin.auth().updateUser(userId, { emailVerified: true })
+            .then(() => {
+              console.log(`Updated email verification for user: ${userId}`);
+              updatedCount++;
+            })
+            .catch((err) => console.error(`Failed to update user ${userId}:`, err))
+        );
+      }
+    }
+
+    // Wait for all updates to complete
+    await Promise.all(updatePromises);
+
+    res.status(200).json({
+      message: `Successfully updated email verification for ${updatedCount} users.`,
+    });
+  } catch (error) {
+    console.error('Error syncing verification statuses:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 router.post('/resendVerification', async (req, res) => {
   const { email } = req.body;
