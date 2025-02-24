@@ -1744,11 +1744,29 @@ app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
 //   }
 // });
 
-app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
-  const { userId, bulkEquityId, count } = req.params;
+
+
+app.post('/sendPaymentLink/:userId/:bulkEquityId/:count/:refNumber', async (req, res) => {
+  const { userId, bulkEquityId, count, refNumber } = req.params;
+
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
   try {
-      // Fetch the bulk equity data using userId and bulkEquityId
+      // Verify the transaction using Paystack
+      const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
+          headers: {
+              Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+              'Content-Type': 'application/json'
+          }
+      });
+
+      const transaction = response.data;
+      
+      if (!transaction.status || transaction.data.status !== 'success') {
+          return res.status(400).json({ error: 'Payment verification failed' });
+      }
+
+      // Proceed with existing logic
       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
       const bulkEquityData = bulkEquitySnapshot.val();
 
@@ -1756,63 +1774,29 @@ app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => {
           return res.status(404).json({ error: 'Bulk equity data not found' });
       }
 
-      // Save the count directly under bulkEquity
       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
           count: Number(count),
       });
 
-      // Fetch investors from investorsMatch
       const investorsMatch = bulkEquityData.investorsMatch || [];
       const selectedInvestors = investorsMatch.slice(0, Number(count));
 
-      // Create metadata for the count, including selected investors and date
       const newCountEntry = {
           count: Number(count),
-          selectedInvestors, // Store the selected investors
-          status: false, // Default status is false
-          date: new Date().toISOString(), // Current timestamp
+          selectedInvestors,
+          status: true, // Status is now true after successful payment verification
+          date: new Date().toISOString(),
       };
 
-      // Push the new count entry under "counts" and get the unique key
-      const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
-      const newCountKey = newCountRef.key;
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
 
-      // Fetch the user data to get firstName and lastName
-      const userSnapshot = await dataRef.child(`${userId}`).once('value');
-      const userData = userSnapshot.val();
-
-      if (!userData) {
-          return res.status(404).json({ error: 'User not found' });
-      }
-
-      const { firstName, lastName } = userData;
-
-      // Generate a unique link to change the payment status, including the new count key
-      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
-
-      // Prepare the email content
-      const emailContent = {
-          From: 'info@koppoh.com',
-          To: 'info.koppoh@gmail.com',
-          TemplateId: '37511874', // Your template ID
-          TemplateModel: {
-              firstName,
-              lastName,
-              paymentStatusLink,
-          },
-      };
-
-      // Send the email
-      await client.sendEmailWithTemplate(emailContent);
-
-      // Respond with success
       res.status(200).json({
-          message: 'Email sent successfully with the payment status link',
+          message: 'Payment verified and count recorded successfully',
           selectedInvestors,
       });
   } catch (error) {
-      console.error('Error sending payment link:', error);
-      res.status(500).json({ error: 'An error occurred while sending the email' });
+      console.error('Error processing payment verification:', error);
+      res.status(500).json({ error: 'An error occurred while processing the request' });
   }
 });
 
@@ -1922,10 +1906,25 @@ app.get('/change-payment-status', async (req, res) => {
 //   }
 // });
 
-app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => { 
-  const { userId, bulkEquityId, newcount } = req.params;
+app.post('/NewListpayment/:userId/:bulkEquityId/:newcount/:refNumber', async (req, res) => { 
+  const { userId, bulkEquityId, newcount, refNumber } = req.params;
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
 
   try {
+      // Verify the transaction using Paystack
+      const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
+          headers: {
+              Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+              'Content-Type': 'application/json'
+          }
+      });
+
+      const transaction = response.data;
+      
+      if (!transaction.status || transaction.data.status !== 'success') {
+          return res.status(400).json({ error: 'Payment verification failed' });
+      }
+
       // Fetch the bulk equity data using userId and bulkEquityId
       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
       const bulkEquityData = bulkEquitySnapshot.val();
@@ -1952,52 +1951,21 @@ app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => 
       // Create metadata for the new count, including the date
       const newCountEntry = {
           count: Number(newcount),
-          status: false, // Default status is false
-          selectedInvestors: selectedInvestors, // Store the selected investors
-          date: new Date().toISOString(), // Current timestamp
+          status: true, // Status set to true after successful payment verification
+          selectedInvestors,
+          date: new Date().toISOString(),
       };
 
-      // Push the new count entry under "counts" and get the unique key
-      const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
-      const newCountKey = newCountRef.key;
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
 
-      // Fetch the user data to get firstName and lastName
-      const userSnapshot = await dataRef.child(`${userId}`).once('value');
-      const userData = userSnapshot.val();
-
-      if (!userData) {
-          return res.status(404).json({ error: 'User not found' });
-      }
-
-      const { firstName, lastName } = userData;
-
-      // Generate a unique link to change the payment status, including the new count key
-      const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
-
-      // Prepare the email content
-      const emailContent = {
-          From: 'info@koppoh.com',
-          To: 'info.koppoh@gmail.com',
-          TemplateId: '37511874', // Your template ID
-          TemplateModel: {
-              firstName,
-              lastName,
-              paymentStatusLink,
-          },
-      };
-
-      // Send the email
-      await client.sendEmailWithTemplate(emailContent);
-
-      // Respond with success
       res.status(200).json({
-          message: 'Email sent successfully with the payment status link',
-          updatedCount, // Return the updated count for confirmation
-          selectedInvestors, // Include selected investors in the response
+          message: 'Payment verified and count updated successfully',
+          updatedCount,
+          selectedInvestors,
       });
   } catch (error) {
-      console.error('Error sending payment link:', error);
-      res.status(500).json({ error: 'An error occurred while sending the email' });
+      console.error('Error processing payment verification:', error);
+      res.status(500).json({ error: 'An error occurred while processing the request' });
   }
 });
 
