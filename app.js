@@ -4,6 +4,11 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 app.use(cors());
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const APIKey = "AIzaSyCEcB8uJC8yuwnp2sCz8F_DogYzYhLqePE";
+const genAI = new GoogleGenerativeAI(APIKey);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
 
 
@@ -3274,6 +3279,245 @@ app.get('/users/pages', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+const courses = [
+  {
+    "name": "Part one: Introduction to business growth",
+    "link": "https://www.youtube.com/watch?v=example_part1",
+    "topics": [
+      "Why businesses do not grow",
+      "Key business mindsets hindering growth",
+      "Overcoming limiting beliefs about scaling your business"
+    ],
+    "facilitators": [
+      "Adenike Ogunlesi (Ruff ‘n’ Tumble)",
+      "Ibukun Awoshika – Mrs O",
+      "Cosmas Maduka (Coscharis) – Mrs O",
+      "Kola Oyeneyin (The Opportunik Global Fund) - Taiwo",
+      "Mai Atafo (Atafo) - Abdul",
+      "Odunayo Eweniyi (Piggyvest) - Taiwo",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Morenike Moleyin (Oak and Teak Interiors)"
+    ]
+  },
+  {
+    "name": "Part two: Growth mindset for SMEs",
+    "link": "https://www.youtube.com/watch?v=example_part2",
+    "topics": [
+      "Identifying growth opportunities in your business",
+      "Growth vs. scale: Understanding the difference"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Olawale Ayilara (Oxygen Holdings)",
+      "Cosmas Maduka (Coscharis)",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Morenike Moleyin (Oak and Teak Interiors)",
+      "Sandrah Tubobereni (Tubo)",
+      "Ore Runsewe (Arami Essentials)"
+    ]
+  },
+  {
+    "name": "Part three: Building a strong foundation",
+    "link": "https://www.youtube.com/watch?v=example_part3",
+    "topics": [
+      "How to decide if you are doing the right business",
+      "Selecting the right niche",
+      "Focusing on the right customer"
+    ],
+    "facilitators": [
+      "Olawale Ayilara (Oxygen Holdings)",
+      "Nelly Agbogu (Naija Brand Chick)",
+      "Cosmas Maduka (Coscharis)",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Sandrah Tubobereni (Tubo)"
+    ]
+  },
+  {
+    "name": "Part four: Customer acquisition & retention",
+    "link": "https://www.youtube.com/watch?v=example_part4",
+    "topics": [
+      "A complete breakdown of why customers leave businesses",
+      "How to protect your business from customer loss",
+      "How to generate demand"
+    ],
+    "facilitators": [
+      "Odunayo Eweniyi (Piggyvest)",
+      "Mai Atafo (Atafo)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Olagoke Balogun (SoFresh)",
+      "Kelvin Umechukwu (Bumpa)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Funke Akindele"
+    ]
+  },
+  {
+    "name": "Part five: Marketing & promotion strategies",
+    "link": "https://www.youtube.com/watch?v=example_part5",
+    "topics": [
+      "Steps to follow before spending on advertising",
+      "How to choose the right advertising medium",
+      "Leveraging influencers for business growth",
+      "Digital marketing basics",
+      "Content marketing strategies",
+      "How to get others to promote your business for FREE",
+      "Building strategic partnerships",
+      "Networking strategies for SMEs"
+    ],
+    "facilitators": [
+      "Nelly Agbogu",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Tomiwa Aladekomo (TechCabal)",
+      "Funke Akindele",
+      "Sandrah Tubobereni (Tubo)",
+      "Ore Runsewe (Arami Essentials)",
+      "Victor Asemota (AnD Ventures)"
+    ]
+  },
+  {
+    "name": "Part six: Effective pricing & profitability",
+    "link": "https://www.youtube.com/watch?v=example_part6",
+    "topics": [
+      "How to price your products for maximum profitability",
+      "Avoiding common pricing mistakes"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Cosmas Maduka (Coscharis)",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Adenike Ogunlesi - Taiwo",
+      "Morenike Moleyin (Oak and Teak Interiors)",
+      "Ore Runsewe (Arami Essentials)",
+      "Victor Asemota (AnD Ventures)",
+      "Olagoke Balogun (SoFresh)"
+    ]
+  },
+  {
+    "name": "Part seven: Sales, offer and distribution",
+    "link": "https://www.youtube.com/watch?v=example_part7",
+    "topics": [
+      "How to convert leads to paying clients",
+      "How to present a valuable offer to customers",
+      "How to understand and pick the best distribution channel for product and customers"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Cosmas Maduka (Coscharis)",
+      "Ikenna Okongwu (Chicken Republic)",
+      "Adenike Ogunlesi (Ruff ‘n’ Tumble)",
+      "Affiong Williams (ReelFruit)",
+      "Victor Asemota (AnD Ventures)",
+      "Olagoke Balogun (SoFresh)"
+    ]
+  },
+  {
+    "name": "Part eight: Business models for scaling",
+    "link": "https://www.youtube.com/watch?v=example_part8",
+    "topics": [
+      "How to operate a business model that ensures fast scaling",
+      "How to set-up and manage a multi-outlet business",
+      "Identifying and adapting scalable processes",
+      "Creating recurring revenue streams"
+    ],
+    "facilitators": [
+      "Cosmas Maduka (Coscharis)",
+      "Bosun Tijani",
+      "Ikenna Okongwu",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Affiong Williams (ReelFruit)",
+      "Victor Asemota (AnD Ventures)"
+    ]
+  },
+  {
+    "name": "Part nine: Building & managing a team",
+    "link": "https://www.youtube.com/watch?v=example_part9",
+    "topics": [
+      "How to build a team 101",
+      "Recruiting and retaining the right talent",
+      "Building team culture for growth"
+    ],
+    "facilitators": [
+      "Bosun Tijani (CcHub)",
+      "Ikenna Okongwu (Chicken Republic)",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Mai Atafo (Atafo)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Kelvin Umechukwu (Bumpa)",
+      "Aminu Murtala Nyako",
+      "Olagoke Balogun (SoFresh)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Morenike Moleyin (Oak and Teak Interiors)"
+    ]
+  },
+  {
+    "name": "Part ten: Metrics & continuous improvement",
+    "link": "https://www.youtube.com/watch?v=example_part10",
+    "topics": [
+      "How to track and measure growth",
+      "Understanding key performance indicators (KPIs) for SMEs"
+    ],
+    "facilitators": [
+      "Cosmas Maduka (Coscharis)",
+      "Tara durotoye",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Kelvin Umechukwu (Bumpa)"
+    ]
+  }
+]
+
+app.post("/business-advice", async (req, res) => {
+  try {
+      const { userChallenges } = req.body;
+      if (!userChallenges || !Array.isArray(userChallenges) || userChallenges.length === 0) {
+          return res.status(400).json({ error: "userChallenges (array) is required." });
+      }
+
+      // Select a random course and facilitator
+      const selectedCourse = courses[Math.floor(Math.random() * courses.length)];
+      const selectedFacilitator = selectedCourse.facilitators[Math.floor(Math.random() * selectedCourse.facilitators.length)];
+
+      const prompt = `
+          A user is facing these business challenges: ${userChallenges.join(", ")}.
+          Based on the course "${selectedCourse.name}", facilitated by ${selectedFacilitator}, provide a short business advice addressing one of the challenges.
+          Explain how what ${selectedFacilitator} taught in this course helps the user.
+          Include the course link: ${selectedCourse.link}.
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+
+      res.json({
+          advice: response,
+          course: selectedCourse.name,
+          facilitator: selectedFacilitator,
+          link: selectedCourse.link
+      });
+
+  } catch (error) {
+      console.error("Error generating advice:", error);
+      res.status(500).json({ error: "Failed to generate business advice." });
+  }
+});
+
+
 
 
 const port = process.env.PORT || 3000;
