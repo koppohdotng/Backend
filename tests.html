@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Equity API Test</title>
+</head>
+<body>
+  <h2>Bulk Equity API Test</h2>
+  <form id="bulkEquityForm">
+    <label for="userId">User ID:</label>
+    <input type="text" id="userId" name="userId" value="2af9j4S7cWZO8xLMQp3gu406FJY2" required><br><br>
+    
+    <label for="problem">Problem:</label>
+    <textarea id="problem" name="problem" required></textarea><br><br>
+    
+    <label for="solution">Solution:</label>
+    <textarea id="solution" name="solution" required></textarea><br><br>
+    
+    <label for="UVP">Unique Value Proposition:</label>
+    <textarea id="UVP" name="UVP" required></textarea><br><br>
+    
+    <label for="businessstage">Business Stage:</label>
+    <input type="text" id="businessstage" name="businessstage" required><br><br>
+    
+    <label for="totalRevenue">Total Revenue:</label>
+    <input type="number" id="totalRevenue" name="totalRevenue" required><br><br>
+    
+    <label for="stage">Investment Stage:</label>
+    <input type="text" id="stage" name="stage" required><br><br>
+    
+    <label for="equityAmount">Equity Amount:</label>
+    <input type="number" id="equityAmount" name="equityAmount" required><br><br>
+    
+    <label for="fundingType">Funding Type:</label>
+    <input type="text" id="fundingType" name="fundingType" required><br><br>
+    
+    <label for="currency">Currency:</label>
+    <input type="text" id="currency" name="currency" required><br><br>
+    
+    <label for="debtAmount">Debt Amount:</label>
+    <input type="number" id="debtAmount" name="debtAmount"><br><br>
+    
+    <label for="pitchDeckFile">Pitch Deck File:</label>
+    <input type="file" id="pitchDeckFile" name="pitchDeckFile"><br><br>
+    
+    <button type="submit">Submit</button>
+  </form>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<script>
+  document.getElementById('bulkEquityForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch(`http://localhost:3000/bulkEquity/${formData.get('userId')}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Response:', data);
+
+    alert('Bulk equity data updated successfully!');
+    form.reset();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error occurred! Check console for details.');
+  }
+});
+
+</script>

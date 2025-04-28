@@ -50,6 +50,34 @@ router.post('/deactivateAdmin/:userId', async (req, res) => {
 });
 
 
+router.post('/deactivateUser/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch the admin from the database using the userId
+    const adminSnapshot = await admin.database().ref(`/users/${userId}`).once('value');
+    const adminData = adminSnapshot.val();
+
+    if (!adminData) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+
+    // Create a new object with updated values 
+    const updatedAdminData = {
+      
+      deactivate: true, // New field added and set to true
+    };
+
+    // Update the admin in the database with the new object
+    await admin.database().ref(`/users/${userId}`).update(updatedAdminData);
+
+    res.json({ message: 'user deactivated successfully', userId: userId });
+  } catch (error) {
+    console.error('Error deactivating admin:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 router.post('/loginAdmin', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -179,6 +207,9 @@ router.get('/fundingRequest/:fundingRequestId', async (req, res) => {
           if (user.fundingRequest && user.fundingRequest[fundingRequestId]) {
               fundingRequestData = {
                   userId: user.uid,
+                  firstName: user.firstName,
+                lastName:  user.lastName,
+                logoUrl: user.logoUrl,
                   businessName: user.businessName,
                   fundingRequest: user.fundingRequest[fundingRequestId]
               };
@@ -294,6 +325,8 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
 //     }
 //   });
 
+// hi sir
+
   router.post('/confirm-number', async (req, res) => {
     try {
       const { email, number } = req.body;
@@ -346,22 +379,36 @@ router.put('/updateReviewStage/:fundingRequestId', async (req, res) => {
 
   router.get('/admins', async (req, res) => {
     try {
-      const snapshot = await admin.database().ref('/admins').once('value');
-      const admins = snapshot.val();
-  
-      // Extract usernames and dateOfOnboarding
-      const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
-        adminId: adminId,
-        adminData: adminData
-        
-      }));
-  
-      res.json(adminDetails);
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10; // Default page size is 10
+
+        // Calculate the starting index of items based on pagination parameters
+        const startIndex = (page - 1) * pageSize;
+
+        const snapshot = await admin.database().ref('/admins').once('value');
+        const admins = snapshot.val();
+
+        // Convert admins object to array of admin details
+        const adminDetails = Object.entries(admins).map(([adminId, adminData]) => ({
+            adminId: adminId,
+            adminData: adminData
+        }));
+
+        // Apply pagination
+        const paginatedAdmins = adminDetails.slice(startIndex, startIndex + pageSize);
+
+        res.json({
+            admins: paginatedAdmins,
+            currentPage: page,
+            totalPages: Math.ceil(adminDetails.length / pageSize)
+        });
     } catch (error) {
-      console.error('Error fetching admins:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error fetching admins:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
+
 
 router.post('/createAdmins', async (req, res) => {
     try {
@@ -467,7 +514,7 @@ if (missingFields.length > 0) {
         const userID = req.params.userID;
         const fundingRequestID = req.params.fundingRequestID;
         const newReviewStage = req.body.newReviewStage; // Assuming the new review stage is sent in the request body
-
+        console.log("debe")
         // Get the specified user
         const userSnapshot = await usersRef.child(userID).once('value');
         const user = userSnapshot.val();
@@ -477,6 +524,7 @@ if (missingFields.length > 0) {
             return res.status(404).json({
                 message: 'User or funding request not found'
             });
+            console.log("debedebe")
         }
 
         // Update the review stage for the specified funding request
@@ -534,7 +582,6 @@ router.get('/filteredReviewstage', async (req, res) => {
   }
 });
 
-
 router.get('/filteredFundingRequests', async (req, res) => {
   try {
       const pageSize = 10;
@@ -566,9 +613,11 @@ router.get('/filteredFundingRequests', async (req, res) => {
                   if (withinTimeRange && matchFundingType && matchReviewStage) {
                       filteredFundingRequests.push({
                           firstName: user.firstName,
-                          lastName:  user.lastName,
+                          lastName: user.lastName,
+                          logoUrl: user.logoUrl,
                           businessName: user.businessName,
                           fundingRequestId: fundingRequestId,
+                          requestTimestamp: requestTimestamp,  // Add this to sort later
                           ...request
                       });
                   }
@@ -581,6 +630,9 @@ router.get('/filteredFundingRequests', async (req, res) => {
               message: 'No funding requests found with the specified filters'
           });
       }
+
+      // Sort the filtered funding requests by requestTimestamp in descending order (latest first)
+      filteredFundingRequests.sort((a, b) => b.requestTimestamp - a.requestTimestamp);
 
       const totalFundingRequests = filteredFundingRequests.length;
       // Extract funding requests within the desired range
@@ -595,6 +647,7 @@ router.get('/filteredFundingRequests', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 router.post('/sendNotification', async (req, res) => {
@@ -639,63 +692,66 @@ router.post('/sendNotification', async (req, res) => {
   }
 });
 
-  router.get('/filteredUsers', async (req, res) => {
-    try {
-        const pageSize = 10;
-        let page = req.query.page ? parseInt(req.query.page) : 1;
-        const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
-        const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
-        const registrationStatus = req.query.registrationStatus || null;
-        const maxProfileCompleteness = req.query.profileCompleteness !== undefined ? req.query.profileCompleteness : null;
+router.get('/filteredUsers', async (req, res) => {
+  try {
+      const pageSize = 10;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      const startTimestamp = req.query.startDate ? new Date(req.query.startDate).getTime() / 1000 : 0;
+      const endTimestamp = req.query.endDate ? new Date(req.query.endDate).getTime() / 1000 : Math.floor(Date.now() / 1000);
+      const registrationStatus = req.query.registrationStatus || null;
+      const maxProfileCompleteness = req.query.profileCompleteness !== undefined ? req.query.profileCompleteness : null;
 
-        // Convert "completed" to 100 and "uncompleted" to anything less
-        const profileCompletenessValue = maxProfileCompleteness === "completed" ? 100 : (maxProfileCompleteness === "uncompleted" ? 99 : null);
+      // Convert "completed" to 100 and "uncompleted" to anything less
+      const profileCompletenessValue = maxProfileCompleteness === "completed" ? 100 : (maxProfileCompleteness === "uncompleted" ? 99 : null);
 
-        // Calculate the start index for pagination
-        const startIndex = pageSize * (page - 1);
+      // Calculate the start index for pagination
+      const startIndex = pageSize * (page - 1);
 
-        // Get users within the specified time range
-        const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
-        const users = snapshot.val();
+      // Get users within the specified time range
+      const snapshot = await usersRef.orderByChild('signupdate').startAt(startTimestamp).endAt(endTimestamp).once('value');
+      const users = snapshot.val();
 
-        // Filter users with the specified registrationStatus and profileCompleteness
-        const filteredUsers = Object.values(users).filter(user => {
-            const withinTimeRange = user.signupdate >= startTimestamp && user.signupdate <= endTimestamp;
-            const matchRegistrationStatus = registrationStatus ? user.registrationStatus === registrationStatus : true;
-            const matchProfileCompleteness = profileCompletenessValue !== null
-                ? (profileCompletenessValue === 100 ? user.profileCompleteness === 100 : user.profileCompleteness < 100)
-                : true;
+      // Filter users with the specified registrationStatus and profileCompleteness
+      const filteredUsers = Object.values(users).filter(user => {
+          const withinTimeRange = user.signupdate >= startTimestamp && user.signupdate <= endTimestamp;
+          const matchRegistrationStatus = registrationStatus ? user.registrationStatus === registrationStatus : true;
+          const matchProfileCompleteness = profileCompletenessValue !== null
+              ? (profileCompletenessValue === 100 ? user.profileCompleteness === 100 : user.profileCompleteness < 100)
+              : true;
 
-            return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
-        });
+          return withinTimeRange && matchRegistrationStatus && matchProfileCompleteness;
+      });
 
-        if (filteredUsers.length === 0) {
-            return res.json({
-                message: 'No users found with the specified filters'
-            });
-        }
+      if (filteredUsers.length === 0) {
+          return res.json({
+              message: 'No users found with the specified filters'
+          });
+      }
 
-        const totalUsers = filteredUsers.length;
-        // Extract users within the desired range
-        const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
+      // Sort users by `signupdate` from latest to oldest
+      filteredUsers.sort((a, b) => b.signupdate - a.signupdate);
 
-        // Filter and calculate values for each user
-        const formattedUsers = paginatedUsers.map(user => {
-            const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid } = user;
+      const totalUsers = filteredUsers.length;
+      // Extract users within the desired range
+      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
 
-            return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid };
-        });
+      // Filter and calculate values for each user
+      const formattedUsers = paginatedUsers.map(user => {
+          const { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid, businessName } = user;
 
-        res.json({
-            filteredUsers: formattedUsers,
-            totalUsers: totalUsers
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Intern al Server Error' });
-    }
+          return { firstName, lastName, role, country, linkedIn, phoneNumber, signupdate, registrationStatus, profileCompleteness, age, uid, businessName };
+      });
+
+      res.json({
+          filteredUsers: formattedUsers,
+          totalUsers: totalUsers
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
-
+  
   
   router.get('/incompleteUsersPaginationBySignupdate', async (req, res) => {
     try {
@@ -1058,6 +1114,8 @@ router.post('/sendNotification', async (req, res) => {
     }
 });
 
+const dataRef = db.ref('users');
+
 router.get('/getAllChats/:userId', (req, res) => {
   const userId = req.params.userId;
 
@@ -1116,7 +1174,7 @@ router.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   };
 
   // Update the chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   const newChatRef = chatRef.push(chatMessage, (error) => {
     if (error) {
       console.log(error);
@@ -1144,22 +1202,26 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
 
-  // Ensure required fields are provided
+  console.log(userId,fundingRequestId)
+
+  // Ensure required fields are provideds
   if (!userId || !fundingRequestId) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
   // Retrieve all chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   chatRef.once('value', (snapshot) => {
     const chatMessages = snapshot.val();
 
     if (!chatMessages) {
+      console.log("debe1")
       return res.status(404).json({ error: 'No chat messages found for the specified funding request.' });
     }
 
     // Convert chat messages object to an array
     const chatArray = Object.keys(chatMessages).map((key) => {
+      console.log("debedebe")
       const chatMessage = chatMessages[key];
       chatMessage.chatMessageId = key;
       return chatMessage;
@@ -1172,6 +1234,460 @@ router.get('/getChat/:userId/:fundingRequestId', (req, res) => {
     });
   });
 });
+
+router.get('/numberOfUsersprofileCompleteness', async (req, res) => {
+  try {
+      // Get all users from the database
+      const snapshot = await usersRef.once('value');
+      const allUsers = snapshot.val() || {};
+
+      // Calculate total number of users
+      const totalUsers = Object.keys(allUsers).length;
+
+      // Calculate number of users with profile completeness of 100%
+      const completeUsers = Object.values(allUsers).filter(user => user.profileCompleteness === 100).length;
+
+      // Calculate percentage of users with profile completeness of 100%
+      const completePercentage = (completeUsers / totalUsers) * 100;
+
+      // Calculate percentage of users with profile completeness less than 100%
+      const incompletePercentage = 100 - completePercentage;
+
+      res.json({
+          totalUsers: totalUsers,
+          completeUsers: completeUsers,
+          incompleteUsers: totalUsers - completeUsers,
+          completePercentage: completePercentage.toFixed(2),
+          incompletePercentage: incompletePercentage.toFixed(2)
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/reviewStageOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each review stage
+      const reviewStageOccurrences = {};
+
+      // Initialize a variable to store the total number of funding requests
+      let totalFundingRequests = 0;
+
+      // Iterate through each user and their funding requests
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest) {
+              totalFundingRequests += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const reviewStage = request.reviewstage;
+                  // Increment the occurrence count for the review stage
+                  if (reviewStage) {
+                      reviewStageOccurrences[reviewStage] = (reviewStageOccurrences[reviewStage] || 0) + 1;
+                  }
+              });
+          }
+      });
+
+      res.json({
+          reviewStageOccurrences,
+          totalFundingRequests
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/dealStatusOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each deal status
+      const dealStatusOccurrences = {
+          interested: 0,
+          notInterested: 0
+      };
+
+      // Initialize a variable to store the total number of deals
+      let totalDeals = 0;
+
+      // Iterate through each user and their funding requests
+      Object.values(users).forEach(user => {
+          if (user.fundingRequest) {
+              totalDeals += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const dealStatus = request.interested ? 'interested' : 'notInterested';
+                  // Increment the occurrence count for the deal status
+                  dealStatusOccurrences[dealStatus]++;
+              });
+          }
+      });
+
+      res.json({
+          dealStatusOccurrences,
+          totalDeals
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/refFromOccurrences', async (req, res) => {
+  try {
+      // Get all users
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val();
+
+      // Initialize an object to store the occurrences of each refFrom value
+      const refFromOccurrences = {};
+
+      // Iterate through each user and their refFrom values
+      Object.values(users).forEach(user => {
+          const refFrom = user.refFrom;
+
+          // Increment the occurrence count for the refFrom value
+          if (refFrom) {
+              refFromOccurrences[refFrom] = (refFromOccurrences[refFrom] || 0) + 1;
+          }
+      });
+
+      res.json({
+          refFromOccurrences
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/analyticsData', async (req, res) => {
+  try {
+      const usersRef = db.ref('users');
+      const investorsRef = db.ref('investors');
+
+      const snapshots = await investorsRef.once('value');
+      const investors = snapshots.val() || {};
+
+      const snapshot = await usersRef.once('value');
+      const users = snapshot.val() || {};
+
+      // Initialize variables to store data for each metric
+      let totalUsers = Object.keys(users).length;
+      let totalinvestors = Object.keys(investors).length;
+      let completeUsers = Object.values(users).filter(user => user.profileCompleteness === 100).length;
+      let totalFundingRequests = 0;
+      let reviewStageOccurrences = {};
+      let dealStatusOccurrences = {
+          interested: 0,
+          notInterested: 0
+      };
+      let refFromOccurrences = {};
+
+      // Initialize variables to track new users and growth
+      let newUserCount = 0;
+      let previousMonthUserCount = 0;
+
+      // Get the current date and calculate the date 4 weeks ago and 8 weeks ago
+      const currentDate = new Date();
+      const fourWeeksAgo = new Date();
+      fourWeeksAgo.setDate(currentDate.getDate() - 28); // 4 weeks ago
+
+      const eightWeeksAgo = new Date();
+      eightWeeksAgo.setDate(currentDate.getDate() - 56); // 8 weeks ago
+
+      // Iterate through each user to calculate new users for the last 4 weeks and the 4 weeks before that
+      Object.values(users).forEach(user => {
+          const signupDate = new Date(user.signupdate);
+
+          if (signupDate >= fourWeeksAgo && signupDate < currentDate) {
+              newUserCount++;
+          } else if (signupDate >= eightWeeksAgo && signupDate < fourWeeksAgo) {
+              previousMonthUserCount++;
+          }
+
+          if (user.fundingRequest) {
+              totalFundingRequests += Object.keys(user.fundingRequest).length;
+
+              Object.values(user.fundingRequest).forEach(request => {
+                  const reviewStage = request.reviewstage;
+                  const dealStatus = request.interested ? 'interested' : 'notInterested';
+
+                  // Increment the occurrence count for the review stage
+                  if (reviewStage) {
+                      reviewStageOccurrences[reviewStage] = (reviewStageOccurrences[reviewStage] || 0) + 1;
+                  }
+                  // Increment the occurrence count for the deal status
+                  dealStatusOccurrences[dealStatus]++;
+              });
+          }
+      });
+
+      // Iterate through each user for refFrom occurrences
+      Object.values(users).forEach(user => {
+          const refFrom = user.refFrom;
+          // Increment the occurrence count for the refFrom value
+          if (refFrom) {
+              refFromOccurrences[refFrom] = (refFromOccurrences[refFrom] || 0) + 1;
+          }
+      });
+
+      // Calculate incomplete users
+      const incompleteUsers = totalUsers - completeUsers;
+
+      // Calculate percentage of complete and incomplete users
+      const completePercentage = (completeUsers / totalUsers) * 100;
+      const incompletePercentage = 100 - completePercentage;
+
+      // Calculate percentage growth of new users compared to the previous 4 weeks
+      const growthPercentage = previousMonthUserCount > 0
+          ? ((newUserCount - previousMonthUserCount) / previousMonthUserCount) * 100
+          : (newUserCount > 0 ? 100 : 0); // Handle edge case for no users in the previous period
+
+      res.json({
+          totalUsers: totalUsers,
+          completeUsers: completeUsers,
+          incompleteUsers: incompleteUsers,
+          completePercentage: completePercentage.toFixed(2),
+          incompletePercentage: incompletePercentage.toFixed(2),
+          totalFundingRequests: totalFundingRequests,
+          reviewStageOccurrences: reviewStageOccurrences,
+          dealStatusOccurrences: dealStatusOccurrences,
+          refFromOccurrences: refFromOccurrences,
+          totalinvestors: totalinvestors,
+          newUserCount: newUserCount,
+          growthPercentage: growthPercentage.toFixed(2)
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+router.get('/bulkEquity', async (req, res) => {
+  console.log('Fetching bulk equity data for all users');
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const fundingTypeFilter = req.query.fundingType || null;
+  const createdAtFilter = req.query.createdAt ? new Date(req.query.createdAt).toISOString() : null;
+
+  try {
+    // Fetch all users' data
+    const usersSnapshot = await dataRef.once('value');
+    const usersData = usersSnapshot.val();
+    
+    if (!usersData) {
+      return res.status(404).json({ message: 'No users found.' });
+    }
+
+    let allBulkEquityData = [];
+
+    // Iterate through all users and collect their bulk equity data
+    for (const userId in usersData) {
+      if (usersData.hasOwnProperty(userId)) {
+        const user = usersData[userId];
+        const businessName = user.businessName; // Fetch the businessName
+
+        const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity`).once('value');
+        const bulkEquityData = bulkEquitySnapshot.val();
+
+        if (bulkEquityData) {
+          const bulkEquityArray = Object.keys(bulkEquityData).map(key => {
+            const equityData = bulkEquityData[key];
+            return { 
+              ...equityData, 
+              bulkEquityId: key, 
+              userId, 
+              businessName, // Attach businessName to each bulkEquityData
+              investorsMatchCount: equityData.investorsMatch ? equityData.investorsMatch.length : 0 // Add investorsMatchCount
+            };
+          });
+          allBulkEquityData.push(...bulkEquityArray);
+        }
+      }
+    }
+
+    if (allBulkEquityData.length === 0) {
+      return res.status(404).json({ message: 'No bulk equity data found.' });
+    }
+
+    // Apply filters
+    if (fundingTypeFilter) {
+      allBulkEquityData = allBulkEquityData.filter(item => item.fundingType === fundingTypeFilter);
+    }
+
+    if (createdAtFilter) {
+      allBulkEquityData = allBulkEquityData.filter(item => {
+        const itemCreatedAt = new Date(item.createdAt).toISOString();
+        return itemCreatedAt >= createdAtFilter;
+      });
+    }
+
+    // Sort by createdAt timestamp in descending order
+    allBulkEquityData.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateB - dateA; // Sort descending (most recent first)
+    });
+
+    // Apply pagination
+    const paginatedData = allBulkEquityData.slice(startIndex, endIndex);
+
+    const response = {
+      message: 'Bulk equity data fetched successfully.',
+      bulkEquityData: paginatedData,
+      totalItems: allBulkEquityData.length,
+      totalPages: Math.ceil(allBulkEquityData.length / limit),
+      currentPage: page
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error fetching bulk equity data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+router.get('/onebulkEquity/:userId/:bulkEquityId', async (req, res) => {
+  const userId = req.params.userId;
+  const bulkEquityId = req.params.bulkEquityId;
+  const dataRef = db.ref('users');
+  console.log(`Received request for userId: ${userId}, bulkEquityId: ${bulkEquityId}`);
+  
+  try {
+    // Fetch user bulk equity data
+    const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      return res.status(404).json({ message: `Bulk equity data with ID ${bulkEquityId} for user ${userId} not found.` });
+    }
+
+    // Add the bulkEquityId to the retrieved data
+    bulkEquityData.bulkEquityId = bulkEquityId;
+
+    const response = {
+      message: 'Bulk equity data retrieved successfully.',
+      bulkEquityData,
+      investorsMatchCount: bulkEquityData.investorsMatch ? bulkEquityData.investorsMatch.length : 0 
+
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error retrieving bulk equity data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/allPayments/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const statusFilter = req.query.status;
+  const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+  const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+
+  // Validate status filter
+  if (statusFilter && !['failed', 'success'].includes(statusFilter)) {
+    return res.status(400).json({ error: 'Invalid status filter. Permitted values are "failed" and "success".' });
+  }
+
+  try {
+    // Retrieve payments from bulkEquity
+    const bulkEquitySnapshot = await db.ref(`users/${userId}/bulkEquity`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+    const bulkEquityPayments = [];
+
+    if (bulkEquityData) {
+      for (const bulkEquityId in bulkEquityData) {
+        if (bulkEquityData.hasOwnProperty(bulkEquityId)) {
+          const paymentsSnapshot = await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).once('value');
+          const paymentData = paymentsSnapshot.val();
+          if (paymentData) {
+            paymentData.createdAt = bulkEquityData[bulkEquityId].createdAt;
+            bulkEquityPayments.push(paymentData);
+          }
+        }
+      }
+    }
+
+    // Retrieve payments from fundingRequest
+    const fundingRequestSnapshot = await db.ref(`users/${userId}/fundingRequest`).once('value');
+    const fundingRequestData = fundingRequestSnapshot.val();
+    const fundingRequestPayments = [];
+
+    if (fundingRequestData) {
+      for (const fundingRequestId in fundingRequestData) {
+        if (fundingRequestData.hasOwnProperty(fundingRequestId)) {
+          const paymentsSnapshot = await db.ref(`users/${userId}/fundingRequest/${fundingRequestId}/payments`).once('value');
+          const paymentData = paymentsSnapshot.val();
+          if (paymentData) {
+            paymentData.createdAt = fundingRequestData[fundingRequestId].createdAt;
+            fundingRequestPayments.push(paymentData);
+          }
+        }
+      }
+    }
+
+    // Combine payments
+    let allPayments = [...bulkEquityPayments, ...fundingRequestPayments];
+
+    // Filter by status if provided
+    if (statusFilter) {
+      allPayments = allPayments.filter(payment => payment.status === statusFilter);
+    }
+
+    // Filter by date range if provided
+    if (startDate) {
+      allPayments = allPayments.filter(payment => new Date(payment.createdAt) >= startDate);
+    }
+    if (endDate) {
+      allPayments = allPayments.filter(payment => new Date(payment.createdAt) <= endDate);
+    }
+
+    // Sort by createdAt in descending order
+    allPayments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedPayments = allPayments.slice(startIndex, endIndex);
+
+    res.status(200).json({
+      currentPage: page,
+      totalPages: Math.ceil(allPayments.length / limit),
+      totalPayments: allPayments.length,
+      payments: paginatedPayments
+    });
+  } catch (error) {
+    console.error('Error retrieving payments:', error);
+    res.status(500).json({ error: 'Failed to retrieve payments' });
+  }
+});
+
+
 
 
 

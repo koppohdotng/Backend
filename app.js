@@ -3,20 +3,41 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+app.use(cors());
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const APIKey = "AIzaSyCEcB8uJC8yuwnp2sCz8F_DogYzYhLqePE";
+const genAI = new GoogleGenerativeAI(APIKey);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+
+
+
 const admin = require('firebase-admin');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./admin/adminRoutes');
+const investorRoutes = require('./investorRoutes/investorRoutes');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const { google } = require('googleapis');
+app.use(express.json());
+
+
+
+const investorList = require('./investorList.json');
+
 var postmark = require("postmark");
-//const axios = require('axios');
+const axios = require('axios');
+app.use(express.static(__dirname));
 var client = new postmark.ServerClient("61211298-3714-4551-99b0-1164f8a9cb33");
 const fs = require('fs');
+const { Storage } = require('@google-cloud/storage');
 
 const Sentry = require('@sentry/node');
 const { ProfilingIntegration } = require('@sentry/profiling-node');
+const { count } = require('console');
 
 
 Sentry.init({
@@ -60,6 +81,21 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 
 
 
+
+app.get('/storeInvestorList', (req, res) => {
+  const db = admin.database();
+  const ref = db.ref('InvestorList');
+
+  // Set the JSON data under InvestorList in the Realtime Database
+  ref.set(investorList, (error) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to store data in Firebase' });
+    } else {
+      res.status(200).json({ message: 'Data stored successfully' });
+    }
+  });
+});
+ 
 
 
 
@@ -111,7 +147,6 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 // });
 
 
-app.use(cors());
 
 
 app.use(bodyParser.json());
@@ -125,7 +160,9 @@ app.get('/', (req, res) => {
 
 app.get('/a', (req, res) => {
   res.send('Welcome to Koppoh, Express yourself!');
-   
+ 
+  
+  
  
 // client.sendEmail({
 //   "From": "info@koppoh.com",
@@ -161,11 +198,70 @@ client.sendEmailWithTemplate({
 
 
 
+// app.get('/api/user/:userId', (req, res) => {
+//   const userId = req.params.userId;
+
+//   // Query the database to retrieve user information using the userId
+//   const userRef = admin.database().ref(`/users/${userId}`);
+
+//   userRef.once('value', (snapshot) => {
+//     const user = snapshot.val();
+//     if (user) {
+//       res.status(200).json({ message: 'Authentication successful', user });
+//     } else {
+//       res.status(404).json({ error: 'User not found' });
+//     }
+//   });
+// });
+
+app.get('/api/user/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Reference to the user data
+    const userRef = admin.database().ref(`/users/${userId}`);
+
+    // Fetch the user data
+    const userSnapshot = await userRef.once('value');
+    const user = userSnapshot.val();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Reference to the user's bulkEquity
+    const bulkEquityRef = admin.database().ref(`/users/${userId}/bulkEquity`);
+    const bulkEquitySnapshot = await bulkEquityRef.once('value');
+    const bulkEquity = bulkEquitySnapshot.val();
+
+    if (bulkEquity) {
+      // Iterate through each bulkEquity entry
+      for (const [bulkEquityId, equityData] of Object.entries(bulkEquity)) {
+        if (equityData.counts) {
+          // Iterate through each count and remove investors where status is false
+          for (const [countId, countData] of Object.entries(equityData.counts)) {
+            if (countData.status === false) {
+              delete countData.selectedInvestors; // Remove investors
+            }
+          }
+        }
+      }
+
+      // Attach the updated bulkEquity to the user object
+      user.bulkEquity = bulkEquity;
+    }
+
+    // Respond with the filtered user data
+    res.status(200).json({ message: 'Authentication successful', user });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the user data' });
+  }
+});
 
 
 
-
-app.get('/api/user/:userId', (req, res) => {
+app.get('/api/user/:userId/emailVerification', (req, res) => {
   const userId = req.params.userId;
 
   // Query the database to retrieve user information using the userId
@@ -174,12 +270,22 @@ app.get('/api/user/:userId', (req, res) => {
   userRef.once('value', (snapshot) => {
     const user = snapshot.val();
     if (user) {
-      res.status(200).json({ message: 'Authentication successful', user });
+      // Check if emailVerification exists and is true
+      if (user.emailVerification === true) {
+        res.status(200).json({ message: 'Email is verified' });
+      } else {
+        res.status(403).json({ error: 'Email verification not true' });
+      }
     } else {
       res.status(404).json({ error: 'User not found' });
     }
   });
 });
+
+
+
+
+
 
 
 app.post('/google-signin', async (req, res) => {
@@ -328,21 +434,29 @@ app.use('/auth', authRoutes);
 
 app.use('/adminRoutes', adminRoutes);
 
+app.use('/investorRoutes',investorRoutes);
+
+
+
 app.put('/api/update-user/:uid', (req, res) => {
   const userId = req.params.uid; // Get the user's UID from the URL
-  const { firstName, lastName, country, phoneNumber, role, linkedIn } = req.body;
+  const { firstName, lastName, nationality, phoneNumber, role, linkedIn, gender } = req.body;
+    console.log(gender);
 
   // Check if the provided data is available for update
   const updatedUserData = {};
 
-  if (firstName) {
+  if (firstName) { 
     updatedUserData.firstName = firstName;
+  }
+  if (gender) {
+    updatedUserData.gender = gender;
   }
   if (lastName) {
     updatedUserData.lastName = lastName;
   }
-  if (country) {
-    updatedUserData.country = country;
+  if (nationality) {
+    updatedUserData.nationality = nationality;
   }
   if (phoneNumber) {
     updatedUserData.phoneNumber = phoneNumber;
@@ -367,12 +481,12 @@ app.put('/api/update-user/:uid', (req, res) => {
 
       if (updatedUserData.firstName) count++;
       if (updatedUserData.lastName) count++;
-      if (updatedUserData.country) count++;
+      if (updatedUserData.nationality) count++;
       if (updatedUserData.phoneNumber) count++;
-      if (updatedUserData.role) count++;
-      if (updatedUserData.linkedIn) count++;
+     
+      if (updatedUserData.gender) count++;
 
-      const profileCompleteness = (count / 6) * 100;
+      const profileCompleteness = (count / 5) * 100;
 
       // Update profile completeness in the database
       usersRef.child(userId).update({ profileCompleteness : profileCompleteness});
@@ -384,6 +498,277 @@ app.put('/api/update-user/:uid', (req, res) => {
       res.status(500).json({ error: 'Failed to update user information' });
     });
 });
+
+
+
+const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985'; // Replace with your Paystack secret key
+
+app.post('/verifyTransactionFundingRequest/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  const { transactionId, fundingType, paymentFor, date } = req.body;
+
+  console.log(userId, transactionId, fundingType, paymentFor);
+
+  if (!transactionId) {
+    return res.status(400).json({ error: 'Transaction ID is required.' });
+  }
+
+  if (!fundingType) {
+    return res.status(400).json({ error: 'Funding Type is required.' });
+  }
+
+  if (!paymentFor) {
+    return res.status(400).json({ error: 'Payment For is required.' });
+  }
+
+  try {
+    // Verify the Paystack transaction
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${transactionId}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const transactionData = response.data.data;
+    const createdAt = new Date().toISOString();
+    console.log(transactionData.status);
+
+    if (transactionData.status === 'success') {
+      // Create funding request if transaction is successful
+      const fundingRequest = {
+        fundingType: fundingType, // Use the fundingType from the request body
+        mode: 'guidedApp',
+        createdAt: createdAt,
+        date: date,
+        reviewstage : 'Draft'
+      };
+
+      // Store the funding request
+      const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest);
+      const newKey = newRef.key;
+
+      // Create payments object
+      const paymentData = {
+        transactionId: transactionData.id,
+        amount: transactionData.amount,
+        status: transactionData.status,
+        paidAt: transactionData.paid_at,
+        currency: transactionData.currency,
+        paymentFor: paymentFor // Add paymentFor from the request body
+      };
+
+      // Store the payment data under the newly created funding request
+      await dataRef.child(`${userId}/fundingRequest/${newKey}/payments`).set(paymentData);
+
+      // Retrieve the user data to get the firstName
+      const userSnapshot = await admin.database().ref(`/users/${userId}`).once('value');
+      const userData = userSnapshot.val();
+      console.log(userData)
+      const firstName = userData.firstName;
+      const lastName = userData. email;
+      const userEmailx = userData.lastName;
+
+
+      // Prepare the email data
+      await client.sendEmailWithTemplate({
+        From: 'info@koppoh.com', // Replace with your sender email address
+        To: "koppohstagetest@yopmail.com", // Assuming user's email is stored in user data
+        TemplateId: 34496413,
+        TemplateModel: {
+          firstName: firstName,
+           lastName: lastName,
+           Email :  userEmailx,
+          fundingRequesttype: 'Guided',
+          date: date
+        },
+      });
+
+      // Send the email using Postmark
+     
+      // Retrieve and return the saved data
+      dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+        const savedData = snapshot.val();
+        savedData.fundingRequestId = newKey;
+
+        res.status(200).json({
+          message: 'Funding request created successfully.',
+          fundingRequestId: newKey,
+          savedData: savedData,
+        });
+      });
+    } else {
+      res.status(400).json({ error: 'Transaction is not successful.' });
+    }
+  } catch (error) {
+    console.error('Error verifying transaction:', error);
+    res.status(500).json({ error: 'Failed to verify transaction.' });
+  }
+});
+
+
+
+
+app.post('/verifyAndUpdateFundingRequest/:userId/:fundingRequestId', async (req, res) => {
+  const userId = req.params.userId;
+  const fundingRequestId = req.params.fundingRequestId;
+  const { transactionId, paymentFor } = req.body;
+
+  console.log(userId, fundingRequestId, transactionId, paymentFor);
+
+  if (!transactionId) {
+    return res.status(400).json({ error: 'Transaction ID is required.' });
+  }
+
+  if (!paymentFor) {
+    return res.status(400).json({ error: 'Payment For is required.' });
+  }
+
+  try {
+    // Verify the Paystack transaction
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${transactionId}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const transactionData = response.data.data;
+    const createdAt = new Date().toISOString();
+    console.log(transactionData.status);
+
+    if (transactionData.status === 'success') {
+      // Create payment data object
+      const paymentData = {
+        transactionId: transactionData.id,
+        amount: transactionData.amount,
+        status: transactionData.status,
+        paidAt: transactionData.paid_at,
+        currency: transactionData.currency,
+        paymentFor: paymentFor, // Add paymentFor from the request body
+      };
+
+      // Store the payment data under the existing funding request
+      await dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/payments`).push(paymentData);
+
+      // Retrieve and return the saved data
+      dataRef.child(`${userId}/fundingRequest/${fundingRequestId}`).once('value', (snapshot) => {
+        const savedData = snapshot.val();
+        savedData.fundingRequestId = fundingRequestId;
+
+        res.status(200).json({
+          message: 'Payment verified and funding request updated successfully.',
+          fundingRequestId: fundingRequestId,
+          savedData: savedData,
+        });
+      });
+    } else {
+      res.status(400).json({ error: 'Transaction is not successful.' });
+    }
+  } catch (error) {
+    console.error('Error verifying transaction:', error);
+    res.status(500).json({ error: 'Failed to verify transaction.' });
+  }
+});
+
+
+app.post('/initialize-transaction/:userId/:bulkEquityId', async (req, res) => {
+  const { userId, bulkEquityId } = req.params;
+  const { refNumber, count } = req.body;
+
+  console.log(refNumber, count);
+
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
+
+  try {
+    // Verify the transaction
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const transactionData = response.data.data;
+
+    // Save payment data under bulkEquity for the user
+    const paymentData = {
+      transactionId: transactionData.id,
+      amount: transactionData.amount,
+      status: transactionData.status,
+      paidAt: transactionData.paid_at,
+      currency: transactionData.currency,
+      paymentFor: "Smartmatch" // Set paymentFor as "Smartmatch"
+    };
+
+    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}/payments`).set(paymentData);
+
+    // Retrieve the bulkEquity data
+    const bulkEquitySnapshot = await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      return res.status(404).json({ error: 'Bulk equity data not found' });
+    }
+
+    // Get the current count of investors processed
+    const currentCount = bulkEquityData.count || 0;
+    const newCount = currentCount + count;
+
+    // Get the list of investors and slice it based on the count
+    const investors = bulkEquityData.investorsMatch || [];
+    const investorsToReturn = investors.slice(currentCount, newCount);
+
+    // Update the count in the bulkEquity data
+    await db.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).update({ count: newCount });
+
+    const responsePayload = {
+      transactionData: transactionData,
+      investors: investorsToReturn,
+      totalCount: investors.length,
+      currentCount: newCount
+    };
+
+    // Sending email using Postmark if the transaction is successful
+    if (transactionData.status === 'success') {
+      // Retrieve user data to get the firstName and email
+      const userSnapshot = await db.ref(`users/${userId}`).once('value');
+      const userData = userSnapshot.val();
+      
+      const lastName = userData. email;
+      const userEmailx = userData.lastName;
+      if (!userData || !userData.email) {
+        return res.status(400).json({ error: 'User email not found.' });
+      }
+
+      const firstName = userData.firstName;
+      const email = userData.email;
+      const date = new Date().toISOString(); // Using current date
+      
+      // Send the email
+      await client.sendEmailWithTemplate({
+        From: 'info@koppoh.com',
+        To: "koppohstagetest@yopmail.com",
+        TemplateId: '34496413', // Use your actual template ID here
+        TemplateModel: {
+          firstName: firstName,
+           lastName: lastName,
+           Email :  userEmailx,
+          fundingRequesttype: "Smartmatch", // Set fundingRequesttype as "Smartmatch"
+          date: date
+        },
+      });
+
+
+    }
+
+    res.json(responsePayload);
+  } catch (error) {
+    console.error('Error initializing transaction:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to initialize transaction' });
+  }
+});
+
 
 
 
@@ -399,7 +784,7 @@ const upload = multer({ storage });
 // API endpoint to add a new teammate
 app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {  
   const userId = req.params.userId;
-  const { name, role } = req.body;
+  const { name, role, gender, experience } = req.body;
 
   // Check if name and role are provided (compulsory fields)
   if (!name || !role) {
@@ -408,21 +793,36 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 
   // Generate a unique filename for the image (e.g., using a timestamp)
   const timestamp = Date.now();
-  const imageName = `${timestamp}_${req.file.originalname}`;
+  const imageName = `${timestamp}_${req.file ? req.file.originalname : ''}`;
 
   // Create a new teammate object
   const newTeammate = {
     name,
     role,
+    gender,
+    experience,
     imageURL: '', // Initialize the imageURL field
+  };
+
+  const addTeammateToDB = (teammateData) => {
+    const newTeammateRef = teammatesRef.child(`${userId}/Teammate`).push(teammateData, (error) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error adding teammate to the database.' });
+      }
+
+      // Return the stored teammate data, including the new teammate ID and imageURL
+      res.status(200).json({
+        message: 'Teammate added successfully.',
+        teammateId: newTeammateRef.key, // Return the new teammate ID
+        ...teammateData,
+      });
+    });
   };
 
   // If an image is provided, store it in Firebase Storage and add its download URL to the teammate object
   if (req.file) {
     const bucket = admin.storage().bucket();
-
     const imageBuffer = req.file.buffer;
-
     const file = bucket.file(imageName); // Use the generated filename
 
     const blobStream = file.createWriteStream({
@@ -444,29 +844,18 @@ app.post('/api/addTeammate/:userId', upload.single('image'), (req, res) => {
 
         newTeammate.imageURL = downloadUrl;
 
-        // Add the new teammate to the database under the specified user ID
-        teammatesRef.child(`${userId}/Teammate`).push(newTeammate, (error) => {
-          if (error) {
-            return res.status(500).json({ error: 'Error adding teammate to the database.' });
-          }
-
-          return res.status(200).json({ message: 'Teammate added successfully.' });
-        });
+        // Add the new teammate to the database
+        addTeammateToDB(newTeammate);
       });
     });
 
     blobStream.end(imageBuffer);
   } else {
     // If no image is provided, add the teammate object to the database directly
-    teammatesRef.child(userId).push(newTeammate, (error) => {
-      if (error) {
-        return res.status(500).json({ error: 'Error adding teammate to the database.' });
-      }
-
-      return res.status(200).json({ message: 'Teammate added successfully.' });
-    });
+    addTeammateToDB(newTeammate);
   }
 });
+
 
 
 
@@ -486,13 +875,19 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
     businessRCNumber,
     yearOfIncorporation,
     businessSector,
+    genderComposition,
+    targetAudience,
+    regionHq,
+    countryHq
+
   } = req.body;
+  console.log(genderComposition,targetAudience,regionHq,countryHq)
 
   // Handle image upload and generate a download URL
   let logoFileName = '';
 
   if (req.file) {
-    console.log("Uploading image...");
+    console.log("Uploading image....");
 
     logoFileName = `logo_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
     const bucket = admin.storage().bucket();
@@ -519,6 +914,13 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
             ...(businessRCNumber && { businessRCNumber }),
             ...(yearOfIncorporation && { yearOfIncorporation }),
             ...(businessSector && { businessSector }),
+            ...(genderComposition && {genderComposition }),
+            ...(targetAudience && {targetAudience}),
+            ...(regionHq && {regionHq}),
+            ...( countryHq && {countryHq}),
+
+    
+            
             logoUrl: imageUrl, // Always include the logo URL
           };
 
@@ -554,6 +956,10 @@ app.put('/updateUserData/:userId', upload.single('logo'), (req, res) => {
       ...(businessRCNumber && { businessRCNumber }),
       ...(yearOfIncorporation && { yearOfIncorporation }),
       ...(businessSector && { businessSector }),
+      ...(genderComposition && {genderComposition }),
+    ...(targetAudience && {targetAudience}),
+       ...(regionHq && {regionHq}),
+      ...( countryHq && {countryHq}),
     };
 
     // Include the logo URL if it already exists in the database
@@ -638,20 +1044,29 @@ app.post('/loanRequest/:userId', upload.fields([
     currency,
     fundingAmount,
     reviewstage,
-    businessModel,                                                                                                                                                                                                                                                                                                                                                  
-    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
+  
+    useOfFunds = {}, // Default to an empty object if not provided
     financials,
+    
   } = req.body;
 
+  const {
+    product,
+    saleAndMarketing,
+    researchAndDevelopment,
+    capitalExpenditure,
+    operation,
+    other,
+  } = useOfFunds;
+
   const otherValue = other !== undefined ? other : '';
+
   // Handle file uploads
   const files = req.files;
   const uploadPromises = [];
   const fileUrls = {};
-  console.log("odebe")
-  if (files) {
 
-    console.log("odebe 1")
+  if (files) {
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
       const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
@@ -692,7 +1107,6 @@ app.post('/loanRequest/:userId', upload.fields([
   // Wait for all file uploads to complete
   Promise.all(uploadPromises)
     .then(() => {
-      console.log("odebe 2")
       // Create a loan request data object with the provided fields and file URLs
       const fundingRequest = {
         date,
@@ -702,55 +1116,971 @@ app.post('/loanRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel , 
+        
         useOfFunds: {
-          product,
-          saleAndMarketing,
-          researchAndDevelopment,
-          capitalExpenditure,
-          operation,
+          product: product || '',
+          saleAndMarketing: saleAndMarketing || '',
+          researchAndDevelopment: researchAndDevelopment || '',
+          capitalExpenditure: capitalExpenditure || '',
+          operation: operation || '',
           other: otherValue,
-          
-          
         },
-       
-        fundingType:"Debt" ,
+        fundingType: "Debt",
+        mode:"guidedApp",
         financials,
         businessPlanFileUrl: fileUrls.businessPlanFile || '',
         bankStatementFileUrl: fileUrls.bankStatementFile || '',
         cashFlowAnalysisFileUrl: fileUrls.cashFlowAnalysisFile || '',
         financialFileUrl: fileUrls.financialFile || '',
       };
-      console.log("odebe 4")
+
       // Update the loan request data
       const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
-        console.log("odebe 3")
         if (error) {
-          console.log("obede 5"+error)
-          res.status(500).json({ error: 'Failed to update loan request data.'});
+          res.status(500).json({ error: 'Failed to update loan request data.' });
         } else {
           const newKey = newRef.key;
 
-    // Retrieve the saved data using the correct key
-    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-      const savedData = snapshot.val();
-      savedData.fundingRequestId = newKey;
-      console.log(savedData);
-      res.status(200).json({
-        message: 'Loan request data updated successfully.',
-        savedData: savedData
-       
-      });
-    });
-                
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+            savedData.fundingRequestId = newKey;
+
+            res.status(200).json({
+              message: 'Loan request data updated successfully.',
+              savedData: savedData,
+            });
+          });
         }
       });
     })
     .catch(error => {
-      console.log(error)
       res.status(500).json({ error });
     });
 });
+
+
+// app.post('/bulkEquity/:userId', upload.fields([
+//   { name: 'pitchDeckFile', maxCount: 1 },
+// ]), (req, res) => {
+//   const userId = req.params.userId;
+//   const {
+//     problem,
+//     solution,
+//     UVP,
+//     businessType,
+//     totalRevenue,
+//     stage
+
+//   } = req.body;
+
+//   // Handle file uploads
+//   const files = req.files;
+//   const uploadPromises = [];
+//   const fileUrls = {};
+//   if (files) {
+//     Object.keys(files).forEach((key) => {
+//       const file = files[key][0];
+//       const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+//       const bucket = admin.storage().bucket();
+//       const fileRef = bucket.file(fileName);
+
+//       const stream = fileRef.createWriteStream({
+//         metadata: {
+//           contentType: file.mimetype,
+//         },
+//       });
+
+//       const uploadPromise = new Promise((resolve, reject) => {
+//         stream.on('finish', () => {
+//           fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
+//             .then(downloadUrls => {
+//               fileUrls[key] = downloadUrls[0];
+//               resolve();
+//             })
+//             .catch(error => {
+//               console.error(`Error generating download URL for ${key} file:`, error);
+//               reject(`Failed to generate ${key} file URL.`);
+//             });
+//         });
+
+//         stream.on('error', (err) => {
+//           console.error(`Error uploading ${key} file:`, err);
+//           reject(`Failed to upload ${key} file.`);
+//         });
+
+//         stream.end(file.buffer);
+//       });
+
+//       uploadPromises.push(uploadPromise);
+//     });
+//   }
+
+//   // Wait for all file uploads to complete
+//   Promise.all(uploadPromises)
+//     .then(() => {
+//       // Create a bulk equity data object with the provided fields and file URLs
+//       const bulkEquityData = {
+//         problem,
+//         solution,
+//         UVP,
+//         businessType,
+//         totalRevenue,
+//         stage,
+//         pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+//       };
+
+//       // Update the bulk equity data
+//       const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData, (error) => {
+//         if (error) {
+//           res.status(500).json({ error: 'Failed to update bulk equity data.'});
+//         } else {
+//           const newKey = newRef.key;
+
+//           // Retrieve the saved data using the correct key
+//           dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value', (snapshot) => {
+//             const savedData = snapshot.val();
+
+
+//             savedData.bulkEquityId = newKey;
+//             res.status(200).json({
+//               message: 'Bulk equity data updated successfully.',
+//               savedData: savedData
+//             });
+//           });
+//         }
+//       }); 
+//     })x
+//     .catch(error => {
+//       console.log(error);
+//       res.status(500).json({ error });
+//     });nnn
+// });
+
+// app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
+//   const userId = req.params.userId;
+//   console.log(`Received request for userId: ${userId}`);
+  
+//   let {
+//     problem,
+//     solution,
+//     UVP,
+//     businessstage,
+//     totalRevenue,
+//     InvestmentStage,
+//     equityAmount,
+//     fundingType,
+//     currency,
+//     debtAmount
+//   } = req.body;
+//   console.log(totalRevenue, equityAmount)
+//   try {
+    
+//   console.log(totalRevenue, equityAmount)
+//     // Handle file uploads
+//     const files = req.files;
+//     const fileUrls = {};
+//     if (files) {
+//       const uploadPromises = Object.keys(files).map(async (key) => {
+//         const file = files[key][0];
+//         const fileName = `${key}_${userId}_${Date.now()}a.pdf`; // Change the naming convention as needed
+//         const bucket = admin.storage().bucket();
+//         const fileRef = bucket.file(fileName);
+
+//         await fileRef.save(file.buffer, {
+//           metadata: { contentType: file.mimetype },
+//         });
+
+//         const [downloadUrl] = await fileRef.getSignedUrl({
+//           action: 'read',
+//           expires: '03-01-2500'
+//         });
+
+//         fileUrls[key] = downloadUrl;
+//       });
+
+//       await Promise.all(uploadPromises);
+//     }
+
+//     // Fetch user data
+//     const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//     const userData = userSnapshot.val();
+    
+//     if (!userData) {
+//       throw new Error(`User with ID ${userId} not found.`);
+//     }
+
+//     const BusinessSector = userData.businessSector;
+  
+//     const BusinessStage = businessstage; 
+//     const InvestmentType = InvestmentStage; 
+//     const FundingType = fundingType;
+//     const createdAt = new Date().toISOString();
+//     let count = 0
+//     console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
+
+//     const bulkEquityData = {
+//       problem: problem || "",
+//       solution: solution || "",
+//       UVP : UVP || "",
+//       totalRevenue : totalRevenue || "",
+//       InvestmentType,
+//       debtAmount : debtAmount || "",
+//       businessstage,
+//       equityAmount : equityAmount || "",
+//       fundingType : fundingType || "",
+//       currency : currency || "",
+//       pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+//       mode:"bulkApp",
+//       investorsMatch: [], // Initialize investorEmails array
+//       createdAt // Store the current timestamp in ISO 8601 format
+//     };
+
+//     if (debtAmount !== undefined) {
+//       bulkEquityData.debtAmount = debtAmount;
+//     }
+
+//     // Filter investors based on criteria
+//     const snapshot = await db.ref('/InvestorList').once('value');
+//     const investors = snapshot.val();
+
+//     if (!investors) {
+//       return res.status(404).json({ message: 'No investors found' });
+//     }
+
+//     // const directMatchInvestors = investors.filter(investor => {
+//     //   return (
+//     //     (
+//     //       !BusinessSector || (investor.BusinessSector && investor.BusinessSector.includes(BusinessSector))) 
+//     //     &&
+//     //     (!BusinessStage || (investor.BusinessStage && investor.BusinessStage.includes(BusinessStage)))
+//     //     &&
+//     //     (!InvestmentType || (investor.InvestmentStage && investor.InvestmentStage.includes(InvestmentType))) 
+//     //     &&
+//     //     (!FundingType || (investor.FundingType && investor.FundingType.includes(FundingType)))
+        
+//     //     // && (equityAmount >= investor.MinInvestment && equityAmount <= investor.MaxInvestment) && totalRevenue > investor.RevenueThreshold     
+//     //   );
+//     // });
+
+//  const directMatchInvestors = investors.filter(investor => { 
+//   return (
+//     (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
+//     (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
+//     (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
+//     (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
+//   );
+// });
+
+
+
+//     console.log(directMatchInvestors);
+    
+//     const filterInvestors = [...directMatchInvestors];
+    
+//     console.log(`Found ${filterInvestors.length} matching investors.`);
+
+//      var Status = false
+
+//     bulkEquityData.paymentStatus = false;
+//     bulkEquityData.investorsMatch = filterInvestors;
+
+//     // Update bulk equity data in Firebase
+//     const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
+//     const newKey = newRef.key;
+//     console.log(newKey);
+
+//     // Retrieve the saved data using the correct key
+//     const savedDataSnapshot = await dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value');
+//     const savedData = savedDataSnapshot.val();
+//     savedData.bulkEquityId = newKey;
+
+//     const response = {
+//       count: filterInvestors.length,
+      
+//       message: 'Bulk equity data updated successfully.',
+//       savedData
+//     };
+
+//     res.status(200).json(response);
+
+//   } catch (error) {
+//     console.error('Error during bulk equity update:', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+app.post('/bulkEquity/:userId', upload.fields([{ name: 'pitchDeckFile', maxCount: 1 }]), async (req, res) => {
+  const userId = req.params.userId;
+  console.log(`Received request for userId: ${userId}`);
+  
+  let {
+    problem,
+    solution,
+    UVP,
+    businessstage,
+    totalRevenue,
+    InvestmentStage,
+    equityAmount,
+    fundingType,
+    currency,
+    debtAmount
+  } = req.body;
+  
+  try {
+    console.log(totalRevenue, equityAmount);
+
+    // Handle file uploads
+    const files = req.files;
+    const fileUrls = {};
+    if (files) {
+      const uploadPromises = Object.keys(files).map(async (key) => {
+        const file = files[key][0];
+        const fileName = `${key}_${userId}_${Date.now()}a.pdf`;
+        const bucket = admin.storage().bucket();
+        const fileRef = bucket.file(fileName);
+
+        await fileRef.save(file.buffer, {
+          metadata: { contentType: file.mimetype },
+        });
+
+        const [downloadUrl] = await fileRef.getSignedUrl({
+          action: 'read',
+          expires: '03-01-2500'
+        });
+
+        fileUrls[key] = downloadUrl;
+      });
+
+      await Promise.all(uploadPromises);
+    }
+
+    // Fetch user data
+    const userSnapshot = await dataRef.child(`${userId}`).once('value');
+    const userData = userSnapshot.val();
+    
+    if (!userData) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+
+    const BusinessSector = userData.businessSector;
+    const BusinessStage = businessstage; 
+    const InvestmentType = InvestmentStage; 
+    const FundingType = fundingType;
+    const createdAt = new Date().toISOString();
+    
+    console.log(BusinessSector, BusinessStage, InvestmentType, fundingType);
+
+    const bulkEquityData = {
+      problem: problem || "",
+      solution: solution || "",
+      UVP: UVP || "",
+      totalRevenue: totalRevenue || "",
+      InvestmentType,
+      debtAmount: debtAmount || "",
+      businessstage,
+      equityAmount: equityAmount || "",
+      fundingType: fundingType || "",
+      currency: currency || "",
+      pitchDeckFileUrl: fileUrls.pitchDeckFile || '',
+      mode: "bulkApp",
+      investorsMatch: [], // Initialize investorsMatch array
+      totalInvestors: 0, // Initialize totalInvestors
+      paymentStatus: false,
+      createdAt // Store the current timestamp in ISO 8601 format
+    };
+
+    // Filter investors based on criteria
+    const snapshot = await db.ref('/InvestorList').once('value');
+    const investors = snapshot.val();
+
+    if (!investors) {
+      return res.status(404).json({ message: 'No investors found' });
+    }
+
+    const directMatchInvestors = investors.filter(investor => { 
+      return (
+        (!BusinessSector || investor.BusinessSector === "All" || investor.BusinessSector.includes(BusinessSector)) &&
+        (!BusinessStage || investor.BussinessStage === "All" || investor.BussinessStage.includes(BusinessStage)) &&
+        (!InvestmentType || investor.InvestmentStage === "All" || investor.InvestmentStage.includes(InvestmentType)) &&
+        (!FundingType || investor.FundingType === "All" || investor.FundingType.includes(FundingType))
+      );
+    });
+
+    console.log(directMatchInvestors);
+
+    const filterInvestors = [...directMatchInvestors];
+    console.log(`Found ${filterInvestors.length} matching investors.`);
+
+    bulkEquityData.investorsMatch = filterInvestors;
+    bulkEquityData.totalInvestors = filterInvestors.length;
+
+    // Update bulk equity data in Firebase
+    const newRef = dataRef.child(`${userId}/bulkEquity`).push(bulkEquityData);
+    const newKey = newRef.key;
+    console.log(newKey);
+
+    // Retrieve the saved data using the correct key
+    const savedDataSnapshot = await dataRef.child(`${userId}/bulkEquity/${newKey}`).once('value');
+    const savedData = savedDataSnapshot.val();
+    savedData.bulkEquityId = newKey;
+
+    const response = {
+      count: filterInvestors.length,
+      message: 'Bulk equity data updated successfully.',
+      savedData
+    };
+
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error during bulk equity update:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/updateBulkEquityInvestorCounts', async (req, res) => {
+  try {
+    // Reference to the root of your Firebase database
+    const bulkEquityRef = dataRef;
+
+    // Fetch all user data
+    const allUsersSnapshot = await bulkEquityRef.once('value');
+    const allUsersData = allUsersSnapshot.val();
+
+    if (!allUsersData) {
+      return res.status(404).json({ message: 'No bulkEquityData found.' });
+    }
+
+    // Iterate through all users and their bulkEquityData
+    const updatePromises = Object.entries(allUsersData).map(async ([userId, userData]) => {
+      if (userData.bulkEquity) {
+        const bulkEquityEntries = Object.entries(userData.bulkEquity);
+
+        // Iterate through each bulkEquity entry
+        const entryUpdatePromises = bulkEquityEntries.map(async ([entryId, entryData]) => {
+          if (entryData.investorsMatch) {
+            const totalInvestors = entryData.investorsMatch.length || 0;
+
+            // Update the entry with totalInvestors
+            await bulkEquityRef.child(`${userId}/bulkEquity/${entryId}`).update({ totalInvestors });
+            return { userId, entryId, totalInvestors };
+          }
+          return null;
+        });
+
+        // Wait for all bulkEquity entries of this user to be updated
+        return Promise.all(entryUpdatePromises);
+      }
+      return null;
+    });
+
+    // Wait for all users' updates to complete
+    const updatedData = (await Promise.all(updatePromises)).flat().filter(Boolean);
+
+    res.status(200).json({
+      message: 'Successfully updated totalInvestors for all bulkEquityData.',
+      updatedEntries: updatedData,
+    });
+  } catch (error) {
+    console.error('Error updating totalInvestors:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.get(' ', async (req, res) => {
+  try {
+    // Fetch all user IDs
+    const usersSnapshot = await dataRef.child('/').once('value');
+    const users = usersSnapshot.val();
+
+    if (!users) {
+      return res.status(404).json({ message: 'No users found.' });
+    }
+
+    // Create an array of promises to delete fundingRequests and bulkEquitys for all users
+    const deletePromises = Object.keys(users).map(async (userId) => {
+      const fundingRequestRef = dataRef.child(`${userId}/fundingRequest`);
+      const bulkEquityRef = dataRef.child(`${userId}/bulkEquity`);
+      
+      // Delete fundingRequests and bulkEquitys for the current user
+      await fundingRequestRef.remove();
+      await bulkEquityRef.remove();
+    });
+
+    // Wait for all delete operations to complete
+    await Promise.all(deletePromises);
+
+    res.status(200).json({ message: 'All funding requests and bulk equity entries have been deleted.' });
+  } catch (error) {
+    console.error('Error deleting funding requests and bulk equity entries:', error);
+    res.status(500).json({ error: 'Failed to delete funding requests and bulk equity entries.' });
+  }
+});
+
+// Start the server
+// app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+//   const { userId, bulkEquityId } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Check if there are counts with status `false`
+//       if (bulkEquityData.counts) {
+//           const counts = Object.entries(bulkEquityData.counts).reduce((acc, [key, countData]) => {
+//               // Remove selectedInvestors if status is false
+//               if (countData.status === false) {
+//                   acc[key] = { ...countData, investors: undefined };
+//               } else {
+//                   acc[key] = countData;
+//               }
+//               return acc;
+//           }, {});
+
+//           // Replace counts in bulkEquityData with the filtered version
+//           bulkEquityData.counts = counts;
+//       }
+
+//       res.status(200).json(bulkEquityData);
+//   } catch (error) {
+//       console.error('Error fetching bulk equity data:', error);
+//       res.status(500).json({ error: 'An error occurred while fetching bulk equity data' });
+//   }
+// });
+
+app.get('/bulkEquity/:userId/:bulkEquityId', async (req, res) => {
+  const { userId, bulkEquityId } = req.params;
+
+  try {
+      // Fetch the bulk equity data
+      const bulkEquitySnapshot = await admin.database().ref(`/users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
+
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
+
+      // Iterate through counts and hide selectedInvestors if status is false
+      if (bulkEquityData.counts) {
+          for (const [countId, countData] of Object.entries(bulkEquityData.counts)) {
+              if (countData.status === false) {
+                  delete countData.selectedInvestors; // Remove selectedInvestors
+              }
+          }
+      }
+
+      res.status(200).json(bulkEquityData);
+  } catch (error) {
+      console.error('Error fetching bulk equity data:', error);
+      res.status(500).json({ error: 'An error occurred while fetching bulk equity data' });
+  }
+});
+
+
+// app.post('/sendPaymentLink/:userId/:bulkEquityId/:count', async (req, res) => { 
+//   const { userId, bulkEquityId, count } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data using userId and bulkEquityId
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Save the count directly under bulkEquity
+//       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+//           count: Number(count),
+//       });
+
+//       // Create metadata for the count
+//       const newCountEntry = {
+//           count: Number(count),
+//           status: false, // Default status is false
+//       };
+
+//       // Push the new count entry under "counts" and get the unique key
+//       const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+//       const newCountKey = newCountRef.key;
+
+//       // Fetch the user data to get firstName and lastName
+//       const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//       const userData = userSnapshot.val();
+
+//       if (!userData) {
+//           return res.status(404).json({ error: 'User not found' });
+//       }
+
+//       const { firstName, lastName } = userData;
+
+//       // Generate a unique link to change the payment status, including the new count key
+//       const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
+
+//       // Prepare the email content
+//       const emailContent = {
+//           From: 'info@koppoh.com',
+//           To: 'info.koppoh@gmail.com',
+//           TemplateId: '37511874', // Your template ID
+//           TemplateModel: {
+//               firstName,
+//               lastName,
+//               paymentStatusLink,
+//           },
+//       };
+
+//       // Send the email
+//       await client.sendEmailWithTemplate(emailContent);
+
+//       // Respond with success
+//       res.status(200).json({
+//           message: 'Email sent successfully with the payment status link',
+//       });
+//   } catch (error) {
+//       console.error('Error sending payment link:', error);
+//       res.status(500).json({ error: 'An error occurred while sending the email' });
+//   }
+// });
+
+
+
+app.post('/sendPaymentLink/:userId/:bulkEquityId/:count/:refNumber', async (req, res) => {
+  const { userId, bulkEquityId, count, refNumber } = req.params;
+
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
+
+  try {
+      // Verify the transaction using Paystack
+      const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
+          headers: {
+              Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+              'Content-Type': 'application/json'
+          }
+      });
+
+      const transaction = response.data;
+      
+      if (!transaction.status || transaction.data.status !== 'success') {
+          return res.status(400).json({ error: 'Payment verification failed' });
+      }
+
+      // Proceed with existing logic
+      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
+
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
+
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+          count: Number(count),
+      });
+
+      const investorsMatch = bulkEquityData.investorsMatch || [];
+      const selectedInvestors = investorsMatch.slice(0, Number(count));
+
+      const newCountEntry = {
+          count: Number(count),
+          selectedInvestors,
+          status: true, // Status is now true after successful payment verification
+          date: new Date().toISOString(),
+      };
+
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+
+      res.status(200).json({
+          message: 'Payment verified and count recorded successfully',
+          selectedInvestors,
+      });
+  } catch (error) {
+      console.error('Error processing payment verification:', error);
+      res.status(500).json({ error: 'An error occurred while processing the request' });
+  }
+});
+
+//llllll
+
+app.get('/change-payment-status', async (req, res) => {
+  const { userId, bulkEquityId, countId } = req.query;
+
+  try {
+      // Validate the input parameters
+      if (!userId || !bulkEquityId || !countId) {
+          return res.status(400).json({ error: 'Missing required query parameters' });
+      }
+
+      // Get the reference to the specific count entry
+      const countRef = dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts/${countId}`);
+
+      // Fetch the count entry to ensure it exists
+      const countSnapshot = await countRef.once('value');
+      const countData = countSnapshot.val();
+
+      if (!countData) {
+          return res.status(404).json({ error: 'Count entry not found' });
+      }
+
+      // Update the status to true
+      await countRef.update({ status: true });
+
+      // Respond with success
+      res.status(200).json({
+          message: 'Payment status updated successfully',
+      });
+  } catch (error) {
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ error: 'An error occurred while updating payment status' });
+  }
+});
+
+
+// app.post('/NewListpayment/:userId/:bulkEquityId/:newcount', async (req, res) => { 
+//   const { userId, bulkEquityId, newcount } = req.params;
+
+//   try {
+//       // Fetch the bulk equity data using userId and bulkEquityId
+//       const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+//       const bulkEquityData = bulkEquitySnapshot.val();
+
+//       if (!bulkEquityData) {
+//           return res.status(404).json({ error: 'Bulk equity data not found' });
+//       }
+
+//       // Calculate the updated count
+//       const currentCount = bulkEquityData.count || 0; // Default to 0 if count is not present
+//       const updatedCount = currentCount + Number(newcount);
+
+//       // Update the count directly under bulkEquity
+//       await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+//           count: updatedCount,
+//       });
+
+//       // Create metadata for the new count
+//       const newCountEntry = {
+//           count: Number(newcount),
+//           status: false, // Default status is false
+//       };
+
+//       // Push the new count entry under "counts" and get the unique key
+//       const newCountRef = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+//       const newCountKey = newCountRef.key;
+
+//       // Fetch the user data to get firstName and lastName
+//       const userSnapshot = await dataRef.child(`${userId}`).once('value');
+//       const userData = userSnapshot.val();
+
+//       if (!userData) {
+//           return res.status(404).json({ error: 'User not found' });
+//       }
+
+//       const { firstName, lastName } = userData;
+
+//       // Generate a unique link to change the payment status, including the new count key
+//       const paymentStatusLink = `https://koppohstaging-070b5668de51.herokuapp.com/change-payment-status?userId=${userId}&bulkEquityId=${bulkEquityId}&countId=${newCountKey}`;
+
+//       // Prepare the email content
+//       const emailContent = {
+//           From: 'info@koppoh.com',
+//           To: 'info.koppoh@gmail.com',
+//           TemplateId: '37511874', // Your template ID
+//           TemplateModel: {
+//               firstName,
+//               lastName,
+//               paymentStatusLink,
+//           },
+//       };
+
+//       // Send the email
+//       await client.sendEmailWithTemplate(emailContent);
+
+//       // Respond with success
+//       res.status(200).json({
+//           message: 'Email sent successfully with the payment status link',
+//           updatedCount, // Return the updated count for confirmation
+//       });
+//   } catch (error) {
+//       console.error('Error sending payment link:', error);
+//       res.status(500).json({ error: 'An error occurred while sending the email' });
+//   }
+// });
+
+app.post('/NewListpayment/:userId/:bulkEquityId/:newcount/:refNumber', async (req, res) => { 
+  const { userId, bulkEquityId, newcount, refNumber } = req.params;
+  const PAYSTACK_SECRET_KEY = 'sk_test_c33111b1192ff304809aa6f4889643e8d9677985';
+
+  try {
+      // Verify the transaction using Paystack
+      const response = await axios.get(`https://api.paystack.co/transaction/verify/${refNumber}`, {
+          headers: {
+              Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+              'Content-Type': 'application/json'
+          }
+      });
+
+      const transaction = response.data;
+      
+      if (!transaction.status || transaction.data.status !== 'success') {
+          return res.status(400).json({ error: 'Payment verification failed' });
+      }
+
+      // Fetch the bulk equity data using userId and bulkEquityId
+      const bulkEquitySnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).once('value');
+      const bulkEquityData = bulkEquitySnapshot.val();
+
+      if (!bulkEquityData) {
+          return res.status(404).json({ error: 'Bulk equity data not found' });
+      }
+
+      // Calculate the starting and ending indices for investorsMatch
+      const currentCount = bulkEquityData.count || 0; // Default to 0 if count is not present
+      const startIndex = currentCount;
+      const endIndex = currentCount + Number(newcount);
+
+      // Update the count directly under bulkEquity
+      const updatedCount = endIndex;
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}`).update({
+          count: updatedCount,
+      });
+
+      // Fetch the relevant investors from investorsMatch
+      const investorsMatch = bulkEquityData.investorsMatch || [];
+      const selectedInvestors = investorsMatch.slice(startIndex, endIndex);
+
+      // Create metadata for the new count, including the date
+      const newCountEntry = {
+          count: Number(newcount),
+          status: true, // Status set to true after successful payment verification
+          selectedInvestors,
+          date: new Date().toISOString(),
+      };
+
+      await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts`).push(newCountEntry);
+
+      res.status(200).json({
+          message: 'Payment verified and count updated successfully',
+          updatedCount,
+          selectedInvestors,
+      });
+  } catch (error) {
+      console.error('Error processing payment verification:', error);
+      res.status(500).json({ error: 'An error occurred while processing the request' });
+  }
+});
+
+app.get('/bulkEquitytData/:userId/:bulkEquityId/:countId', async (req, res) => {
+  const { userId, bulkEquityId, countId } = req.params;
+
+  try {
+    // Fetch the count data using userId, bulkEquityId, and countId
+    const countSnapshot = await dataRef.child(`${userId}/bulkEquity/${bulkEquityId}/counts/${countId}`).once('value');
+    const countData = countSnapshot.val();
+
+    if (!countData) {
+      return res.status(404).json({ error: 'Count data not found' });
+    }
+
+    // Check the status of the count entry
+    if (countData.status === true) {
+      // If status is true, return the count data
+      return res.status(200).json({
+        message: 'Payment verified',
+        countData,
+      });
+    } else {
+      // If status is false, return pending verification message
+      return res.status(200).json({
+        message: 'Payment pending verification',
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching count data:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the count data' });
+  }
+});
+
+
+
+
+
+app.post('/scheduleEmails/:userId/:bulkEquityId', async (req, res) => {
+  const userId = req.params.userId;
+  const bulkEquityId = req.params.bulkEquityId;
+  const { numberOfEmails, numberOfWeeks } = req.body;
+  const dbs = admin.database();
+  console.log(userId, bulkEquityId);
+  
+  try {
+    // Fetch bulkEquity data
+    const bulkEquitySnapshot = await dbs.ref(`users/${userId}/bulkEquity/${bulkEquityId}`).once('value');
+    const bulkEquityData = bulkEquitySnapshot.val();
+
+    if (!bulkEquityData) {
+      return res.status(404).json({ error: `Bulk equity data with ID ${bulkEquityId} not found.` });
+    }
+
+    const { investorEmails, pitchDeckFileUrl } = bulkEquityData;
+    if (!investorEmails || investorEmails.length === 0) {
+      console.log('No investor emails found.' );
+      return res.status(400).json({ error: 'No investor emails found.' });
+    }
+
+    const emailsToSend = investorEmails.slice(0, numberOfEmails * numberOfWeeks);
+    if (emailsToSend.length < numberOfEmails * numberOfWeeks) {
+
+      console.log('Not enough emails to cover the given number of weeks and emails per week.' );
+      return res.status(400).json({ error: 'Not enough emails to cover the given number of weeks and emails per week.' });
+    }
+
+    // Fetch the PDF file
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(pitchDeckFileUrl);
+    const [fileBuffer] = await file.download();
+
+    const attachment = {
+      Name: 'PitchDeck.pdf',
+      Content: fileBuffer.toString('base64'),
+      ContentType: 'application/pdf'
+    };
+
+    const sendEmails = async (emails) => {
+      // Send emails using Postmark
+      for (const email of emails) {
+        await postmarkClient.sendEmail({
+          From: 'info@koppoh.com',
+          To: email,
+          Subject: 'StartUP',
+          HtmlBody: 'Your HTML body content here',
+          Attachments: [attachment]
+        });
+      }
+    };
+
+    // Schedule emails
+    for (let i = 0; i < numberOfWeeks; i++) {
+      const emails = emailsToSend.slice(i * numberOfEmails, (i + 1) * numberOfEmails);
+      const date = new Date();
+      date.setDate(date.getDate() + 7 * i);
+
+      schedule.scheduleJob(date, () => {
+        sendEmails(emails).catch(console.error);
+      });
+    }
+
+    res.status(200).json({ message: 'Emails scheduled successfully.' });
+
+  } catch (error) {
+    console.error('Error scheduling emails:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 app.post('/equityRequest/:userId', upload.fields([
@@ -770,11 +2100,22 @@ app.post('/equityRequest/:userId', upload.fields([
     investmentStage,
     currency,
     fundingAmount,
-    businessModel,
+
     reviewstage,
-    useOfFunds: { product, saleAndMarketing, researchAndDevelopment, capitalExpenditure, operation, other },
-    financials,
+    useOfFunds = {}, // Default to an empty object if not provided
+    financials = [],
   } = req.body;
+  console.log(financials)
+  
+  const {
+    product,
+    saleAndMarketing,
+    researchAndDevelopment,
+    capitalExpenditure,
+    operation,
+    other,
+  } = useOfFunds;
+
   const otherValue = other !== undefined ? other : '';
 
   // Handle file uploads
@@ -833,19 +2174,19 @@ app.post('/equityRequest/:userId', upload.fields([
         currency,
         fundingAmount,
         reviewstage,
-        businessModel,
+       
         useOfFunds: {
-          product,
-          saleAndMarketing,
-          researchAndDevelopment,
-          capitalExpenditure,
-          operation,
+          product: product || '',
+          saleAndMarketing: saleAndMarketing || '',
+          researchAndDevelopment: researchAndDevelopment || '',
+          capitalExpenditure: capitalExpenditure || '',
+          operation: operation || '',
           other: otherValue,
+          
         },
         financials,
-        
-       
-        fundingType: "Equity" ,
+        fundingType: "Equity",
+        mode:"guidedApp",
         pitchdeckUrl: fileUrls.pitchdeck || '',
         valuationUrl: fileUrls.valuation || '',
         captableUrl: fileUrls.captable || '',
@@ -853,37 +2194,32 @@ app.post('/equityRequest/:userId', upload.fields([
         founderagreementUrl: fileUrls.founderagreement || '',
         taxclearanceUrl: fileUrls.taxclearance || '',
       };
-     
-      // Update the equity request data
-      const newRef =  dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
-        if (error) {
-          console.log(error)
-          res.status(500).json({ error: 'Failed to update equity request data.'});
-        } else {
 
+      // Update the equity request data
+      const newRef = dataRef.child(`${userId}/fundingRequest`).push(fundingRequest, (error) => {
+        if (error) {
+          res.status(500).json({ error: 'Failed to update equity request data.' });
+        } else {
           const newKey = newRef.key;
 
-    // Retrieve the saved data using the correct key
-    dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
-      const savedData = snapshot.val();
-       
-      savedData.fundingRequestId = newKey;
+          // Retrieve the saved data using the correct key
+          dataRef.child(`${userId}/fundingRequest/${newKey}`).once('value', (snapshot) => {
+            const savedData = snapshot.val();
+            savedData.fundingRequestId = newKey;
 
-      console.log(savedData);
-      res.status(200).json({
-        message: 'Equity request data updated successfully.',
-        savedData: savedData
-      });
-    });
-          
+            res.status(200).json({
+              message: 'Equity request data updated successfully.',
+              savedData: savedData,
+            });
+          });
         }
       });
     })
     .catch(error => {
-      console.log(error)
       res.status(500).json({ error });
     });
 });
+
 
 app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   const userId = req.params.userId;
@@ -903,7 +2239,7 @@ app.post('/storeChat/:userId/:fundingRequestId', (req, res) => {
   };
 
   // Update the chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   const newChatRef = chatRef.push(chatMessage, (error) => {
     if (error) {
       console.log(error);
@@ -937,7 +2273,7 @@ app.get('/getChat/:userId/:fundingRequestId', (req, res) => {
   }
 
   // Retrieve all chat messages under the specified funding request
-  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chat`);
+  const chatRef = dataRef.child(`${userId}/fundingRequest/${fundingRequestId}/chats`);
   chatRef.once('value', (snapshot) => {
     const chatMessages = snapshot.val();
 
@@ -973,6 +2309,8 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
   { name: 'founderagreement', maxCount: 1 },
   { name: 'taxclearance', maxCount: 1 },
 ]), (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body
+  
   const userId = req.params.userId;
   const fundingRequestId = req.params.fundingRequestId;
  
@@ -992,13 +2330,14 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
 
   // Handle file updates
   const files = req.files;
+  console.log('Uploaded Files:', files); // Log uploaded files
   const uploadPromises = [];
   const fileUrls = {};
 
   if (files) {
     Object.keys(files).forEach((key) => {
       const file = files[key][0];
-      const fileName = `${key}_${userId}_${Date.now()}a.jpg`; // Change the naming convention as needed
+      const fileName = `${key}_${userId}_${Date.now()}${path.extname(file.originalname)}`; // Change the naming convention as needed
       const bucket = admin.storage().bucket();
       const fileRef = bucket.file(fileName);
 
@@ -1013,17 +2352,18 @@ app.put('/updateFundingRequest/:userId/:fundingRequestId', upload.fields([
           fileRef.getSignedUrl({ action: 'read', expires: '03-01-2500' })
             .then(downloadUrls => {
               fileUrls[key] = downloadUrls[0];
+              console.log(`File ${fileName} uploaded successfully.`);
               resolve();
             })
             .catch(error => {
-              console.error(`Error generating download URL for ${key} file:`, error);
-              reject(`Failed to generate ${key} file URL.`);
+              console.error(`Error generating download URL for ${fileName}:`, error);
+              reject(`Failed to generate download URL for ${fileName}.`);
             });
         });
 
         stream.on('error', (err) => {
-          console.error(`Error uploading ${key} file:`, err);
-          reject(`Failed to upload ${key} file.`);
+          console.error(`Error uploading ${fileName}:`, err);
+          reject(`Failed to upload ${fileName}.`);
         });
 
         stream.end(file.buffer);
@@ -1131,6 +2471,30 @@ app.post('/store-subscription', (req, res) => {
   });
 });
 
+
+app.post('/store-email', (req, res) => {
+  console.log('Request  body:', req.body); // Log the request body to check its content
+
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).send('Email is required');
+  }
+
+  const userRef = db.ref('emails');
+
+  userRef.push({ email }, (error) => {
+    if (error) {
+      res.status(500).send('Error storing email information');
+    } else {
+      res.status(200).send('Email information stored successfully');
+    }
+  });
+});
+
+
+
+
 app.get('/check-subscription-status', (req, res) => {
   // Assuming the user is already authenticated and you have obtained their UID
   
@@ -1234,7 +2598,9 @@ app.delete('/deleteMilestone/:userId/:milestoneId', (req, res) => {
 app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req, res) => {
   const userId = req.params.userId;
   const teammateId = req.params.teammateId;
-  const { name, role } = req.body;
+  const { name, role, gender, experience } = req.body;
+
+  console.log('Request body:', req.body); // Log the request body
 
   // Reference to the specific teammate in the database
   const teammateRef = teammatesRef.child(`${userId}/Teammate/${teammateId}`);
@@ -1260,8 +2626,12 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
     const updatedTeammate = {
       name: name || existingTeammate.name,
       role: role || existingTeammate.role,
+      gender: gender || existingTeammate.gender,
+      experience: experience || existingTeammate.experience,
       imageURL: existingTeammate.imageURL, // Preserve the existing imageURL if no new image is provided
     };
+
+    console.log('Updated teammate object:', updatedTeammate); // Log the updated teammate object
 
     // If an image is provided, update it in Firebase Storage and update its download URL in the teammate object
     if (req.file) {
@@ -1276,6 +2646,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       });
 
       blobStream.on('error', (error) => {
+        console.error('Error uploading the image:', error);
         return res.status(500).json({ error: 'Error uploading the image.' });
       });
 
@@ -1283,6 +2654,7 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
         // Get the download URL for the updated image
         file.getSignedUrl({ action: 'read', expires: '01-01-2030' }, (error, downloadUrl) => {
           if (error) {
+            console.error('Error getting download URL:', error);
             return res.status(500).json({ error: 'Error getting download URL.' });
           }
 
@@ -1291,10 +2663,15 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
           // Update the teammate in the database
           teammateRef.update(updatedTeammate, (error) => {
             if (error) {
+              console.error('Error updating teammate in the database:', error);
               return res.status(500).json({ error: 'Error updating teammate in the database.' });
             }
 
-            return res.status(200).json({ message: 'Teammate updated successfully.' });
+            // Return the updated teammate data
+            return res.status(200).json({
+              message: 'Teammate updated successfully.',
+              teammate: updatedTeammate
+            });
           });
         });
       });
@@ -1304,14 +2681,21 @@ app.put('/api/updateTeammate/:userId/:teammateId', upload.single('image'), (req,
       // If no new image is provided, update the teammate object in the database directly
       teammateRef.update(updatedTeammate, (error) => {
         if (error) {
-          return res.status(500).json({ error: 'Error updating teammate in the database.' });
+          console.error('Error updating teammate in the database:', error);
+          return res.status(500).json({ error: 'Error updating teammate s in the database.' });
         }
 
-        return res.status(200).json({ message: 'Teammate updated successfully.' });
+        // Return the updated teammate data
+        return res.status(200).json({
+          message: 'Teammate updated successfully.',
+          teammate: updatedTeammate,
+          teammateId : teammateId
+        });
       });
     }
   });
 });
+
 
 
 
@@ -1361,7 +2745,9 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType } = req.body;
+     fundingType,
+    businessModel
+   } = req.body;
 
   // Check if date and type are provided (compulsory fields)
   if (!date || !type) {
@@ -1389,7 +2775,8 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
     fundingAmount,
     useOfFunds,
     financials,
-     fundingType 
+     fundingType ,
+    businessModel
     
     // Initialize the receiptURL field
   };
@@ -1442,32 +2829,174 @@ app.post('/api/uploadReceipt/:userId', (req, res) => {
 
 const storagex = admin.storage();
 
-app.get('/storeTeaser-pdf', async (req, res) => {
+// app.get('/storeTeaser-pdf', async (req, res) => {
+//   const { userId, fundingRequestId, url } = req.query;
 
+//   if (!userId || !url) {
+//     return res.status(400).json({ error: 'Missing required parameters' });
+//   }
+
+//   try {
+//     const browser = await puppeteer.launch({
+//       args: [
+//         '--no-sandbox',
+//         '--disable-setuid-sandbox',
+//       ],
+//     });
+//     const page = await browser.newPage();
+//     await page.goto(url, { waitUntil: 'networkidle2' });
+
+//     // Generate PDF with A4 size and no margins
+//     const pdfBuffer = await page.pdf({
+//       format: 'A5',
+//       margin: { top: 0, right: 0, bottom: 0, left: 0 }
+//     });
+
+//     await browser.close();
+
+//     const randomNumber = Math.floor(100000 + Math.random() * 900000);
+//     console.log(randomNumber);
+
+//     const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
+
+//     // Upload the PDF directly from memory to Firebase Storage
+//     const bucket = storagex.bucket();
+//     const file = bucket.file(`pdfs/${fileName}`);
+//     await file.save(pdfBuffer, {
+//       metadata: { contentType: 'application/pdf' },
+//     });
+
+//     // Get the signed URL for the uploaded PDF
+//     const [signedUrl] = await file.getSignedUrl({
+//       action: 'read',
+//       expires: '03-09-2491', // Replace with an appropriate expiration date
+//     });
+
+//     // Update the teaser data in the Realtime Database
+//     const ref = db.ref(`/users/${userId}/teaser`);
+
+//     const teaserData = {
+//       pdfUrl: signedUrl,
+//       storageDate: new Date().toISOString(),
+//     };
+
+//     if (fundingRequestId) {
+//       teaserData.fundingRequestId = fundingRequestId;
+//     }
+
+//     await ref.push(teaserData);
+
+//     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal server error', error });
+//   }
+// });
+
+// app.get('/storeTeaser-pdf', async (req, res) => {
+// app.get('/storeTeaser-pdf', async (req, res) => {
+//   const { userId, fundingRequestId, url } = req.query;
+
+//   if (!userId || !url) {
+//     return res.status(400).json({ error: 'Missing required parameters' });
+//   }
+
+//   try {
+//     const browser = await puppeteer.launch({
+//       args: [
+//         '--no-sandbox',
+//         '--disable-setuid-sandbox',
+//       ],
+//     });
+//     const page = await browser.newPage();
+//     await page.goto(url, { waitUntil: 'networkidle2' });
+
+//     // Generate PDF with A4 size and no margins
+//     const pdfBuffer = await page.pdf({
+//       format: 'A5',
+//       margin: { top: 0, right: 0, bottom: 0, left: 0 }
+//     });
+
+//     await browser.close();
+
+//     const randomNumber = Math.floor(100000 + Math.random() * 900000);
+//     console.log(randomNumber);
+
+//     const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
+
+//     // Upload the PDF directly from memory to Firebase Storage
+//     const bucket = storagex.bucket();
+//     const file = bucket.file(`pdfs/${fileName}`);
+//     await file.save(pdfBuffer, {
+//       metadata: { contentType: 'application/pdf' },
+//     });
+
+//     // Get the signed URL for the uploaded PDF
+//     const [signedUrl] = await file.getSignedUrl({
+//       action: 'read',
+//       expires: '03-09-2491', // Replace with an appropriate expiration date
+//     });
+
+//     // Update the teaser data in the Realtime Database
+//     const ref = db.ref(`/users/${userId}/teaser`);
+
+//     const teaserData = {
+//       pdfUrl: signedUrl,
+//       storageDate: new Date().toISOString(),
+//     };
+
+//     if (fundingRequestId) {
+//       teaserData.fundingRequestId = fundingRequestId;
+//     }
+
+//     await ref.push(teaserData);
+
+//     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal server error', error });
+//   }
+// });
+
+app.get('/storeTeaser-pdf', async (req, res) => {
   const { userId, fundingRequestId, url } = req.query;
 
+
+  console.log(url);
+
   if (!userId || !url) {
+    console.error('Missing required parameters: userId or url');
     return res.status(400).json({ error: 'Missing required parameters' });
   }
 
+  
   try {
-    const browser = await puppeteer.launch({
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-      ],
-    });
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
+   const browser = await puppeteer.launch({
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  headless: true, // ensure headless mode
+  dumpio: true, // log Chromium output to your Heroku logs
+});
 
-    const pdfBuffer = await page.pdf();
+    
+    const page = await browser.newPage();
+
+    // Increase the navigation timeout to 60 seconds
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 6000000 });
+
+    // Generate PDF with A4 size, no margins, and include background color
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      printBackground: true, // Include background color
+    });
+
     await browser.close();
 
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-      console.log(randomNumber);
+    console.log(randomNumber);
+    console.log(`Generated random number: ${randomNumber}`);
 
-
-    const fileName = `${userId}${randomNumber}.pdf`; // Use 'teaser' if fundingRequestId is not provided
+    const fileName = `${userId}${randomNumber}.pdf`;
 
     // Upload the PDF directly from memory to Firebase Storage
     const bucket = storagex.bucket();
@@ -1476,11 +3005,15 @@ app.get('/storeTeaser-pdf', async (req, res) => {
       metadata: { contentType: 'application/pdf' },
     });
 
+    console.log(`PDF saved to Firebase Storage with filename: ${fileName}`);
+
     // Get the signed URL for the uploaded PDF
     const [signedUrl] = await file.getSignedUrl({
       action: 'read',
       expires: '03-09-2491', // Replace with an appropriate expiration date
     });
+
+    console.log(`Generated signed URL: ${signedUrl}`);
 
     // Update the teaser data in the Realtime Database
     const ref = db.ref(`/users/${userId}/teaser`);
@@ -1496,10 +3029,26 @@ app.get('/storeTeaser-pdf', async (req, res) => {
 
     await ref.push(teaserData);
 
+    console.log('Teaser data pushed to Realtime Database:', teaserData);
+
     res.status(200).json({ success: true, pdfUrl: signedUrl, teaserData });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error', error });
+    console.error('Error occurred:', error);
+
+    // Specific error logging
+    if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+      console.error('DNS resolution error:', error.message);
+    } else if (error.message.includes('net::ERR_CONNECTION_TIMED_OUT')) {
+      console.error('Connection timed out:', error.message);
+    } else if (error.message.includes('TimeoutError')) {
+      console.error('Navigation timeout:', error.message);
+    } else if (error.message.includes('NoSuchBucket')) {
+      console.error('Bucket not found:', error.message);
+    } else {
+      console.error('Unexpected error:', error.message);
+    }
+
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
@@ -1521,26 +3070,37 @@ app.delete('/deleteFundingRequest/:userId/:fundingRequestId', (req, res) => {
 });
 
 app.get('/api/latestBlogPost/:number', async (req, res) => {
-  const { number } = req.params;
+  const number = parseInt(req.params.number);
+
+  if (isNaN(number) || number < 1) {
+    return res.status(400).json({ error: 'Invalid number parameter' });
+  }
 
   try {
-    const database = admin.database();
-    const snapshot = await database.ref('blogPosts').orderByKey().limitToLast(Number(number)).once('value');
-    const blogPosts = snapshot.val();
+    const blogPostsRef = db.ref('blogPosts');
+    const snapshot = await blogPostsRef.orderByKey().limitToLast(number).once('value');
 
-    // Extract the latest blog post with BlogPostId
-    const latestBlogPostKeys = Object.keys(blogPosts);
-    const latestBlogPosts = latestBlogPostKeys.map(key => ({
-      BlogPostId: key,
-      ...blogPosts[key]
-    }));
+    const posts = [];
+    snapshot.forEach(childSnapshot => {
+      posts.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
+    });
 
-    res.json({ latestBlogPosts });
+    posts.reverse(); // Reverse to get the most recent posts first
+
+    if (number > posts.length) {
+      return res.status(404).json({ error: 'Number exceeds the available blog posts' });
+    }
+
+    res.json(posts[number - 1]);
   } catch (error) {
-    console.error('Error fetching blog posts:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Failed to retrieve blog posts', details: error.message });
   }
 });
+
+
 
 
 app.get('/api/blogPost/:postId', async (req, res) => {
@@ -1720,6 +3280,245 @@ app.get('/users/pages', async (req, res) => {
   }
 });
 
+const courses = [
+  {
+    "name": "Part one: Introduction to business growth",
+    "link": "https://www.youtube.com/watch?v=example_part1",
+    "topics": [
+      "Why businesses do not grow",
+      "Key business mindsets hindering growth",
+      "Overcoming limiting beliefs about scaling your business"
+    ],
+    "facilitators": [
+      "Adenike Ogunlesi (Ruff ‘n’ Tumble)",
+      "Ibukun Awoshika – Mrs O",
+      "Cosmas Maduka (Coscharis) – Mrs O",
+      "Kola Oyeneyin (The Opportunik Global Fund) - Taiwo",
+      "Mai Atafo (Atafo) - Abdul",
+      "Odunayo Eweniyi (Piggyvest) - Taiwo",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Morenike Moleyin (Oak and Teak Interiors)"
+    ]
+  },
+  {
+    "name": "Part two: Growth mindset for SMEs",
+    "link": "https://www.youtube.com/watch?v=example_part2",
+    "topics": [
+      "Identifying growth opportunities in your business",
+      "Growth vs. scale: Understanding the difference"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Olawale Ayilara (Oxygen Holdings)",
+      "Cosmas Maduka (Coscharis)",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Morenike Moleyin (Oak and Teak Interiors)",
+      "Sandrah Tubobereni (Tubo)",
+      "Ore Runsewe (Arami Essentials)"
+    ]
+  },
+  {
+    "name": "Part three: Building a strong foundation",
+    "link": "https://www.youtube.com/watch?v=example_part3",
+    "topics": [
+      "How to decide if you are doing the right business",
+      "Selecting the right niche",
+      "Focusing on the right customer"
+    ],
+    "facilitators": [
+      "Olawale Ayilara (Oxygen Holdings)",
+      "Nelly Agbogu (Naija Brand Chick)",
+      "Cosmas Maduka (Coscharis)",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Sandrah Tubobereni (Tubo)"
+    ]
+  },
+  {
+    "name": "Part four: Customer acquisition & retention",
+    "link": "https://www.youtube.com/watch?v=example_part4",
+    "topics": [
+      "A complete breakdown of why customers leave businesses",
+      "How to protect your business from customer loss",
+      "How to generate demand"
+    ],
+    "facilitators": [
+      "Odunayo Eweniyi (Piggyvest)",
+      "Mai Atafo (Atafo)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Olagoke Balogun (SoFresh)",
+      "Kelvin Umechukwu (Bumpa)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Funke Akindele"
+    ]
+  },
+  {
+    "name": "Part five: Marketing & promotion strategies",
+    "link": "https://www.youtube.com/watch?v=example_part5",
+    "topics": [
+      "Steps to follow before spending on advertising",
+      "How to choose the right advertising medium",
+      "Leveraging influencers for business growth",
+      "Digital marketing basics",
+      "Content marketing strategies",
+      "How to get others to promote your business for FREE",
+      "Building strategic partnerships",
+      "Networking strategies for SMEs"
+    ],
+    "facilitators": [
+      "Nelly Agbogu",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Aminu Murtala Nyako (Sebore Group)",
+      "Tomiwa Aladekomo (TechCabal)",
+      "Funke Akindele",
+      "Sandrah Tubobereni (Tubo)",
+      "Ore Runsewe (Arami Essentials)",
+      "Victor Asemota (AnD Ventures)"
+    ]
+  },
+  {
+    "name": "Part six: Effective pricing & profitability",
+    "link": "https://www.youtube.com/watch?v=example_part6",
+    "topics": [
+      "How to price your products for maximum profitability",
+      "Avoiding common pricing mistakes"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Cosmas Maduka (Coscharis)",
+      "Mai Atafo (Atafo)",
+      "Odunayo Eweniyi (Piggyvest)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Adenike Ogunlesi - Taiwo",
+      "Morenike Moleyin (Oak and Teak Interiors)",
+      "Ore Runsewe (Arami Essentials)",
+      "Victor Asemota (AnD Ventures)",
+      "Olagoke Balogun (SoFresh)"
+    ]
+  },
+  {
+    "name": "Part seven: Sales, offer and distribution",
+    "link": "https://www.youtube.com/watch?v=example_part7",
+    "topics": [
+      "How to convert leads to paying clients",
+      "How to present a valuable offer to customers",
+      "How to understand and pick the best distribution channel for product and customers"
+    ],
+    "facilitators": [
+      "Ibukun Awoshika",
+      "Cosmas Maduka (Coscharis)",
+      "Ikenna Okongwu (Chicken Republic)",
+      "Adenike Ogunlesi (Ruff ‘n’ Tumble)",
+      "Affiong Williams (ReelFruit)",
+      "Victor Asemota (AnD Ventures)",
+      "Olagoke Balogun (SoFresh)"
+    ]
+  },
+  {
+    "name": "Part eight: Business models for scaling",
+    "link": "https://www.youtube.com/watch?v=example_part8",
+    "topics": [
+      "How to operate a business model that ensures fast scaling",
+      "How to set-up and manage a multi-outlet business",
+      "Identifying and adapting scalable processes",
+      "Creating recurring revenue streams"
+    ],
+    "facilitators": [
+      "Cosmas Maduka (Coscharis)",
+      "Bosun Tijani",
+      "Ikenna Okongwu",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Affiong Williams (ReelFruit)",
+      "Victor Asemota (AnD Ventures)"
+    ]
+  },
+  {
+    "name": "Part nine: Building & managing a team",
+    "link": "https://www.youtube.com/watch?v=example_part9",
+    "topics": [
+      "How to build a team 101",
+      "Recruiting and retaining the right talent",
+      "Building team culture for growth"
+    ],
+    "facilitators": [
+      "Bosun Tijani (CcHub)",
+      "Ikenna Okongwu (Chicken Republic)",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Mai Atafo (Atafo)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Tayo Bolodeoku (Hans & Rene)",
+      "Kelvin Umechukwu (Bumpa)",
+      "Aminu Murtala Nyako",
+      "Olagoke Balogun (SoFresh)",
+      "Ifedayo Agoro (DANG Lifestyle)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Morenike Moleyin (Oak and Teak Interiors)"
+    ]
+  },
+  {
+    "name": "Part ten: Metrics & continuous improvement",
+    "link": "https://www.youtube.com/watch?v=example_part10",
+    "topics": [
+      "How to track and measure growth",
+      "Understanding key performance indicators (KPIs) for SMEs"
+    ],
+    "facilitators": [
+      "Cosmas Maduka (Coscharis)",
+      "Tara durotoye",
+      "Kola Oyeneyin (The Opportunik Global Fund)",
+      "Tosin Eniolorunda (Moniepoint)",
+      "Dr Ola Brown (Healthcap Africa)",
+      "Kelvin Umechukwu (Bumpa)"
+    ]
+  }
+]
+
+app.post("/business-advice", async (req, res) => {
+  try {
+      const { userChallenges } = req.body;
+      if (!userChallenges || !Array.isArray(userChallenges) || userChallenges.length === 0) {
+          return res.status(400).json({ error: "userChallenges (array) is required." });
+      }
+
+      // Select a random course and facilitator
+      const selectedCourse = courses[Math.floor(Math.random() * courses.length)];
+      const selectedFacilitator = selectedCourse.facilitators[Math.floor(Math.random() * selectedCourse.facilitators.length)];
+
+      const prompt = `
+          A user is facing these business challenges: ${userChallenges.join(", ")}.
+          Based on the course "${selectedCourse.name}", facilitated by ${selectedFacilitator}, provide a short business advice addressing one of the challenges.
+          Explain how what ${selectedFacilitator} taught in this course helps the user.
+          Include the course link: ${selectedCourse.link}.
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+
+      res.json({
+          advice: response,
+          course: selectedCourse.name,
+          facilitator: selectedFacilitator,
+          link: selectedCourse.link
+      });
+
+  } catch (error) {
+      console.error("Error generating advice:", error);
+      res.status(500).json({ error: "Failed to generate business advice." });
+  }
+});
+
+
+
 
 const port = process.env.PORT || 3000;
 // Start the server
@@ -1727,6 +3526,35 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+app.put('/updateDealStatus/:fundingRequestId', async (req, res) => {
+  try {
+    const fundingRequestId = req.params.fundingRequestId;
+    const { dealStatus } = req.body;
 
-// end
+    // Check if the deal status is valid
+    if (dealStatus !== 'interested' && dealStatus !== 'notInterested') {
+      return res.status(400).json({ error: 'Invalid deal status' });
+    }
+
+    // Get the user ID associated with the funding request
+    const snapshot = await usersRef.orderByChild(`fundingRequest/${fundingRequestId}`).equalTo(true).once('value');
+    const userId = Object.keys(snapshot.val())[0];
+
+    // Check if the user and funding request exist
+    if (!userId) {
+      return res.status(404).json({ error: 'Funding request not found' });
+    }
+
+    // Update the deal status for the funding request
+    await usersRef.child(`${userId}/fundingRequest/${fundingRequestId}/interested`).set(dealStatus === 'interested');
+
+    res.json({ message: 'Deal status updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// end // end 
   
